@@ -7,12 +7,11 @@ import com.example.myapplication.model.Direccion
 import com.example.myapplication.model.Propiedad
 import com.example.myapplication.model.Propietario
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import org.junit.Assert.assertEquals
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)

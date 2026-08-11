@@ -43,7 +43,7 @@ fun AppNavigation(
                     )
                 }
                 is DetallePropiedad -> NavEntry(key) {
-                    val propiedad = dptos.first { it.id == key.id.toLong() }
+                    val propiedad = dptos.first { it.id == key.id }
                     DetallePropiedadScreen(
                         propiedad = propiedad,
                         onBackClick = { backStack.removeLastOrNull() }
