@@ -18,11 +18,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val propietario = Propietario(1, "Juan Perez")
+        val propietario = Propietario("Juan Perez")
         val dptos: List<Propiedad> = listOf(
             Propiedad(
                 id = 1,
-                direccion = Direccion(1, "Calle", "1111", "3", "D"),
+                direccion = Direccion("Calle", "1111", "3", "D"),
                 propietario = propietario
             )
         )

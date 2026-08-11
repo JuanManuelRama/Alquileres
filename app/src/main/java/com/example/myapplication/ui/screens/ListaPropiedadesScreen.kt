@@ -20,7 +20,7 @@ import com.example.myapplication.ui.components.CardDpto
 @Composable
 fun ListaPropiedadesScreen(
     dptos: List<Propiedad>,
-    onPropiedadClick: (Int) -> Unit,
+    onPropiedadClick: (Long) -> Unit,
     addPropiedadClick: () -> Unit,
 ) {
     Box(modifier = Modifier.fillMaxSize()) {

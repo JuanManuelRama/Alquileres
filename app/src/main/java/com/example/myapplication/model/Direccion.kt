@@ -1,7 +1,6 @@
 package com.example.myapplication.model
 
 data class Direccion (
-    val id: Int,
     val calle: String,
     val altura: String,
     val piso: String?,

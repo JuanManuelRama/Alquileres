@@ -35,13 +35,15 @@ fun AppNavigation(
                 }
                 is AddPropiedad -> NavEntry(key) {
                     AddPropiedadScreen(
-                        onPropiedadCreada = { _ -> },
-                        onBackClick = {}
-
+                        existingPropiedades = dptos,
+                        onSubmit = {_ -> },
+                        modifier = Modifier
+                        //onPropiedadCreada = { _ -> },
+                        //onBackClick = {}
                     )
                 }
                 is DetallePropiedad -> NavEntry(key) {
-                    val propiedad = dptos.first { it.id == key.id }
+                    val propiedad = dptos.first { it.id == key.id.toLong() }
                     DetallePropiedadScreen(
                         propiedad = propiedad,
                         onBackClick = { backStack.removeLastOrNull() }
