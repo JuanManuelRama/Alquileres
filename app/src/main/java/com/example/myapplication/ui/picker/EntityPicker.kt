@@ -1,7 +1,9 @@
 package com.example.myapplication.ui.picker
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.DropdownMenuItem
@@ -12,6 +14,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,12 +22,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun <T> EntityPicker(
     items: List<T>,
     selectedItem: T?,
-    onItemSelected: (T) -> Unit,
+    onItemSelected: (T?) -> Unit,
     onItemCreated: (T) -> Unit,
     itemLabel: (T) -> String,
     itemSearchText: (T) -> String = itemLabel,
@@ -35,31 +39,45 @@ fun <T> EntityPicker(
 ) {
     var mode by remember { mutableStateOf(EntityPickerMode.SELECT) }
 
-    when (mode) {
-        EntityPickerMode.SELECT -> {
-            EntitySelection(
-                items = items,
-                selectedItem = selectedItem,
-                onItemSelected = onItemSelected,
-                onCreateNew = {
-                    mode = EntityPickerMode.CREATE
-                },
-                itemLabel = itemLabel,
-                itemSearchText = itemSearchText,
-                modifier = modifier,
-                label = label,
-                placeholder = placeholder,
-            )
-        }
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        EntitySelection(
+            items = items,
+            selectedItem = selectedItem,
+            onItemSelected = onItemSelected,
+            onCreateNew = {
+                onItemSelected(null)
+                mode = EntityPickerMode.CREATE
+            },
+            itemLabel = itemLabel,
+            itemSearchText = itemSearchText,
+            modifier = Modifier.fillMaxWidth(),
+            label = label,
+            placeholder = placeholder,
+        )
 
-        EntityPickerMode.CREATE -> {
-            createContent(
-                { item ->
-                    onItemCreated(item)
-                    mode = EntityPickerMode.SELECT
-                },
-                { mode = EntityPickerMode.SELECT },
-            )
+        if (mode == EntityPickerMode.CREATE) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp),
+                shape = MaterialTheme.shapes.medium,
+                tonalElevation = 2.dp,
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    createContent(
+                        {
+                            onItemCreated(it)
+                            mode = EntityPickerMode.SELECT
+                        },
+                        { mode = EntityPickerMode.SELECT }
+                    )
+                }
+            }
         }
     }
 }

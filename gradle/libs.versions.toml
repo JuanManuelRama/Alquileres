@@ -13,6 +13,7 @@ room = "3.0.1"
 ksp = "2.3.9"
 coroutines = "1.11.0"
 compose-icons = "1.7.0"
+material3 = "1.4.0"
 
 
 [libraries]
@@ -38,6 +39,7 @@ androidx-room-testing = { group = "androidx.room3", name = "room3-testing", vers
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 compose-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core", version.ref = "compose-icons" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 
 
 
