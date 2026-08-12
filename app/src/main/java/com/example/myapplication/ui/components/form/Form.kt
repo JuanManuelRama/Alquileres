@@ -2,6 +2,7 @@ package com.example.myapplication.ui.components.form
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,6 +16,8 @@ import androidx.compose.ui.unit.dp
 fun Form(
     submitText: String,
     onSubmit: () -> Unit,
+    cancelText: String,
+    onCancel: () -> Unit,
     modifier: Modifier = Modifier,
     builder: FormScope.() -> Unit
 ) {
@@ -30,12 +33,21 @@ fun Form(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Button(
-            onClick = onSubmit,
-            enabled = isFormValid,
-            modifier = Modifier.fillMaxWidth()
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
         ) {
-            Text(text = submitText)
+            Button(
+                onClick = onCancel,
+            ) {
+                Text(text = cancelText)
+            }
+            Button(
+                onClick = onSubmit,
+                enabled = isFormValid,
+            ) {
+                Text(text = submitText)
+            }
         }
     }
 }

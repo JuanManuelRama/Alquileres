@@ -1,6 +1,6 @@
 // CreatePropiedadForm.kt
 package com.example.myapplication.ui.screens
-
+/*
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -14,8 +14,6 @@ import com.example.myapplication.model.Direccion
 import com.example.myapplication.model.Propiedad
 import com.example.myapplication.model.Propietario
 import com.example.myapplication.ui.components.form.Form
-import com.example.myapplication.ui.components.form.FormFieldKey
-import com.example.myapplication.ui.components.form.TypeaheadOption
 
 
 @Composable
@@ -88,4 +86,4 @@ fun AddPropiedadScreen(
             Item(key = propietarioKey, value = propietario, mandatory = true, onValueChange = { propietario = it })
         }
     }
-}
+}*/
