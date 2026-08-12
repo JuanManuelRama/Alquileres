@@ -3,9 +3,10 @@ package com.example.myapplication.data
 import androidx.room3.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.example.myapplication.model.Direccion
-import com.example.myapplication.model.Propiedad
-import com.example.myapplication.model.Propietario
+import com.example.myapplication.data.entity.OwnerEntity
+import com.example.myapplication.data.entity.PropertyEntity
+import com.example.myapplication.data.repository.PropertyRepository
+import com.example.myapplication.model.Address
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -15,19 +16,22 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class PropiedadDaoTest {
+class PropertyRepositoryTest {
 
     private lateinit var database: AppDatabase
-    private lateinit var dao: PropiedadDao
+    private lateinit var propertyRepository: PropertyRepository
 
     @Before
     fun setup() {
         database = Room.inMemoryDatabaseBuilder(
             ApplicationProvider.getApplicationContext(),
             AppDatabase::class.java
-        ).build()
+        )
+            // Allow running database operations synchronously on the main thread for tests
+            .allowMainThreadQueries()
+            .build()
 
-        dao = database.propiedadDao()
+        propertyRepository = PropertyRepository(database.propertyDao())
     }
 
     @After
@@ -36,23 +40,25 @@ class PropiedadDaoTest {
     }
 
     @Test
-    fun insertAndGetAll() = runTest {
-        val propiedad = Propiedad(
-            id = 1,
-            direccion = Direccion(
-                calle = "Vieytes",
-                altura = "1897",
-                piso = "4",
-                departamento = null
-            ),
-            propietario = Propietario(
-                nombre = "pepe"
+    fun insertAndGetAllPropertiesWithOwners() = runTest {
+        val ownerId = database.ownerDao().insertOwner(OwnerEntity(name = "pepe"))
+        val address = Address(
+            street = "Oak",
+            number = "430",
+            unit = null
+        )
+        database.propertyDao().insertProperty(
+            PropertyEntity(
+                address = address,
+                ownerId = ownerId
             )
         )
-        dao.insert(propiedad)
 
-        val propiedades = dao.getAll()
+        // 3. Retrieve from Repository
+        val properties = propertyRepository.getAll().first()
 
-        assertEquals(listOf(propiedad), propiedades.first())
+        // 4. Assert against the converted domain model
+        assertEquals("pepe", properties.first().owner.name)
+        assertEquals(address, properties.first().address)
     }
 }

@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
 import com.example.myapplication.model.Propiedad
+import com.example.myapplication.ui.screens.CreateContractScreen
 //import com.example.myapplication.ui.screens.AddPropiedadScreen
 import com.example.myapplication.ui.screens.DetallePropiedadScreen
 import com.example.myapplication.ui.screens.ListaPropiedadesScreen
@@ -34,13 +35,10 @@ fun AppNavigation(
                     )
                 }
                 is AddPropiedad -> NavEntry(key) {
-                    /*AddPropiedadScreen(
-                        existingPropiedades = dptos,
-                        onSubmit = {_ -> },
-                        modifier = Modifier
-                        //onPropiedadCreada = { _ -> },
-                        //onBackClick = {}
-                    )*/
+                    CreateContractScreen(
+                        tenants = emptyList(),
+                        properties = emptyList()
+                    )
                 }
                 is DetallePropiedad -> NavEntry(key) {
                     val propiedad = dptos.first { it.id == key.id }

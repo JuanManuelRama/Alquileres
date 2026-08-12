@@ -6,11 +6,11 @@
         <option name="selectionMode" value="DROPDOWN" />
         <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="insertAndGetAll()">
+      <SelectionState runConfigName="PropertyRepositoryTest">
         <option name="selectionMode" value="DROPDOWN" />
         <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="PropiedadDaoTest">
+      <SelectionState runConfigName="insertAndGetAllPropertiesWithOwners()">
         <option name="selectionMode" value="DROPDOWN" />
         <DialogSelection />
       </SelectionState>

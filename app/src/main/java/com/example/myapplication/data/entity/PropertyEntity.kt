@@ -31,3 +31,10 @@ data class PropertyEntity(
         owner = owner.toDomain()
     )
 }
+
+fun Property.toEntity(): PropertyEntity {
+    return PropertyEntity(
+        address = address,
+        ownerId = 3 //owner.id
+    )
+}

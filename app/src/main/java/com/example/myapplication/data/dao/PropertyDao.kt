@@ -1,5 +1,6 @@
 package com.example.myapplication.data.dao
 
+import androidx.room3.Dao
 import androidx.room3.Insert
 import androidx.room3.Query
 import androidx.room3.Transaction
@@ -7,6 +8,7 @@ import com.example.myapplication.data.entity.PropertyEntity
 import com.example.myapplication.data.entity.PropertyWithOwner
 import kotlinx.coroutines.flow.Flow
 
+@Dao
 interface PropertyDao {
     @Insert
     suspend fun insertProperty(property: PropertyEntity): Long
