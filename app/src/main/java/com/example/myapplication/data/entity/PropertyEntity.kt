@@ -32,9 +32,10 @@ data class PropertyEntity(
     )
 }
 
-fun Property.toEntity(): PropertyEntity {
+fun Property.toEntity(ownerId: Long): PropertyEntity {
     return PropertyEntity(
         address = address,
-        ownerId = 3 //owner.id
+        ownerId = ownerId,
+        id = id
     )
 }

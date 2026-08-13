@@ -12,8 +12,9 @@ import androidx.compose.ui.Modifier
 import com.example.myapplication.data.repository.PropertyRepository
 import com.example.myapplication.navigation.AppNavigation
 import com.example.myapplication.ui.theme.MyApplicationTheme
-import com.example.myapplication.ui.viewModel.PropertyViewModel
+import com.example.myapplication.ui.viewModel.CreateContractViewModel
 import com.example.myapplication.ui.viewModel.PropertyViewModelFactory
+import com.example.myapplication.data.repository.OwnerRepository
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,21 +23,17 @@ class MainActivity : ComponentActivity() {
         setContent {
             val application = applicationContext as MyApplication
 
-            val repository = PropertyRepository(
-                application.database.propertyDao()
-            )
-
-            val viewModel: PropertyViewModel by viewModels {
-                PropertyViewModelFactory(repository)
+            val createContractViewModel: CreateContractViewModel by viewModels {
+                PropertyViewModelFactory(
+                    propertyRepository = PropertyRepository(application.database.propertyDao()),
+                    ownerRepository = OwnerRepository(application.database.ownerDao()),
+                )
             }
 
             MyApplicationTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-//                    CreateContractScreen(
-//                        properties = listOf(Property(Address("San Jose", "911", null), Owner("pepito"))),
-//                        tenants = listOf(Tenant("Juan", "115556"), Tenant("Pedro", "1894156")),
-//                    )/*
                     AppNavigation(
+                        createContractViewModel = createContractViewModel,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }

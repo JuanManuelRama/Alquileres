@@ -13,11 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
-import com.example.myapplication.model.Propiedad
+import com.example.myapplication.model.Property
 
 @Composable
 fun CardDpto(
-    dpto: Propiedad,
+    property: Property,
     onClick: () -> Unit
 ) {
     Card(
@@ -35,11 +35,11 @@ fun CardDpto(
                     .height(100.dp)
             )
             Text(
-                text = dpto.direccion.toString(),
+                text = property.address.toString(),
                 modifier = Modifier.padding(12.dp)
             )
             Text(
-                text = dpto.propietario.nombre,
+                text = property.owner.name,
                 modifier = Modifier.padding(12.dp)
             )
         }

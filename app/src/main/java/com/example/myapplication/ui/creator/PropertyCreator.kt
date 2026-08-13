@@ -34,7 +34,7 @@ fun PropertyCreator(
                         number = number,
                         unit = unit
                     ),
-                    owner = Owner("pepito")
+                    owner = selectedOwner!! // Cannot be null because the button won't work
                 )) },
         cancelText = canceledText,
         onCancel = onCanceled,

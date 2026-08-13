@@ -7,25 +7,29 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.example.myapplication.model.Property
+import com.example.myapplication.model.Tenant
+import com.example.myapplication.ui.creator.PropertyCreator
+import com.example.myapplication.ui.viewModel.CreateContractViewModel
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.example.myapplication.model.Owner
-import com.example.myapplication.model.Property
-import com.example.myapplication.model.Tenant
 import com.example.myapplication.ui.components.form.Form
-import com.example.myapplication.ui.creator.PropertyCreator
 import com.example.myapplication.ui.creator.TenantCreator
 
 @Composable
 fun CreateContractScreen(
+    viewModel: CreateContractViewModel,
     tenants: List<Tenant>,
-    properties: List<Property>
+    onBackClick: () -> Unit
     //onCreateContract: (ContractDraft) -> Unit,
 ) {
+    val properties by viewModel.properties.collectAsState()
+    val owners by viewModel.owners.collectAsState()
     var selectedTenant by remember { mutableStateOf<Tenant?>(null) }
     var selectedProperty by remember { mutableStateOf<Property?>(null) }
 
@@ -44,7 +48,7 @@ fun CreateContractScreen(
             submitText = "Create Contract",
             onSubmit = { },
             cancelText = "Back",
-            onCancel = {  },
+            onCancel = onBackClick,
             modifier = Modifier
         ) {
             PickerItem(
@@ -54,7 +58,7 @@ fun CreateContractScreen(
                 itemLabel = { it.toString() },
                 createContent = { onCreated, onCanceled ->
                     PropertyCreator(
-                        owners = listOf(Owner("pepito"), Owner("Jose")),
+                        owners = owners,
                         onCreated = onCreated,
                         canceledText = "Cancel",
                         onCanceled = onCanceled,

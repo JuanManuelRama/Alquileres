@@ -7,16 +7,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.myapplication.model.Propiedad
+import com.example.myapplication.model.Property
 
 @Composable
 fun DetallePropiedadScreen(
-    propiedad: Propiedad,
+    property: Property,
     onBackClick: () -> Unit
 ) {
     Column(modifier = Modifier.padding(16.dp)) {
-        Text(text = "Dirección: ${propiedad.direccion}")
-        Text(text = "Propietario: ${propiedad.propietario.nombre}")
+        Text(text = "Dirección: ${property.address}")
+        Text(text = "Propietario: ${property.owner.name}")
 
         Button(
             onClick = onBackClick,

@@ -1,5 +1,6 @@
 package com.example.myapplication.model
 
 data class Owner(
-    val name: String
+    val name: String,
+    val id: Long? = null
 )

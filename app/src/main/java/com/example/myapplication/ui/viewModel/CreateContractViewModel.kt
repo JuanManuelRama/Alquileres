@@ -2,19 +2,30 @@ package com.example.myapplication.ui.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.myapplication.data.repository.OwnerRepository
 import com.example.myapplication.data.repository.PropertyRepository
+import com.example.myapplication.model.Owner
 import com.example.myapplication.model.Property
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class PropertyViewModel(
-    private val repository: PropertyRepository
+class CreateContractViewModel(
+    private val propertyRepository: PropertyRepository,
+    private val ownerRepository: OwnerRepository
 ) : ViewModel() {
 
+    val owners: StateFlow<List<Owner>> =
+        ownerRepository.getAll()
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5_000),
+                emptyList()
+            )
+
     val properties: StateFlow<List<Property>> =
-        repository.getAll()
+        propertyRepository.getAll()
             .stateIn(
                 viewModelScope,
                 SharingStarted.WhileSubscribed(5_000),
@@ -23,7 +34,11 @@ class PropertyViewModel(
 
     fun addProperty(property: Property) {
         viewModelScope.launch {
-            repository.insert(property)
+            var id = property.owner.id
+            if (id == null) {
+                id = ownerRepository.insert(property.owner)
+            }
+            propertyRepository.insert(property, id)
         }
     }
 }

@@ -10,5 +10,14 @@ data class OwnerEntity(
     val id: Long? = null,
     val name: String
 ) {
-    fun toDomain(): Owner = Owner(name = name)
+    fun toDomain(): Owner = Owner(
+        name = name,
+        id = id
+    )
+}
+
+fun Owner.toEntity(): OwnerEntity {
+    return OwnerEntity(
+        name = name
+    )
 }

@@ -41,7 +41,7 @@ class PropertyRepositoryTest {
 
     @Test
     fun insertAndGetAllPropertiesWithOwners() = runTest {
-        val ownerId = database.ownerDao().insertOwner(OwnerEntity(name = "pepe"))
+        val ownerId = database.ownerDao().insert(OwnerEntity(name = "pepe"))
         val address = Address(
             street = "Oak",
             number = "430",
