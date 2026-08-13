@@ -15,6 +15,7 @@ import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.example.myapplication.ui.viewModel.CreateContractViewModel
 import com.example.myapplication.ui.viewModel.PropertyViewModelFactory
 import com.example.myapplication.data.repository.OwnerRepository
+import com.example.myapplication.data.repository.TenantRepository
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,6 +28,7 @@ class MainActivity : ComponentActivity() {
                 PropertyViewModelFactory(
                     propertyRepository = PropertyRepository(application.database.propertyDao()),
                     ownerRepository = OwnerRepository(application.database.ownerDao()),
+                    tenantRepository = TenantRepository(application.database.tenantDao())
                 )
             }
 

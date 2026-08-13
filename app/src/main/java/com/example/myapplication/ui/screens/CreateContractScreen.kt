@@ -24,14 +24,16 @@ import com.example.myapplication.ui.creator.TenantCreator
 @Composable
 fun CreateContractScreen(
     viewModel: CreateContractViewModel,
-    tenants: List<Tenant>,
     onBackClick: () -> Unit
     //onCreateContract: (ContractDraft) -> Unit,
 ) {
-    val properties by viewModel.properties.collectAsState()
-    val owners by viewModel.owners.collectAsState()
+    val properties by viewModel.properties().collectAsState()
+    val owners by viewModel.owners().collectAsState()
+    val tenants by viewModel.tenants().collectAsState()
+
     var selectedTenant by remember { mutableStateOf<Tenant?>(null) }
     var selectedProperty by remember { mutableStateOf<Property?>(null) }
+
 
     Column(
         modifier = Modifier

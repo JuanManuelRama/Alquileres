@@ -19,7 +19,7 @@ fun AppNavigation(
     modifier: Modifier = Modifier
 ) {
     val backStack = remember { mutableStateListOf<Route>(ListaPropiedades) }
-    val properties by createContractViewModel.properties.collectAsStateWithLifecycle()
+    val properties by createContractViewModel.properties().collectAsStateWithLifecycle()
 
     NavDisplay(
         backStack = backStack,
@@ -37,7 +37,6 @@ fun AppNavigation(
                 is AddPropiedad -> NavEntry(key) {
                     CreateContractScreen(
                         viewModel = createContractViewModel,
-                        tenants = emptyList(),
                         onBackClick = { backStack.removeLastOrNull() }
                     )
                 }
