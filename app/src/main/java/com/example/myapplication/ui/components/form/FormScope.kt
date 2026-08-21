@@ -2,9 +2,28 @@ package com.example.myapplication.ui.components.form
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.input.KeyboardType
+import java.time.LocalDate
 
 class FormScope {
     val items = mutableListOf<FormItemState>()
+
+    fun DateItem(
+        label: String,
+        value: LocalDate?,
+        mandatory: Boolean = true,
+        validate: ((LocalDate?) -> Boolean)? = null,
+        onValueChange: (LocalDate?) -> Unit
+    ) {
+        items.add(
+            DateFormItemState(
+                label = label,
+                value = value,
+                mandatory = mandatory,
+                validate = validate,
+                onValueChange = onValueChange
+            )
+        )
+    }
 
     fun Item(
         field: String,

@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.example.myapplication.ui.components.form.Form
 import com.example.myapplication.ui.creator.TenantCreator
+import java.time.LocalDate
 
 @Composable
 fun CreateContractScreen(
@@ -33,6 +34,8 @@ fun CreateContractScreen(
 
     var selectedTenant by remember { mutableStateOf<Tenant?>(null) }
     var selectedProperty by remember { mutableStateOf<Property?>(null) }
+    var startDate by remember { mutableStateOf<LocalDate?>(null) }
+    var endDate by remember { mutableStateOf<LocalDate?>(null) }
 
 
     Column(
@@ -84,6 +87,18 @@ fun CreateContractScreen(
                 },
                 onItemSelected = { selectedTenant = it },
                 onItemCreated = { selectedTenant = it }
+            )
+
+            DateItem(
+                label = "Starting Date",
+                value = startDate,
+                onValueChange = { startDate = it }
+            )
+
+            DateItem(
+                label = "Finishing Date",
+                value = endDate,
+                onValueChange = { endDate = it }
             )
         }
     }
