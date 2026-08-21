@@ -36,6 +36,8 @@ fun <T> EntityPicker(
     modifier: Modifier = Modifier,
     label: String,
     placeholder: String = "Search...",
+    isError: Boolean = false,
+    supportingText: String? = null
 ) {
     var mode by remember { mutableStateOf(EntityPickerMode.SELECT) }
 
@@ -56,6 +58,8 @@ fun <T> EntityPicker(
             modifier = Modifier.fillMaxWidth(),
             label = label,
             placeholder = placeholder,
+            isError = isError,
+            supportingText = supportingText
         )
 
         if (mode == EntityPickerMode.CREATE) {
@@ -99,6 +103,8 @@ private fun <T> EntitySelection(
     modifier: Modifier,
     label: String,
     placeholder: String,
+    isError: Boolean,
+    supportingText: String?
 ) {
     var expanded by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
@@ -115,7 +121,8 @@ private fun <T> EntitySelection(
     Column(modifier) {
         Text(
             text = label,
-            style = MaterialTheme.typography.labelLarge
+            style = MaterialTheme.typography.labelLarge,
+            color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
         )
 
         ExposedDropdownMenuBox(
@@ -137,6 +144,8 @@ private fun <T> EntitySelection(
                     Text(placeholder)
                 },
                 singleLine = true,
+                isError = isError,
+                supportingText = supportingText?.let { { Text(it) } },
                 trailingIcon = {
                     ExposedDropdownMenuDefaults.TrailingIcon(
                         expanded = expanded

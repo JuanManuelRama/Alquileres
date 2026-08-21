@@ -23,7 +23,7 @@ fun Form(
 ) {
     val scope = FormScope().apply(builder)
     val items = scope.items
-    val isFormValid = items.all { it.isValidated() }
+    val isFormValid = items.all { !it.error().isError }
 
     Column(
         modifier = modifier.fillMaxWidth(),

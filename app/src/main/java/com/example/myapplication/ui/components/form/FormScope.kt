@@ -11,7 +11,7 @@ class FormScope {
         label: String,
         value: LocalDate?,
         mandatory: Boolean = true,
-        validate: ((LocalDate?) -> Boolean)? = null,
+        validate: ((LocalDate?) -> Validation<*>)? = null,
         onValueChange: (LocalDate?) -> Unit
     ) {
         items.add(
@@ -34,7 +34,7 @@ class FormScope {
         itemSearchText: (T) -> String = itemLabel,
         createContent: @Composable (onCreated: (T) -> Unit, onCancel: () -> Unit) -> Unit,
         placeholder: String = "Search...",
-        validate: ((List<T>) -> Boolean)? = null,
+        validate: ((List<T>) -> Validation<*>)? = null,
         onItemsChanged: (List<T>) -> Unit,
         onItemCreated: (T) -> Unit,
     ) {
@@ -60,7 +60,7 @@ class FormScope {
         value: String,
         mandatory: Boolean = true,
         keyboardType: KeyboardType = KeyboardType.Text,
-        validate: ((String) -> Boolean)? = null,
+        validate: ((String) -> Validation<*>)? = null,
         onValueChange: (String) -> Unit
     ) {
         items.add(
@@ -84,7 +84,7 @@ class FormScope {
         itemSearchText: (T) -> String = itemLabel,
         createContent: @Composable (onCreated: (T) -> Unit, onCancel: () -> Unit) -> Unit,
         placeholder: String = "Search...",
-        validate: ((T?) -> Boolean)? = null,
+        validate: ((T?) -> Validation<*>)? = null,
         onItemSelected: (T?) -> Unit,
         onItemCreated: (T) -> Unit,
     ) {

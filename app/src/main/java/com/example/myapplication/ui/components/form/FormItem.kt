@@ -6,6 +6,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -37,11 +38,14 @@ fun FormItem(item: FormItemState, modifier: Modifier = Modifier) {
 
 @Composable
 private fun TextFormItemContent(item: TextFormItemState, modifier: Modifier = Modifier) {
+    val error = item.error()
     OutlinedTextField(
         value = item.value,
         onValueChange = item.onValueChange,
         label = { Text(item.field + if (item.mandatory) " *" else "") },
         keyboardOptions = KeyboardOptions(keyboardType = item.keyboardType),
+        isError = error.hasMessage,
+        supportingText = { Text(error.message) },
         modifier = modifier.fillMaxWidth()
     )
 }
@@ -50,6 +54,7 @@ private fun TextFormItemContent(item: TextFormItemState, modifier: Modifier = Mo
 private fun <T> PickerFormItemContent(
     item: PickerFormItemState<T>,
     modifier: Modifier = Modifier) {
+    val error = item.error()
     EntityPicker(
         items = item.items,
         selectedItem = item.selectedItem,
@@ -61,6 +66,8 @@ private fun <T> PickerFormItemContent(
         modifier = modifier,
         label = item.label + if (item.mandatory) " *" else "",
         placeholder = item.placeholder,
+        isError = error.hasMessage,
+        supportingText = error.message
     )
 }
 
@@ -69,6 +76,7 @@ private fun <T> MultiPickerFormItemContent(
     item: MultiPickerFormItemState<T>,
     modifier: Modifier = Modifier
 ) {
+    val error = item.error()
     MultiEntityPicker(
         items = item.items,
         selectedItems = item.selectedItems,
@@ -80,6 +88,8 @@ private fun <T> MultiPickerFormItemContent(
         modifier = modifier,
         label = item.label + if (item.mandatory) " *" else "",
         placeholder = item.placeholder,
+        isError = error.hasMessage,
+        supportingText = error.message
     )
 }
 
@@ -87,6 +97,7 @@ private fun <T> MultiPickerFormItemContent(
 @Composable
 private fun DateFormItemContent(item: DateFormItemState, modifier: Modifier = Modifier) {
     var showDatePicker by remember { mutableStateOf(false) }
+    val error = item.error()
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = item.value?.atStartOfDay(ZoneOffset.UTC)?.toInstant()?.toEpochMilli()
     )
@@ -119,25 +130,42 @@ private fun DateFormItemContent(item: DateFormItemState, modifier: Modifier = Mo
         value = item.value?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?: "",
         onValueChange = { },
         label = { Text(item.label + if (item.mandatory) " *" else "") },
+        isError = error.hasMessage,
+        supportingText = { Text(error.message) },
         modifier = modifier
             .fillMaxWidth()
             .clickable { showDatePicker = true },
         readOnly = true,
         enabled = false,
         colors = OutlinedTextFieldDefaults.colors(
-            disabledTextColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
-            disabledLabelColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
-            disabledBorderColor = androidx.compose.material3.MaterialTheme.colorScheme.outline,
-            disabledLeadingIconColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
-            disabledTrailingIconColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
-            disabledPlaceholderColor = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
+            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+            disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            disabledBorderColor = if (error.hasMessage) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline,
+            disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     )
 }
 
+data class Error(val isError: Boolean, val message: String) {
+    companion object {
+        val None: Error = Error(false, "")
+        val Simple: Error = Error(true, "")
+        fun MessageError(msg: String): Error = Error(true, msg)
+    }
+
+    val hasMessage: Boolean = message.isNotBlank()
+}
+fun Validation<*>.toFormError(): Error = fold(
+    onValid = { Error.None },
+    onInvalid = { Error.MessageError(it) }
+)
+
 sealed interface FormItemState {
     val mandatory: Boolean
-    fun isValidated(): Boolean
+    fun error(): Error
+
 }
 
 data class TextFormItemState(
@@ -145,11 +173,16 @@ data class TextFormItemState(
     override val mandatory: Boolean = false,
     val value: String,
     val keyboardType: KeyboardType = KeyboardType.Text,
-    val validate: ((String) -> Boolean)? = null,
+    val validate: ((String) -> Validation<*>)? = null,
     val onValueChange: (String) -> Unit
 ) : FormItemState {
-    override fun isValidated(): Boolean =
-        (!mandatory || value.isNotBlank()) && (validate?.invoke(value) ?: true)
+
+    override fun error(): Error {
+        if (value.isBlank()) {
+            return if (mandatory) Error.Simple else Error.None
+        }
+        return validate?.invoke(value)?.toFormError() ?: Error.None
+    }
 }
 
 data class PickerFormItemState<T>(
@@ -163,10 +196,14 @@ data class PickerFormItemState<T>(
     val itemSearchText: (T) -> String = itemLabel,
     val createContent: @Composable (onCreated: (T) -> Unit, onCancel: () -> Unit) -> Unit,
     val placeholder: String = "Search $label...",
-    val validate: ((T?) -> Boolean)? = null,
+    val validate: ((T?) -> Validation<*>)? = null,
 ) : FormItemState {
-    override fun isValidated(): Boolean =
-        (!mandatory || selectedItem != null) && (validate?.invoke(selectedItem) ?: true)
+    override fun error(): Error {
+        if (selectedItem == null) {
+            return if (mandatory) Error.Simple else Error.None
+        }
+        return validate?.invoke(selectedItem)?.toFormError() ?: Error.None
+    }
 }
 
 data class MultiPickerFormItemState<T>(
@@ -180,10 +217,14 @@ data class MultiPickerFormItemState<T>(
     val itemSearchText: (T) -> String = itemLabel,
     val createContent: @Composable (onCreated: (T) -> Unit, onCancel: () -> Unit) -> Unit,
     val placeholder: String = "Search $label...",
-    val validate: ((List<T>) -> Boolean)? = null,
+    val validate: ((List<T>) -> Validation<*>)? = null,
 ) : FormItemState {
-    override fun isValidated(): Boolean =
-        (!mandatory || selectedItems.isNotEmpty()) && (validate?.invoke(selectedItems) ?: true)
+    override fun error(): Error {
+        if (selectedItems.isEmpty()) {
+            return if (mandatory) Error.Simple else Error.None
+        }
+        return validate?.invoke(selectedItems)?.toFormError() ?: Error.None
+    }
 }
 
 data class DateFormItemState(
@@ -191,8 +232,12 @@ data class DateFormItemState(
     override val mandatory: Boolean = false,
     val value: LocalDate?,
     val onValueChange: (LocalDate?) -> Unit,
-    val validate: ((LocalDate?) -> Boolean)? = null,
+    val validate: ((LocalDate?) -> Validation<*>)? = null,
 ) : FormItemState {
-    override fun isValidated(): Boolean =
-        (!mandatory || value != null) && (validate?.invoke(value) ?: true)
+    override fun error(): Error {
+        if (value == null) {
+            return if (mandatory) Error.Simple else Error.None
+        }
+        return validate?.invoke(value)?.toFormError() ?: Error.None
+    }
 }

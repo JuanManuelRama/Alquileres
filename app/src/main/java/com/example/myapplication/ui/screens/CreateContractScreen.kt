@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,6 +24,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.KeyboardType
 import com.example.myapplication.ui.components.form.Form
+import com.example.myapplication.ui.components.form.Validate
+import com.example.myapplication.ui.components.form.check
+import com.example.myapplication.ui.components.form.isBigDecimal
+import com.example.myapplication.ui.components.form.isLong
+import com.example.myapplication.ui.components.form.isPositive
 import com.example.myapplication.ui.creator.ServiceCreator
 import com.example.myapplication.ui.creator.TenantCreator
 import java.time.LocalDate
@@ -51,7 +58,8 @@ fun CreateContractScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
@@ -118,7 +126,7 @@ fun CreateContractScreen(
                 field = "Initial Rent",
                 value = initialRent,
                 keyboardType = KeyboardType.Decimal,
-                validate = { it.toBigDecimalOrNull()?.let { it > 0.toBigDecimal() } == true },
+                validate = { Validate(it).isBigDecimal().isPositive() },
                 onValueChange = { rent ->
                     if (currentRent == "" || currentRent == initialRent) {
                         currentRent = rent
@@ -130,7 +138,7 @@ fun CreateContractScreen(
                 field = "Current Rent",
                 value = currentRent,
                 keyboardType = KeyboardType.Decimal,
-                validate = { it.toBigDecimalOrNull()?.let { it > 0.toBigDecimal() } == true },
+                validate = { Validate(it).isBigDecimal().isPositive() },
                 onValueChange = { currentRent = it }
             )
             MultiPickerItem(
@@ -157,14 +165,14 @@ fun CreateContractScreen(
             DateItem(
                 label = "Finishing Date",
                 value = endDate,
-                validate = { it?.isAfter(startDate) ?: false },
+                validate = { Validate(it).check("must be after starting date") { date -> date?.isAfter(startDate) == true } },
                 onValueChange = { endDate = it }
             )
             Item(
                 field = "Adjustment Time",
                 value = adjustmentTime,
                 keyboardType = KeyboardType.Number,
-                validate = { it.toLongOrNull() != null },
+                validate = { Validate(it).isLong() },
                 onValueChange = { adjustmentTime = it }
             )
         }

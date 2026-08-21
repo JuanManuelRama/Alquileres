@@ -28,6 +28,8 @@ fun <T> MultiEntityPicker(
     modifier: Modifier = Modifier,
     label: String,
     placeholder: String = "Search...",
+    isError: Boolean = false,
+    supportingText: String? = null
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -49,7 +51,9 @@ fun <T> MultiEntityPicker(
             itemSearchText = itemSearchText,
             createContent = createContent,
             label = label,
-            placeholder = placeholder
+            placeholder = placeholder,
+            isError = isError,
+            supportingText = supportingText
         )
 
         FlowRow(
