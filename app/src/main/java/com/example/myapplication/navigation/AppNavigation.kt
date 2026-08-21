@@ -8,8 +8,10 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
+import com.example.myapplication.ui.screens.ContractDetailScreen
 import com.example.myapplication.ui.screens.CreateContractScreen
 import com.example.myapplication.ui.screens.DetallePropiedadScreen
+import com.example.myapplication.ui.screens.ContractListScreen
 import com.example.myapplication.ui.screens.ListPropertiesScreen
 import com.example.myapplication.ui.viewModel.CreateContractViewModel
 
@@ -18,8 +20,9 @@ fun AppNavigation(
     createContractViewModel: CreateContractViewModel,
     modifier: Modifier = Modifier
 ) {
-    val backStack = remember { mutableStateListOf<Route>(ListaPropiedades) }
+    val backStack = remember { mutableStateListOf<Route>(ContractList) }
     val properties by createContractViewModel.properties().collectAsStateWithLifecycle()
+    val contracts by createContractViewModel.contracts().collectAsStateWithLifecycle()
 
     NavDisplay(
         backStack = backStack,
@@ -27,6 +30,13 @@ fun AppNavigation(
         onBack = { backStack.removeLastOrNull() },
         entryProvider = { key: Route ->
             when (key) {
+                is ContractList -> NavEntry(key) {
+                    ContractListScreen(
+                        contracts = contracts,
+                        onContractClick = { backStack.add(ContractDetail(it)) },
+                        addContractClick = { backStack.add(AddPropiedad) }
+                    )
+                }
                 is ListaPropiedades -> NavEntry(key) {
                     ListPropertiesScreen(
                         properties = properties,
@@ -43,6 +53,12 @@ fun AppNavigation(
                 is DetallePropiedad -> NavEntry(key) {
                     DetallePropiedadScreen(
                         property = key.property,
+                        onBackClick = { backStack.removeLastOrNull() }
+                    )
+                }
+                is ContractDetail -> NavEntry(key) {
+                    ContractDetailScreen(
+                        contract = key.contract,
                         onBackClick = { backStack.removeLastOrNull() }
                     )
                 }

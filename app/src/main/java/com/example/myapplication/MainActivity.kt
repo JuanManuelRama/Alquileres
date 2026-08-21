@@ -9,14 +9,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
+import com.example.myapplication.data.repository.ContractRepository
+import com.example.myapplication.data.repository.OwnerRepository
 import com.example.myapplication.data.repository.PropertyRepository
+import com.example.myapplication.data.repository.ServiceRepository
+import com.example.myapplication.data.repository.TenantRepository
 import com.example.myapplication.navigation.AppNavigation
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import com.example.myapplication.ui.viewModel.CreateContractViewModel
 import com.example.myapplication.ui.viewModel.PropertyViewModelFactory
-import com.example.myapplication.data.repository.OwnerRepository
-import com.example.myapplication.data.repository.ServiceRepository
-import com.example.myapplication.data.repository.TenantRepository
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,7 +31,8 @@ class MainActivity : ComponentActivity() {
                     propertyRepository = PropertyRepository(application.database.propertyDao()),
                     ownerRepository = OwnerRepository(application.database.ownerDao()),
                     tenantRepository = TenantRepository(application.database.tenantDao()),
-                    serviceRepository = ServiceRepository(application.database.serviceDao())
+                    serviceRepository = ServiceRepository(application.database.serviceDao()),
+                    contractRepository = ContractRepository(application.database.contractDao())
                 )
             }
 

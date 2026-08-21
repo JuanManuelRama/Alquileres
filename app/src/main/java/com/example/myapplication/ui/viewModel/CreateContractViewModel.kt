@@ -2,10 +2,12 @@ package com.example.myapplication.ui.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.myapplication.data.repository.ContractRepository
 import com.example.myapplication.data.repository.OwnerRepository
 import com.example.myapplication.data.repository.PropertyRepository
 import com.example.myapplication.data.repository.ServiceRepository
 import com.example.myapplication.data.repository.TenantRepository
+import com.example.myapplication.model.Contract
 import com.example.myapplication.model.Owner
 import com.example.myapplication.model.Property
 import com.example.myapplication.model.Service
@@ -19,7 +21,8 @@ class CreateContractViewModel(
     private val propertyRepository: PropertyRepository,
     private val ownerRepository: OwnerRepository,
     private val tenantRepository: TenantRepository,
-    private val serviceRepository: ServiceRepository
+    private val serviceRepository: ServiceRepository,
+    private val contractRepository: ContractRepository
 ) : ViewModel() {
     fun owners(): StateFlow<List<Owner>> {
         return ownerRepository.getAll()
@@ -58,6 +61,15 @@ class CreateContractViewModel(
             )
     }
 
+    fun contracts(): StateFlow<List<Contract>> {
+        return contractRepository.getAll()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptyList()
+            )
+    }
+
     fun addProperty(property: Property) {
         viewModelScope.launch {
             var id = property.owner.id
@@ -77,6 +89,12 @@ class CreateContractViewModel(
     fun addService(service: Service) {
         viewModelScope.launch {
             serviceRepository.insert(service)
+        }
+    }
+
+    fun saveContract(contract: Contract) {
+        viewModelScope.launch {
+            contractRepository.save(contract)
         }
     }
 }

@@ -9,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.myapplication.model.Contract
 import com.example.myapplication.model.Property
 import com.example.myapplication.model.Service
 import com.example.myapplication.model.Tenant
@@ -60,7 +61,20 @@ fun CreateContractScreen(
 
         Form(
             submitText = "Create Contract",
-            onSubmit = { },
+            onSubmit = {
+                val contract = Contract(
+                    property = selectedProperty!!, // cannot be null thanks to validation
+                    tenant = selectedTenant!!, // cannot be null thanks to validation
+                    initialRent = initialRent.toBigDecimal(), // will not fail due to validation
+                    currentRent = currentRent.toBigDecimal(), // will not fail due to validation
+                    startingDate = startDate!!, // cannot be null thanks to validation
+                    finishingDate = endDate!!, // cannot be null thanks to validation
+                    adjustmentTime = adjustmentTime.toLong(), // will not fail due to validation
+                    services = selectedServices
+                )
+                viewModel.saveContract(contract)
+                onBackClick()
+            },
             cancelText = "Back",
             onCancel = onBackClick,
             modifier = Modifier

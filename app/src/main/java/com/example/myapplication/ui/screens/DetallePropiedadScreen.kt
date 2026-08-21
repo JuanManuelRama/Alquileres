@@ -15,8 +15,8 @@ fun DetallePropiedadScreen(
     onBackClick: () -> Unit
 ) {
     Column(modifier = Modifier.padding(16.dp)) {
-        Text(text = "Dirección: ${property.address}")
-        Text(text = "Propietario: ${property.owner.name}")
+        Text(text = "Address: ${property.address}")
+        Text(text = "Property: ${property.owner.name}")
 
         Button(
             onClick = onBackClick,
