@@ -94,7 +94,6 @@ fun CreateContractScreen(
                 },
                 onItemSelected = { selectedProperty = it },
                 onItemCreated = { 
-                    viewModel.addProperty(it)
                     selectedProperty = it
                 }
             )
@@ -112,8 +111,7 @@ fun CreateContractScreen(
                 },
                 onItemSelected = { selectedTenant = it },
                 onItemCreated = { 
-                    viewModel.addTenant(it)
-                    selectedTenant = it 
+                    selectedTenant = it
                 }
             )
             Item(
@@ -148,7 +146,7 @@ fun CreateContractScreen(
                     )
                 },
                 onItemsChanged = { selectedServices = it },
-                onItemCreated = { viewModel.addService(it) }
+                onItemCreated = { }
             )
 
             DateItem(

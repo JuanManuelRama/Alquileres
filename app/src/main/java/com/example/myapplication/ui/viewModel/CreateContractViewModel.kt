@@ -80,21 +80,22 @@ class CreateContractViewModel(
         }
     }
 
-    fun addTenant(tenant: Tenant) {
-        viewModelScope.launch {
-            tenantRepository.insert(tenant)
-        }
-    }
-
-    fun addService(service: Service) {
-        viewModelScope.launch {
-            serviceRepository.insert(service)
-        }
-    }
-
     fun saveContract(contract: Contract) {
         viewModelScope.launch {
-            contractRepository.save(contract)
+            val tenantId = contract.tenant.id ?: tenantRepository.insert(contract.tenant)
+            val propertyId = contract.property.id ?: propertyRepository.insert(
+                property = contract.property,
+                id = contract.property.owner.id ?: ownerRepository.insert(contract.property.owner)
+            )
+            val serviceIds = contract.services.map { service ->
+                service.id ?: serviceRepository.insert(service)
+            }
+            contractRepository.insert(
+                contract = contract,
+                propertyId = propertyId,
+                tenantId = tenantId,
+                serviceIds = serviceIds
+            )
         }
     }
 }

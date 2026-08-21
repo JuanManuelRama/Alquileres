@@ -4,6 +4,7 @@ import androidx.room3.Entity
 import androidx.room3.ForeignKey
 import androidx.room3.Index
 import androidx.room3.PrimaryKey
+import com.example.myapplication.model.Contract
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -33,6 +34,16 @@ data class ContractEntity(
     val startingDate: LocalDate,
     val finishingDate: LocalDate,
     val adjustmentTime: Long
+)
+
+fun Contract.toEntity(propertyId: Long, tenantId: Long): ContractEntity = ContractEntity(
+    propertyId = propertyId,
+    tenantId = tenantId,
+    initialRent = initialRent,
+    currentRent = currentRent,
+    startingDate = startingDate,
+    finishingDate = finishingDate,
+    adjustmentTime = adjustmentTime
 )
 
 @Entity(
