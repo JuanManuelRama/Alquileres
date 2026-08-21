@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import com.example.myapplication.ui.picker.EntityPicker
+import com.example.myapplication.ui.picker.MultiEntityPicker
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -29,6 +30,7 @@ fun FormItem(item: FormItemState, modifier: Modifier = Modifier) {
     when (item) {
         is TextFormItemState -> TextFormItemContent(item, modifier)
         is PickerFormItemState<*> -> PickerFormItemContent(item, modifier)
+        is MultiPickerFormItemState<*> -> MultiPickerFormItemContent(item, modifier)
         is DateFormItemState -> DateFormItemContent(item, modifier)
     }
 }
@@ -52,6 +54,25 @@ private fun <T> PickerFormItemContent(
         items = item.items,
         selectedItem = item.selectedItem,
         onItemSelected = item.onItemSelected,
+        onItemCreated = item.onItemCreated,
+        itemLabel = item.itemLabel,
+        itemSearchText = item.itemSearchText,
+        createContent = item.createContent,
+        modifier = modifier,
+        label = item.label + if (item.mandatory) " *" else "",
+        placeholder = item.placeholder,
+    )
+}
+
+@Composable
+private fun <T> MultiPickerFormItemContent(
+    item: MultiPickerFormItemState<T>,
+    modifier: Modifier = Modifier
+) {
+    MultiEntityPicker(
+        items = item.items,
+        selectedItems = item.selectedItems,
+        onItemsChanged = item.onItemsChanged,
         onItemCreated = item.onItemCreated,
         itemLabel = item.itemLabel,
         itemSearchText = item.itemSearchText,
@@ -146,6 +167,23 @@ data class PickerFormItemState<T>(
 ) : FormItemState {
     override fun isValidated(): Boolean =
         (!mandatory || selectedItem != null) && (validate?.invoke(selectedItem) ?: true)
+}
+
+data class MultiPickerFormItemState<T>(
+    val label: String,
+    override val mandatory: Boolean = false,
+    val items: List<T>,
+    val selectedItems: List<T>,
+    val onItemsChanged: (List<T>) -> Unit,
+    val onItemCreated: (T) -> Unit,
+    val itemLabel: (T) -> String,
+    val itemSearchText: (T) -> String = itemLabel,
+    val createContent: @Composable (onCreated: (T) -> Unit, onCancel: () -> Unit) -> Unit,
+    val placeholder: String = "Search $label...",
+    val validate: ((List<T>) -> Boolean)? = null,
+) : FormItemState {
+    override fun isValidated(): Boolean =
+        (!mandatory || selectedItems.isNotEmpty()) && (validate?.invoke(selectedItems) ?: true)
 }
 
 data class DateFormItemState(

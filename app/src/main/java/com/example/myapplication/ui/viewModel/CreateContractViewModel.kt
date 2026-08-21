@@ -4,9 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.repository.OwnerRepository
 import com.example.myapplication.data.repository.PropertyRepository
+import com.example.myapplication.data.repository.ServiceRepository
 import com.example.myapplication.data.repository.TenantRepository
 import com.example.myapplication.model.Owner
 import com.example.myapplication.model.Property
+import com.example.myapplication.model.Service
 import com.example.myapplication.model.Tenant
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +18,8 @@ import kotlinx.coroutines.launch
 class CreateContractViewModel(
     private val propertyRepository: PropertyRepository,
     private val ownerRepository: OwnerRepository,
-    private val tenantRepository: TenantRepository
+    private val tenantRepository: TenantRepository,
+    private val serviceRepository: ServiceRepository
 ) : ViewModel() {
     fun owners(): StateFlow<List<Owner>> {
         return ownerRepository.getAll()
@@ -46,6 +49,15 @@ class CreateContractViewModel(
             )
     }
 
+    fun services(): StateFlow<List<Service>> {
+        return serviceRepository.getAll()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptyList()
+            )
+    }
+
     fun addProperty(property: Property) {
         viewModelScope.launch {
             var id = property.owner.id
@@ -53,6 +65,18 @@ class CreateContractViewModel(
                 id = ownerRepository.insert(property.owner)
             }
             propertyRepository.insert(property, id)
+        }
+    }
+
+    fun addTenant(tenant: Tenant) {
+        viewModelScope.launch {
+            tenantRepository.insert(tenant)
+        }
+    }
+
+    fun addService(service: Service) {
+        viewModelScope.launch {
+            serviceRepository.insert(service)
         }
     }
 }

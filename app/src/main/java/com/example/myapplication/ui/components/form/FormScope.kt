@@ -25,6 +25,36 @@ class FormScope {
         )
     }
 
+    fun <T> MultiPickerItem(
+        label: String,
+        items: List<T>,
+        selectedItems: List<T>,
+        mandatory: Boolean = true,
+        itemLabel: (T) -> String,
+        itemSearchText: (T) -> String = itemLabel,
+        createContent: @Composable (onCreated: (T) -> Unit, onCancel: () -> Unit) -> Unit,
+        placeholder: String = "Search...",
+        validate: ((List<T>) -> Boolean)? = null,
+        onItemsChanged: (List<T>) -> Unit,
+        onItemCreated: (T) -> Unit,
+    ) {
+        this.items.add(
+            MultiPickerFormItemState(
+                label = label,
+                mandatory = mandatory,
+                items = items,
+                selectedItems = selectedItems,
+                onItemsChanged = onItemsChanged,
+                onItemCreated = onItemCreated,
+                itemLabel = itemLabel,
+                itemSearchText = itemSearchText,
+                createContent = createContent,
+                placeholder = placeholder,
+                validate = validate,
+            )
+        )
+    }
+
     fun Item(
         field: String,
         value: String,
