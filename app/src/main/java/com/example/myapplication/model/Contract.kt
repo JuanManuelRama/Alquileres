@@ -15,10 +15,11 @@ data class Contract(
     fun currentValue(): BigDecimal = valueAfterDate(LocalDate.now())
 
     fun valueAfterDate(date: LocalDate): BigDecimal {
-        return adjustments.filter { it.time.isBefore(date) } .fold(rent) { rent, adjustment ->
-            adjustment.amount?.let {
-                rent + rent * it
-            } ?: rent
+        return adjustments.filter { it.time.isBefore(date) || it.time.isEqual(date) }
+            .fold(rent) { rent, adjustment ->
+                adjustment.amount?.let {
+                    rent + rent * it
+                } ?: rent
         }
     }
 

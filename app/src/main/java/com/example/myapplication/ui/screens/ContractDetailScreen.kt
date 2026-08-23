@@ -14,7 +14,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -110,13 +109,13 @@ fun ContractDetailScreen(
 
                                 if (adjustment.amount != null) {
                                     Text(
-                                        text = adjustment.amount.toString(),
+                                        text = "${adjustment.amount * 100.toBigDecimal()}%",
                                         modifier = Modifier.weight(1f),
                                         style = MaterialTheme.typography.bodyMedium
                                     )
 
                                     Text(
-                                        text = contract.valueAfterDate(adjustment.time).toString(),
+                                        text = "$${contract.valueAfterDate(adjustment.time)}",
                                         modifier = Modifier.weight(1f),
                                         style = MaterialTheme.typography.bodyMedium
                                     )

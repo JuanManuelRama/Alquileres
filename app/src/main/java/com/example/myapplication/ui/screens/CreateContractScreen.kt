@@ -32,13 +32,11 @@ import com.example.myapplication.ui.components.form.isPositive
 import com.example.myapplication.ui.creator.ServiceCreator
 import com.example.myapplication.ui.creator.TenantCreator
 import java.time.LocalDate
-import kotlin.let
 
 @Composable
 fun CreateContractScreen(
     viewModel: CreateContractViewModel,
     onBackClick: () -> Unit
-    //onCreateContract: (ContractDraft) -> Unit,
 ) {
     val properties by viewModel.properties().collectAsState()
     val owners by viewModel.owners().collectAsState()
@@ -80,7 +78,7 @@ fun CreateContractScreen(
                         startDate!!, 
                         endDate!!, 
                         adjustmentTime.toLong(),
-                        fixedHike.toBigDecimalOrNull()
+                        fixedHike.toBigDecimalOrNull()?.div(100.toBigDecimal())
                     ),
                     services = selectedServices
                 )
@@ -133,14 +131,6 @@ fun CreateContractScreen(
                 validate = { Validate(it).isBigDecimal().isPositive() },
                 onValueChange = { rent = it }
             )
-            Item(
-                field = "Fixed Hike (0.1 for 10%)",
-                value = fixedHike,
-                keyboardType = KeyboardType.Decimal,
-                mandatory = false,
-                validate = { Validate(it).isBigDecimal() },
-                onValueChange = { fixedHike = it }
-            )
             MultiPickerItem(
                 label = "Services",
                 items = services,
@@ -174,6 +164,14 @@ fun CreateContractScreen(
                 keyboardType = KeyboardType.Number,
                 validate = { Validate(it).isLong() },
                 onValueChange = { adjustmentTime = it }
+            )
+            Item(
+                field = "Fixed Hike (%)",
+                value = fixedHike,
+                mandatory = false,
+                keyboardType = KeyboardType.Decimal,
+                validate = { Validate(it).isBigDecimal() },
+                onValueChange = { fixedHike = it }
             )
         }
     }
