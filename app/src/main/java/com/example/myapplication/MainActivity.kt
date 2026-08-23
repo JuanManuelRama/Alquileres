@@ -9,15 +9,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
+import com.example.myapplication.ui.viewModel.AppViewModelFactory
 import com.example.myapplication.data.repository.ContractRepository
 import com.example.myapplication.data.repository.OwnerRepository
+import com.example.myapplication.data.repository.PaymentRepository
 import com.example.myapplication.data.repository.PropertyRepository
 import com.example.myapplication.data.repository.ServiceRepository
 import com.example.myapplication.data.repository.TenantRepository
 import com.example.myapplication.navigation.AppNavigation
 import com.example.myapplication.ui.theme.MyApplicationTheme
+import com.example.myapplication.ui.viewModel.ContractViewModel
 import com.example.myapplication.ui.viewModel.CreateContractViewModel
-import com.example.myapplication.ui.viewModel.PropertyViewModelFactory
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,20 +28,23 @@ class MainActivity : ComponentActivity() {
         setContent {
             val application = applicationContext as MyApplication
 
-            val createContractViewModel: CreateContractViewModel by viewModels {
-                PropertyViewModelFactory(
-                    propertyRepository = PropertyRepository(application.database.propertyDao()),
-                    ownerRepository = OwnerRepository(application.database.ownerDao()),
-                    tenantRepository = TenantRepository(application.database.tenantDao()),
-                    serviceRepository = ServiceRepository(application.database.serviceDao()),
-                    contractRepository = ContractRepository(application.database.contractDao())
-                )
-            }
+            val factory = AppViewModelFactory(
+                propertyRepository = PropertyRepository(application.database.propertyDao()),
+                ownerRepository = OwnerRepository(application.database.ownerDao()),
+                tenantRepository = TenantRepository(application.database.tenantDao()),
+                serviceRepository = ServiceRepository(application.database.serviceDao()),
+                contractRepository = ContractRepository(application.database.contractDao()),
+                paymentRepository = PaymentRepository(application.database.paymentDao())
+            )
+
+            val createContractViewModel: CreateContractViewModel by viewModels { factory }
+            val contractViewModel: ContractViewModel by viewModels { factory }
 
             MyApplicationTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     AppNavigation(
                         createContractViewModel = createContractViewModel,
+                        contractViewModel = contractViewModel,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }

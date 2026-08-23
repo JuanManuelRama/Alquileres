@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -22,20 +23,31 @@ import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.model.Contract
-import com.example.myapplication.ui.components.cards.PropertyCard
-import com.example.myapplication.ui.components.cards.TenantCard
+import com.example.myapplication.ui.cards.AdjustmentCard
+import com.example.myapplication.ui.cards.PropertyCard
+import com.example.myapplication.ui.cards.TenantCard
+import com.example.myapplication.ui.viewModel.ContractViewModel
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun ContractDetailScreen(
     contract: Contract,
+    viewModel: ContractViewModel,
     onBackClick: () -> Unit
 ) {
     val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    val payments by viewModel.payments.collectAsState(emptyList())
+
+    LaunchedEffect(contract) {
+        viewModel.selectContract(contract)
+    }
 
     Scaffold(
         topBar = {
@@ -82,7 +94,6 @@ fun ContractDetailScreen(
             if (contract.services.isNotEmpty()) {
                 Text(text = "Included Services", style = MaterialTheme.typography.titleSmall)
                 FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     contract.services.forEach { service ->
@@ -91,34 +102,41 @@ fun ContractDetailScreen(
                 }
             }
 
-            // Adjustment Schedule
             if (contract.adjustments.isNotEmpty()) {
                 Text(text = "Adjustment Schedule", style = MaterialTheme.typography.titleSmall)
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        contract.adjustments.forEach { adjustment ->
+                Column {
+                    contract.adjustments.forEach { adjustment ->
+                        AdjustmentCard(
+                            adjustment = adjustment,
+                            contract = contract
+                        )
+                    }
+                }
+            }
+
+            // Payments
+            if (payments.isNotEmpty()) {
+                Text(text = "Payments History", style = MaterialTheme.typography.titleSmall)
+                payments.forEach { payment ->
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(16.dp)) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text(
-                                    text = adjustment.time.format(dateFormatter),
-                                    modifier = Modifier.weight(1f),
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-
-                                if (adjustment.amount != null) {
-                                    Text(
-                                        text = "${adjustment.amount * 100.toBigDecimal()}%",
-                                        modifier = Modifier.weight(1f),
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-
-                                    Text(
-                                        text = "$${contract.valueAfterDate(adjustment.time)}",
-                                        modifier = Modifier.weight(1f),
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
+                                Text(text = "Total: $${payment.total}", style = MaterialTheme.typography.titleMedium)
+                                Text(text = "Rent: $${payment.rent}", style = MaterialTheme.typography.bodyMedium)
+                            }
+                            if (payment.services.isNotEmpty()) {
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                                payment.services.forEach { servicePayment ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(text = servicePayment.service.name, style = MaterialTheme.typography.bodySmall)
+                                        Text(text = "$${servicePayment.amount}", style = MaterialTheme.typography.bodySmall)
+                                    }
                                 }
                             }
                         }

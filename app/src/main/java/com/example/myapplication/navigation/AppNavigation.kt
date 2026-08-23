@@ -13,16 +13,18 @@ import com.example.myapplication.ui.screens.CreateContractScreen
 import com.example.myapplication.ui.screens.DetallePropiedadScreen
 import com.example.myapplication.ui.screens.ContractListScreen
 import com.example.myapplication.ui.screens.ListPropertiesScreen
+import com.example.myapplication.ui.viewModel.ContractViewModel
 import com.example.myapplication.ui.viewModel.CreateContractViewModel
 
 @Composable
 fun AppNavigation(
     createContractViewModel: CreateContractViewModel,
+    contractViewModel: ContractViewModel,
     modifier: Modifier = Modifier
 ) {
     val backStack = remember { mutableStateListOf<Route>(ContractList) }
     val properties by createContractViewModel.properties().collectAsStateWithLifecycle()
-    val contracts by createContractViewModel.contracts().collectAsStateWithLifecycle()
+    val contracts by contractViewModel.contracts.collectAsStateWithLifecycle()
 
     NavDisplay(
         backStack = backStack,
@@ -59,6 +61,7 @@ fun AppNavigation(
                 is ContractDetail -> NavEntry(key) {
                     ContractDetailScreen(
                         contract = key.contract,
+                        viewModel = contractViewModel,
                         onBackClick = { backStack.removeLastOrNull() }
                     )
                 }

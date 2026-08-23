@@ -10,7 +10,8 @@ data class Contract(
     val startingDate: LocalDate,
     val finishingDate: LocalDate,
     val adjustments: List<Adjustment>,
-    val services: List<Service>
+    val services: List<Service>,
+    val id: Long? = null
 ) {
     fun currentValue(): BigDecimal = valueAfterDate(LocalDate.now())
 

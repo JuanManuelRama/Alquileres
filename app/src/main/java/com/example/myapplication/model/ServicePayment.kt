@@ -4,5 +4,6 @@ import java.math.BigDecimal
 
 data class ServicePayment(
     val service: Service,
-    val amount: BigDecimal
+    val amount: BigDecimal,
+    val id: Long? = null
 )

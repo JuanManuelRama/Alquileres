@@ -41,6 +41,7 @@ data class ContractWithRelations(
         startingDate = contract.startingDate,
         finishingDate = contract.finishingDate,
         adjustments = adjustments.map { it.toDomain() },
-        services = services.map { it.toDomain() }
+        services = services.map { it.toDomain() },
+        id = contract.id
     )
 }

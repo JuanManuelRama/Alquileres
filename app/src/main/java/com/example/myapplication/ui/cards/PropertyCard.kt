@@ -1,4 +1,4 @@
-package com.example.myapplication.ui.components.cards
+package com.example.myapplication.ui.cards
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
