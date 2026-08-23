@@ -27,16 +27,20 @@ data class ContractWithRelations(
             entityColumns = ["serviceId"]
         )
     )
-    val services: List<ServiceEntity>
+    val services: List<ServiceEntity>,
+    @Relation(
+        parentColumns = ["id"],
+        entityColumns = ["contractId"]
+    )
+    val adjustments: List<AdjustmentEntity>
 ) {
     fun toDomain(): Contract = Contract(
         property = property.toDomain(),
         tenant = tenant.toDomain(),
-        initialRent = contract.initialRent,
-        currentRent = contract.currentRent,
+        rent = contract.rent,
         startingDate = contract.startingDate,
         finishingDate = contract.finishingDate,
-        adjustmentTime = contract.adjustmentTime,
+        adjustments = adjustments.map { it.toDomain() },
         services = services.map { it.toDomain() }
     )
 }

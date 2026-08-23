@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -25,6 +26,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.model.Contract
+import com.example.myapplication.ui.components.cards.PropertyCard
+import com.example.myapplication.ui.components.cards.TenantCard
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -55,27 +58,15 @@ fun ContractDetailScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Property & Tenant
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = "Property", style = MaterialTheme.typography.labelLarge)
-                    Text(text = contract.property.toString(), style = MaterialTheme.typography.bodyLarge)
-                    
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                    
-                    Text(text = "Tenant", style = MaterialTheme.typography.labelLarge)
-                    Text(text = contract.tenant.name, style = MaterialTheme.typography.bodyLarge)
-                    Text(text = "Phone: ${contract.tenant.phone}", style = MaterialTheme.typography.bodyMedium)
-                }
-            }
+            PropertyCard(property = contract.property)
+            TenantCard(tenant = contract.tenant)
 
             // Rent Info
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(text = "Rent", style = MaterialTheme.typography.labelLarge)
-                    Text(text = "Current: $${contract.currentRent}", style = MaterialTheme.typography.bodyLarge)
-                    Text(text = "Initial: $${contract.initialRent}", style = MaterialTheme.typography.bodyMedium)
-                    Text(text = "Adjustments every ${contract.adjustmentTime} months", style = MaterialTheme.typography.bodySmall)
+                    Text(text = "Current: $${contract.currentValue()}", style = MaterialTheme.typography.bodyLarge)
+                    Text(text = "Initial: $${contract.rent}", style = MaterialTheme.typography.bodyMedium)
                 }
             }
 
@@ -102,16 +93,35 @@ fun ContractDetailScreen(
             }
 
             // Adjustment Schedule
-            val adjustments = contract.adjustmentMonths()
-            if (adjustments.isNotEmpty()) {
+            if (contract.adjustments.isNotEmpty()) {
                 Text(text = "Adjustment Schedule", style = MaterialTheme.typography.titleSmall)
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        adjustments.forEach { date ->
-                            Text(
-                                text = "• ${date.format(dateFormatter)}",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
+                        contract.adjustments.forEach { adjustment ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                Text(
+                                    text = adjustment.time.format(dateFormatter),
+                                    modifier = Modifier.weight(1f),
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+
+                                if (adjustment.amount != null) {
+                                    Text(
+                                        text = adjustment.amount.toString(),
+                                        modifier = Modifier.weight(1f),
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+
+                                    Text(
+                                        text = contract.valueAfterDate(adjustment.time).toString(),
+                                        modifier = Modifier.weight(1f),
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+                            }
                         }
                     }
                 }

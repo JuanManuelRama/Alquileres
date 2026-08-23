@@ -6,16 +6,33 @@ import java.time.LocalDate
 data class Contract(
     val property: Property,
     val tenant: Tenant,
-    val initialRent: BigDecimal,
-    val currentRent: BigDecimal,
+    val rent: BigDecimal,
     val startingDate: LocalDate,
     val finishingDate: LocalDate,
-    val adjustmentTime: Long,
+    val adjustments: List<Adjustment>,
     val services: List<Service>
 ) {
-    fun adjustmentMonths(): List<LocalDate> {
-        return generateSequence(startingDate.plusMonths(adjustmentTime)) { it.plusMonths(adjustmentTime) }
-            .takeWhile { it.isBefore(finishingDate) }
-            .toList()
+    fun currentValue(): BigDecimal = valueAfterDate(LocalDate.now())
+
+    fun valueAfterDate(date: LocalDate): BigDecimal {
+        return adjustments.filter { it.time.isBefore(date) } .fold(rent) { rent, adjustment ->
+            adjustment.amount?.let {
+                rent + rent * it
+            } ?: rent
+        }
+    }
+
+    companion object {
+        fun generateAdjustments(
+            startingDate: LocalDate,
+            finishingDate: LocalDate,
+            adjustmentTime: Long,
+            hike: BigDecimal? = null
+        ): List<Adjustment> {
+            return generateSequence(startingDate.plusMonths(adjustmentTime)) { it.plusMonths(adjustmentTime) }
+                .takeWhile { it.isBefore(finishingDate) }
+                .map { Adjustment(it, hike) }
+                .toList()
+        }
     }
 }

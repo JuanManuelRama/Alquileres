@@ -47,8 +47,8 @@ fun CreateContractScreen(
 
     var selectedTenant by remember { mutableStateOf<Tenant?>(null) }
     var selectedProperty by remember { mutableStateOf<Property?>(null) }
-    var initialRent by remember { mutableStateOf("") }
-    var currentRent by remember { mutableStateOf("") }
+    var rent by remember { mutableStateOf("") }
+    var fixedHike by remember { mutableStateOf("") }
     var selectedServices by remember { mutableStateOf<List<Service>>(emptyList()) }
     var startDate by remember { mutableStateOf<LocalDate?>(null) }
     var endDate by remember { mutableStateOf<LocalDate?>(null) }
@@ -73,11 +73,15 @@ fun CreateContractScreen(
                 val contract = Contract(
                     property = selectedProperty!!, // cannot be null thanks to validation
                     tenant = selectedTenant!!, // cannot be null thanks to validation
-                    initialRent = initialRent.toBigDecimal(), // will not fail due to validation
-                    currentRent = currentRent.toBigDecimal(), // will not fail due to validation
+                    rent = rent.toBigDecimal(), // will not fail due to validation
                     startingDate = startDate!!, // cannot be null thanks to validation
                     finishingDate = endDate!!, // cannot be null thanks to validation
-                    adjustmentTime = adjustmentTime.toLong(), // will not fail due to validation
+                    adjustments = Contract.generateAdjustments(
+                        startDate!!, 
+                        endDate!!, 
+                        adjustmentTime.toLong(),
+                        fixedHike.toBigDecimalOrNull()
+                    ),
                     services = selectedServices
                 )
                 viewModel.saveContract(contract)
@@ -123,23 +127,19 @@ fun CreateContractScreen(
                 }
             )
             Item(
-                field = "Initial Rent",
-                value = initialRent,
+                field = "Rent",
+                value = rent,
                 keyboardType = KeyboardType.Decimal,
                 validate = { Validate(it).isBigDecimal().isPositive() },
-                onValueChange = { rent ->
-                    if (currentRent == "" || currentRent == initialRent) {
-                        currentRent = rent
-                    }
-                    initialRent = rent
-                }
+                onValueChange = { rent = it }
             )
             Item(
-                field = "Current Rent",
-                value = currentRent,
+                field = "Fixed Hike (0.1 for 10%)",
+                value = fixedHike,
                 keyboardType = KeyboardType.Decimal,
-                validate = { Validate(it).isBigDecimal().isPositive() },
-                onValueChange = { currentRent = it }
+                mandatory = false,
+                validate = { Validate(it).isBigDecimal() },
+                onValueChange = { fixedHike = it }
             )
             MultiPickerItem(
                 label = "Services",

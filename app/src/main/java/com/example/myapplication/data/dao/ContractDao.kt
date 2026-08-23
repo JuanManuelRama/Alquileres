@@ -4,6 +4,7 @@ import androidx.room3.Dao
 import androidx.room3.Insert
 import androidx.room3.Query
 import androidx.room3.Transaction
+import com.example.myapplication.data.entity.AdjustmentEntity
 import com.example.myapplication.data.entity.ContractEntity
 import com.example.myapplication.data.entity.ContractServiceCrossRef
 import com.example.myapplication.data.entity.ContractWithRelations
@@ -21,10 +22,14 @@ interface ContractDao {
     @Insert
     suspend fun insertContractServiceCrossRefs(crossRefs: List<ContractServiceCrossRef>)
 
+    @Insert
+    suspend fun insertAdjustments(adjustments: List<AdjustmentEntity>)
+
     @Transaction
-    suspend fun saveContract(contract: ContractEntity, serviceIds: List<Long>) {
+    suspend fun saveContract(contract: ContractEntity, serviceIds: List<Long>, adjustments: List<AdjustmentEntity>) {
         val contractId = insertContract(contract)
         val crossRefs = serviceIds.map { ContractServiceCrossRef(contractId, it) }
         insertContractServiceCrossRefs(crossRefs)
+        insertAdjustments(adjustments.map { it.copy(contractId = contractId) })
     }
 }
