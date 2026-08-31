@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
+import com.example.myapplication.ui.creator.ContractPaymentCreator
 import com.example.myapplication.ui.screens.ContractDetailScreen
 import com.example.myapplication.ui.screens.CreateContractScreen
 import com.example.myapplication.ui.screens.DetallePropiedadScreen
@@ -61,8 +62,18 @@ fun AppNavigation(
                 is ContractDetail -> NavEntry(key) {
                     ContractDetailScreen(
                         contract = key.contract,
+                        onCreatePayment = { backStack.add(CreatePaymentScreen(key.contract)) },
                         viewModel = contractViewModel,
                         onBackClick = { backStack.removeLastOrNull() }
+                    )
+                }
+                is CreatePaymentScreen -> NavEntry(key) {
+                    ContractPaymentCreator(
+                        contract = key.contract,
+                        onCreated = {},
+                        cancelText = "Return",
+                        onCancel = { backStack.removeLastOrNull() },
+                        modifier = modifier
                     )
                 }
             }

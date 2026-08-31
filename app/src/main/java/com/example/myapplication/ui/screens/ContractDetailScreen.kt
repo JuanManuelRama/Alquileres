@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,9 +11,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -24,8 +23,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.model.Contract
@@ -39,11 +36,11 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun ContractDetailScreen(
     contract: Contract,
+    onCreatePayment: (Contract) -> Unit,
     viewModel: ContractViewModel,
     onBackClick: () -> Unit
 ) {
     val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-    val payments by viewModel.payments.collectAsState(emptyList())
 
     LaunchedEffect(contract) {
         viewModel.selectContract(contract)
@@ -113,35 +110,10 @@ fun ContractDetailScreen(
                     }
                 }
             }
-
-            // Payments
-            if (payments.isNotEmpty()) {
-                Text(text = "Payments History", style = MaterialTheme.typography.titleSmall)
-                payments.forEach { payment ->
-                    Card(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(text = "Total: $${payment.total}", style = MaterialTheme.typography.titleMedium)
-                                Text(text = "Rent: $${payment.rent}", style = MaterialTheme.typography.bodyMedium)
-                            }
-                            if (payment.services.isNotEmpty()) {
-                                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                                payment.services.forEach { servicePayment ->
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text(text = servicePayment.service.name, style = MaterialTheme.typography.bodySmall)
-                                        Text(text = "$${servicePayment.amount}", style = MaterialTheme.typography.bodySmall)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+            Button(
+                onClick = { onCreatePayment(contract) }
+            ) {
+                Text(text = "Create Payment")
             }
         }
     }
