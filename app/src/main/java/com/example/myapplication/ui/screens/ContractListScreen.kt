@@ -40,7 +40,7 @@ fun ContractListScreen(
                     ListItem(
                         headlineContent = { Text(contract.property.toString()) },
                         supportingContent = { Text("Tenant: ${contract.tenant.name}") },
-                        trailingContent = { Text("$${contract.currentValue()}") }
+                        trailingContent = { Text("$${contract.currentValue().stripTrailingZeros().toPlainString()}") }
                     )
                 }
             }

@@ -92,7 +92,7 @@ fun CreateContractScreen(
                             startDate!!,
                             endDate!!,
                             adjustmentTime.toLong(),
-                            fixedHike.toBigDecimalOrNull()?.div(100.toBigDecimal())
+                            fixedHike.toBigDecimalOrNull()?.divide(java.math.BigDecimal("100"), 4, java.math.RoundingMode.HALF_UP)
                         ),
                         services = selectedServices
                     )

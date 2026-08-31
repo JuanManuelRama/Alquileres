@@ -68,8 +68,8 @@ fun ContractDetailScreen(
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(text = "Rent", style = MaterialTheme.typography.labelLarge)
-                    Text(text = "Current: $${contract.currentValue()}", style = MaterialTheme.typography.bodyLarge)
-                    Text(text = "Initial: $${contract.rent}", style = MaterialTheme.typography.bodyMedium)
+                    Text(text = "Current: $${contract.currentValue().stripTrailingZeros().toPlainString()}", style = MaterialTheme.typography.bodyLarge)
+                    Text(text = "Initial: $${contract.rent.stripTrailingZeros().toPlainString()}", style = MaterialTheme.typography.bodyMedium)
                 }
             }
 
