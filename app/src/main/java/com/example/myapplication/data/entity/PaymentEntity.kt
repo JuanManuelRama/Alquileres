@@ -7,6 +7,7 @@ import androidx.room3.PrimaryKey
 import com.example.myapplication.model.Payment
 import com.example.myapplication.model.ServicePayment
 import java.math.BigDecimal
+import java.time.LocalDate
 
 @Entity(
     tableName = "Payment",
@@ -24,13 +25,15 @@ data class PaymentEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long? = null,
     val contractId: Long,
-    val rent: BigDecimal
+    val rent: BigDecimal,
+    val date: LocalDate
 )
 
 fun Payment.toEntity(): PaymentEntity = PaymentEntity(
     id = id,
     contractId = contract.id!!,
-    rent = rent
+    rent = rent,
+    date = date
 )
 
 @Entity(

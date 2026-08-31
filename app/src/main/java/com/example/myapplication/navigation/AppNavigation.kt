@@ -9,10 +9,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
 import com.example.myapplication.ui.screens.ContractDetailScreen
-import com.example.myapplication.ui.screens.CreateContractScreen
-import com.example.myapplication.ui.screens.DetallePropiedadScreen
 import com.example.myapplication.ui.screens.ContractListScreen
 import com.example.myapplication.ui.screens.ContractPaymentCreateScreen
+import com.example.myapplication.ui.screens.ContractPaymentsScreen
+import com.example.myapplication.ui.screens.CreateContractScreen
+import com.example.myapplication.ui.screens.DetallePropiedadScreen
 import com.example.myapplication.ui.screens.ListPropertiesScreen
 import com.example.myapplication.ui.viewModel.ContractViewModel
 import com.example.myapplication.ui.viewModel.CreateContractViewModel
@@ -63,6 +64,13 @@ fun AppNavigation(
                     ContractDetailScreen(
                         contract = key.contract,
                         onCreatePaymentButtonClick = { backStack.add(CreatePaymentScreen(key.contract)) },
+                        onViewPaymentsButtonClick = { backStack.add(ContractPayments(key.contract)) },
+                        onBackClick = { backStack.removeLastOrNull() }
+                    )
+                }
+                is ContractPayments -> NavEntry(key) {
+                    ContractPaymentsScreen(
+                        contract = key.contract,
                         viewModel = contractViewModel,
                         onBackClick = { backStack.removeLastOrNull() }
                     )

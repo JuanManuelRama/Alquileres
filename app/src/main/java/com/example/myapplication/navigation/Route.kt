@@ -8,6 +8,7 @@ data object ContractList : Route
 data object ListaPropiedades : Route
 data class DetallePropiedad(val property: Property) : Route
 data class ContractDetail(val contract: Contract) : Route
+data class ContractPayments(val contract: Contract) : Route
 
 data object AddPropiedad : Route
 

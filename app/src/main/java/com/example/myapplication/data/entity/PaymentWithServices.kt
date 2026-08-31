@@ -18,6 +18,7 @@ data class PaymentWithServices(
     fun toDomain(contract: Contract): Payment = Payment(
         contract = contract,
         rent = payment.rent,
+        date = payment.date,
         services = servicePayments.map { it.toDomain() },
         id = payment.id
     )

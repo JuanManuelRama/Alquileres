@@ -15,7 +15,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -24,16 +23,12 @@ import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.model.Contract
 import com.example.myapplication.ui.cards.AdjustmentCard
 import com.example.myapplication.ui.cards.PropertyCard
 import com.example.myapplication.ui.cards.TenantCard
-import com.example.myapplication.ui.viewModel.ContractViewModel
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -41,15 +36,10 @@ import java.time.format.DateTimeFormatter
 fun ContractDetailScreen(
     contract: Contract,
     onCreatePaymentButtonClick: (Contract) -> Unit,
-    viewModel: ContractViewModel,
+    onViewPaymentsButtonClick: (Contract) -> Unit,
     onBackClick: () -> Unit
 ) {
     val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-    val payments by viewModel.payments.collectAsState(emptyList())
-
-    LaunchedEffect(contract) {
-        viewModel.selectContract(contract)
-    }
 
     Scaffold(
         topBar = {
@@ -116,50 +106,22 @@ fun ContractDetailScreen(
                 }
             }
 
-            if (payments.isNotEmpty()) {
-                Text(text = "Payments History", style = MaterialTheme.typography.titleSmall)
-                payments.forEach { payment ->
-                    Card(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(
-                                    text = "Total: $${payment.total}",
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                                Text(
-                                    text = "Rent: $${payment.rent}",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-                            if (payment.services.isNotEmpty()) {
-                                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                                payment.services.forEach { servicePayment ->
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text(
-                                            text = servicePayment.service.name,
-                                            style = MaterialTheme.typography.bodySmall
-                                        )
-                                        Text(
-                                            text = "$${servicePayment.amount}",
-                                            style = MaterialTheme.typography.bodySmall
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            Button(
-                onClick = { onCreatePaymentButtonClick(contract) }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(text = "Create Payment")
+                Button(
+                    onClick = { onViewPaymentsButtonClick(contract) },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(text = "View Payments")
+                }
+                Button(
+                    onClick = { onCreatePaymentButtonClick(contract) },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(text = "New Payment")
+                }
             }
         }
     }

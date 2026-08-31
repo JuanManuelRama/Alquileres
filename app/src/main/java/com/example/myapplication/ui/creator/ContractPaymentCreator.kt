@@ -41,6 +41,7 @@ fun ContractPaymentCreator(
                         ServicePayment(service, fee.toBigDecimal())
                     },
                     rent = price.toBigDecimal(),
+                    date = date
             ))
         },
         cancelText = cancelText,
