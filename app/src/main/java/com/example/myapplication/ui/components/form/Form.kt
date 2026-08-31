@@ -23,13 +23,16 @@ fun Form(
 ) {
     val scope = FormScope().apply(builder)
     val items = scope.items
-    val isFormValid = items.all { !it.error().isError }
+    val errors = items.map { it.error() }
+    val isFormValid = errors.none { it.isError }
 
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items.forEach { FormItem(item = it) }
+        items.forEachIndexed { index, item ->
+            FormItem(item = item, modifier = Modifier, error = errors[index])
+        }
 
         Spacer(modifier = Modifier.height(12.dp))
 

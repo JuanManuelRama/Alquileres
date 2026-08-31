@@ -18,31 +18,33 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
 import com.example.myapplication.ui.picker.EntityPicker
 import com.example.myapplication.ui.picker.MultiEntityPicker
 import java.time.Instant
-import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 @Composable
 fun FormItem(item: FormItemState, modifier: Modifier = Modifier) {
+    FormItem(item, modifier, item.error())
+}
+
+@Composable
+internal fun FormItem(item: FormItemState, modifier: Modifier, error: Error) {
     when (item) {
-        is TextFormItemState -> TextFormItemContent(item, modifier)
-        is PickerFormItemState<*> -> PickerFormItemContent(item, modifier)
-        is MultiPickerFormItemState<*> -> MultiPickerFormItemContent(item, modifier)
-        is DateFormItemState -> DateFormItemContent(item, modifier)
+        is TextFormItemState -> TextFormItemContent(item, error, modifier)
+        is PickerFormItemState<*> -> PickerFormItemContent(item, error, modifier)
+        is MultiPickerFormItemState<*> -> MultiPickerFormItemContent(item, error, modifier)
+        is DateFormItemState -> DateFormItemContent(item, error, modifier)
     }
 }
 
 @Composable
-private fun TextFormItemContent(item: TextFormItemState, modifier: Modifier = Modifier) {
-    val error = item.error()
+private fun TextFormItemContent(item: TextFormItemState, error: Error, modifier: Modifier = Modifier) {
     OutlinedTextField(
         value = item.value,
         onValueChange = item.onValueChange,
-        label = { Text(item.field + if (item.mandatory) " *" else "") },
+        label = { Text(item.displayLabel) },
         keyboardOptions = KeyboardOptions(keyboardType = item.keyboardType),
         isError = error.hasMessage,
         supportingText = { Text(error.message) },
@@ -53,8 +55,8 @@ private fun TextFormItemContent(item: TextFormItemState, modifier: Modifier = Mo
 @Composable
 private fun <T> PickerFormItemContent(
     item: PickerFormItemState<T>,
+    error: Error,
     modifier: Modifier = Modifier) {
-    val error = item.error()
     EntityPicker(
         items = item.items,
         selectedItem = item.selectedItem,
@@ -64,7 +66,7 @@ private fun <T> PickerFormItemContent(
         itemSearchText = item.itemSearchText,
         createContent = item.createContent,
         modifier = modifier,
-        label = item.label + if (item.mandatory) " *" else "",
+        label = item.displayLabel,
         placeholder = item.placeholder,
         isError = error.hasMessage,
         supportingText = error.message
@@ -74,9 +76,9 @@ private fun <T> PickerFormItemContent(
 @Composable
 private fun <T> MultiPickerFormItemContent(
     item: MultiPickerFormItemState<T>,
+    error: Error,
     modifier: Modifier = Modifier
 ) {
-    val error = item.error()
     MultiEntityPicker(
         items = item.items,
         selectedItems = item.selectedItems,
@@ -86,7 +88,7 @@ private fun <T> MultiPickerFormItemContent(
         itemSearchText = item.itemSearchText,
         createContent = item.createContent,
         modifier = modifier,
-        label = item.label + if (item.mandatory) " *" else "",
+        label = item.displayLabel,
         placeholder = item.placeholder,
         isError = error.hasMessage,
         supportingText = error.message
@@ -95,9 +97,8 @@ private fun <T> MultiPickerFormItemContent(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DateFormItemContent(item: DateFormItemState, modifier: Modifier = Modifier) {
+private fun DateFormItemContent(item: DateFormItemState, error: Error, modifier: Modifier = Modifier) {
     var showDatePicker by remember { mutableStateOf(false) }
-    val error = item.error()
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = item.value?.atStartOfDay(ZoneOffset.UTC)?.toInstant()?.toEpochMilli()
     )
@@ -129,7 +130,7 @@ private fun DateFormItemContent(item: DateFormItemState, modifier: Modifier = Mo
     OutlinedTextField(
         value = item.value?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?: "",
         onValueChange = { },
-        label = { Text(item.label + if (item.mandatory) " *" else "") },
+        label = { Text(item.displayLabel) },
         isError = error.hasMessage,
         supportingText = { Text(error.message) },
         modifier = modifier
@@ -146,98 +147,4 @@ private fun DateFormItemContent(item: DateFormItemState, modifier: Modifier = Mo
             disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     )
-}
-
-data class Error(val isError: Boolean, val message: String) {
-    companion object {
-        val None: Error = Error(false, "")
-        val Simple: Error = Error(true, "")
-        fun MessageError(msg: String): Error = Error(true, msg)
-    }
-
-    val hasMessage: Boolean = message.isNotBlank()
-}
-fun Validation<*>.toFormError(): Error = fold(
-    onValid = { Error.None },
-    onInvalid = { Error.MessageError(it) }
-)
-
-sealed interface FormItemState {
-    val mandatory: Boolean
-    fun error(): Error
-
-}
-
-data class TextFormItemState(
-    val field: String,
-    override val mandatory: Boolean = false,
-    val value: String,
-    val keyboardType: KeyboardType = KeyboardType.Text,
-    val validate: ((String) -> Validation<*>)? = null,
-    val onValueChange: (String) -> Unit
-) : FormItemState {
-
-    override fun error(): Error {
-        if (value.isBlank()) {
-            return if (mandatory) Error.Simple else Error.None
-        }
-        return validate?.invoke(value)?.toFormError() ?: Error.None
-    }
-}
-
-data class PickerFormItemState<T>(
-    val label: String,
-    override val mandatory: Boolean = false,
-    val items: List<T>,
-    val selectedItem: T?,
-    val onItemSelected: (T?) -> Unit,
-    val onItemCreated: (T) -> Unit,
-    val itemLabel: (T) -> String,
-    val itemSearchText: (T) -> String = itemLabel,
-    val createContent: @Composable (onCreated: (T) -> Unit, onCancel: () -> Unit) -> Unit,
-    val placeholder: String = "Search $label...",
-    val validate: ((T?) -> Validation<*>)? = null,
-) : FormItemState {
-    override fun error(): Error {
-        if (selectedItem == null) {
-            return if (mandatory) Error.Simple else Error.None
-        }
-        return validate?.invoke(selectedItem)?.toFormError() ?: Error.None
-    }
-}
-
-data class MultiPickerFormItemState<T>(
-    val label: String,
-    override val mandatory: Boolean = false,
-    val items: List<T>,
-    val selectedItems: List<T>,
-    val onItemsChanged: (List<T>) -> Unit,
-    val onItemCreated: (T) -> Unit,
-    val itemLabel: (T) -> String,
-    val itemSearchText: (T) -> String = itemLabel,
-    val createContent: @Composable (onCreated: (T) -> Unit, onCancel: () -> Unit) -> Unit,
-    val placeholder: String = "Search $label...",
-    val validate: ((List<T>) -> Validation<*>)? = null,
-) : FormItemState {
-    override fun error(): Error {
-        if (selectedItems.isEmpty()) {
-            return if (mandatory) Error.Simple else Error.None
-        }
-        return validate?.invoke(selectedItems)?.toFormError() ?: Error.None
-    }
-}
-
-data class DateFormItemState(
-    val label: String,
-    override val mandatory: Boolean = false,
-    val value: LocalDate?,
-    val onValueChange: (LocalDate?) -> Unit,
-    val validate: ((LocalDate?) -> Validation<*>)? = null,
-) : FormItemState {
-    override fun error(): Error {
-        if (value == null) {
-            return if (mandatory) Error.Simple else Error.None
-        }
-        return validate?.invoke(value)?.toFormError() ?: Error.None
-    }
 }

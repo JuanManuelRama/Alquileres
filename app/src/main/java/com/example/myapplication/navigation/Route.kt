@@ -10,3 +10,5 @@ data class DetallePropiedad(val property: Property) : Route
 data class ContractDetail(val contract: Contract) : Route
 
 data object AddPropiedad : Route
+
+data class CreatePaymentScreen(val contract: Contract) : Route
