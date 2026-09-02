@@ -25,6 +25,9 @@ interface ContractDao {
     @Insert
     suspend fun insertAdjustments(adjustments: List<AdjustmentEntity>)
 
+    @Query("UPDATE Adjustment SET amount = :amount WHERE contractId = :contractId AND time = :time")
+    suspend fun updateAdjustmentAmount(contractId: Long, time: java.time.LocalDate, amount: java.math.BigDecimal?)
+
     @Transaction
     suspend fun saveContract(contract: ContractEntity, serviceIds: List<Long>, adjustments: List<AdjustmentEntity>) {
         val contractId = insertContract(contract)

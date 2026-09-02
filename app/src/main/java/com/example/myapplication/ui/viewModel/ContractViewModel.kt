@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.time.LocalDate
 
 class ContractViewModel(
     private val contractRepository: ContractRepository,
@@ -43,6 +45,14 @@ class ContractViewModel(
     fun savePayment(payment: Payment) {
         viewModelScope.launch {
             paymentRepository.save(payment)
+        }
+    }
+
+
+    fun updateAdjustmentAmount(contract: Contract, time: LocalDate, amount: BigDecimal?) {
+        val contractId = contract.id ?: return
+        viewModelScope.launch {
+            contractRepository.updateAdjustmentAmount(contractId, time, amount)
         }
     }
 }

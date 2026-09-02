@@ -61,10 +61,12 @@ fun AppNavigation(
                     )
                 }
                 is ContractDetail -> NavEntry(key) {
+                    val currentContract = contracts.firstOrNull { it.id == key.contract.id } ?: key.contract
                     ContractDetailScreen(
-                        contract = key.contract,
-                        onCreatePaymentButtonClick = { backStack.add(CreatePaymentScreen(key.contract)) },
-                        onViewPaymentsButtonClick = { backStack.add(ContractPayments(key.contract)) },
+                        contract = currentContract,
+                        viewModel = contractViewModel,
+                        onCreatePaymentButtonClick = { backStack.add(CreatePaymentScreen(currentContract)) },
+                        onViewPaymentsButtonClick = { backStack.add(ContractPayments(currentContract)) },
                         onBackClick = { backStack.removeLastOrNull() }
                     )
                 }
