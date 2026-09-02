@@ -46,6 +46,18 @@ fun Contract.toEntity(propertyId: Long, tenantId: Long): ContractEntity = Contra
 @Entity(
     tableName = "ContractServiceCrossRef",
     primaryKeys = ["contractId", "serviceId"],
+    foreignKeys = [
+        ForeignKey(
+            entity = ContractEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["contractId"]
+        ),
+        ForeignKey(
+            entity = ServiceEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["serviceId"]
+        )
+    ],
     indices = [Index("serviceId")]
 )
 data class ContractServiceCrossRef(

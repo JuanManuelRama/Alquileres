@@ -28,7 +28,8 @@ data class PropertyEntity(
 ) {
     fun toDomain(owner: OwnerEntity): Property = Property(
         address = address,
-        owner = owner.toDomain()
+        owner = owner.toDomain(),
+        id = id
     )
 }
 
