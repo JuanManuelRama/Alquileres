@@ -8,13 +8,13 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
-import com.example.myapplication.ui.screens.ContractDetailScreen
-import com.example.myapplication.ui.screens.ContractListScreen
-import com.example.myapplication.ui.screens.ContractPaymentCreateScreen
-import com.example.myapplication.ui.screens.ContractPaymentsScreen
-import com.example.myapplication.ui.screens.CreateContractScreen
-import com.example.myapplication.ui.viewmodel.ContractViewModel
-import com.example.myapplication.ui.viewmodel.CreateContractViewModel
+import com.example.myapplication.ui.contract.ContractViewModel
+import com.example.myapplication.ui.contract.create.CreateContractScreen
+import com.example.myapplication.ui.contract.create.CreateContractViewModel
+import com.example.myapplication.ui.contract.detail.ContractDetailScreen
+import com.example.myapplication.ui.contract.list.ContractListScreen
+import com.example.myapplication.ui.contract.payment.ContractPaymentCreateScreen
+import com.example.myapplication.ui.contract.payment.ContractPaymentsScreen
 
 @Composable
 fun AppNavigation(

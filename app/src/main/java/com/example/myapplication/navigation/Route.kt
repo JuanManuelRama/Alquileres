@@ -1,7 +1,6 @@
 package com.example.myapplication.navigation
 
 import com.example.myapplication.model.Contract
-import com.example.myapplication.model.Property
 
 sealed interface Route
 data object ContractList : Route

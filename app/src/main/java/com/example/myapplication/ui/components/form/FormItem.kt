@@ -18,8 +18,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.example.myapplication.ui.picker.EntityPicker
-import com.example.myapplication.ui.picker.MultiEntityPicker
+import com.example.myapplication.ui.components.picker.EntityPicker
+import com.example.myapplication.ui.components.picker.MultiEntityPicker
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
