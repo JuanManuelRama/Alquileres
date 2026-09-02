@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.model.Contract
 import com.example.myapplication.ui.creator.ContractPaymentCreator
-import com.example.myapplication.ui.viewModel.ContractViewModel
+import com.example.myapplication.ui.viewmodel.ContractViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

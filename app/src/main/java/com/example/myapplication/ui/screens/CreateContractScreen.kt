@@ -22,7 +22,7 @@ import com.example.myapplication.model.Property
 import com.example.myapplication.model.Service
 import com.example.myapplication.model.Tenant
 import com.example.myapplication.ui.creator.PropertyCreator
-import com.example.myapplication.ui.viewModel.CreateContractViewModel
+import com.example.myapplication.ui.viewmodel.CreateContractViewModel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

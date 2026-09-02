@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
-import com.example.myapplication.ui.viewModel.AppViewModelFactory
+import com.example.myapplication.ui.viewmodel.AppViewModelFactory
 import com.example.myapplication.data.repository.ContractRepository
 import com.example.myapplication.data.repository.OwnerRepository
 import com.example.myapplication.data.repository.PaymentRepository
@@ -18,8 +18,8 @@ import com.example.myapplication.data.repository.ServiceRepository
 import com.example.myapplication.data.repository.TenantRepository
 import com.example.myapplication.navigation.AppNavigation
 import com.example.myapplication.ui.theme.MyApplicationTheme
-import com.example.myapplication.ui.viewModel.ContractViewModel
-import com.example.myapplication.ui.viewModel.CreateContractViewModel
+import com.example.myapplication.ui.viewmodel.ContractViewModel
+import com.example.myapplication.ui.viewmodel.CreateContractViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

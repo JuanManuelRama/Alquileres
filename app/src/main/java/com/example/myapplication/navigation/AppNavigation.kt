@@ -13,10 +13,8 @@ import com.example.myapplication.ui.screens.ContractListScreen
 import com.example.myapplication.ui.screens.ContractPaymentCreateScreen
 import com.example.myapplication.ui.screens.ContractPaymentsScreen
 import com.example.myapplication.ui.screens.CreateContractScreen
-import com.example.myapplication.ui.screens.DetallePropiedadScreen
-import com.example.myapplication.ui.screens.ListPropertiesScreen
-import com.example.myapplication.ui.viewModel.ContractViewModel
-import com.example.myapplication.ui.viewModel.CreateContractViewModel
+import com.example.myapplication.ui.viewmodel.ContractViewModel
+import com.example.myapplication.ui.viewmodel.CreateContractViewModel
 
 @Composable
 fun AppNavigation(
@@ -25,7 +23,6 @@ fun AppNavigation(
     modifier: Modifier = Modifier
 ) {
     val backStack = remember { mutableStateListOf<Route>(ContractList) }
-    val properties by createContractViewModel.properties().collectAsStateWithLifecycle()
     val contracts by contractViewModel.contracts.collectAsStateWithLifecycle()
 
     NavDisplay(
@@ -41,22 +38,9 @@ fun AppNavigation(
                         addContractClick = { backStack.add(AddPropiedad) }
                     )
                 }
-                is ListaPropiedades -> NavEntry(key) {
-                    ListPropertiesScreen(
-                        properties = properties,
-                        onPropertyClick = { backStack.add(DetallePropiedad(it)) },
-                        addPropertyClick = { backStack.add(AddPropiedad) }
-                    )
-                }
                 is AddPropiedad -> NavEntry(key) {
                     CreateContractScreen(
                         viewModel = createContractViewModel,
-                        onBackClick = { backStack.removeLastOrNull() }
-                    )
-                }
-                is DetallePropiedad -> NavEntry(key) {
-                    DetallePropiedadScreen(
-                        property = key.property,
                         onBackClick = { backStack.removeLastOrNull() }
                     )
                 }

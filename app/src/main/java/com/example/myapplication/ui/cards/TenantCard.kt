@@ -1,7 +1,6 @@
 package com.example.myapplication.ui.cards
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -12,8 +11,11 @@ import androidx.compose.ui.unit.dp
 import com.example.myapplication.model.Tenant
 
 @Composable
-fun TenantCard(tenant: Tenant, modifier: Modifier = Modifier) {
-    Card(modifier = modifier.fillMaxWidth()) {
+fun TenantCard(
+    tenant: Tenant,
+    modifier: Modifier = Modifier
+) {
+    Card(modifier = modifier) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = "Tenant", style = MaterialTheme.typography.labelLarge)
             Text(text = tenant.name, style = MaterialTheme.typography.bodyLarge)

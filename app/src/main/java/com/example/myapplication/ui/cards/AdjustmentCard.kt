@@ -43,7 +43,7 @@ fun AdjustmentCard(
 ) {
     val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     var showEditor by remember { mutableStateOf(false) }
-    Card(modifier = modifier.fillMaxWidth()) {
+    Card(modifier = modifier) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

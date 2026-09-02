@@ -2,8 +2,6 @@ package com.example.myapplication.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,13 +11,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -30,29 +26,33 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.model.Contract
 import com.example.myapplication.ui.cards.AdjustmentCard
+import com.example.myapplication.ui.cards.ContractDurationCard
+import com.example.myapplication.ui.cards.ContractRentCard
+import com.example.myapplication.ui.cards.ContractServicesCard
 import com.example.myapplication.ui.cards.PropertyCard
 import com.example.myapplication.ui.cards.TenantCard
-import com.example.myapplication.ui.viewModel.ContractViewModel
+import com.example.myapplication.ui.viewmodel.ContractViewModel
 import java.time.YearMonth
-import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContractDetailScreen(
     contract: Contract,
     viewModel: ContractViewModel,
     onCreatePaymentButtonClick: (Contract) -> Unit,
     onViewPaymentsButtonClick: (Contract) -> Unit,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     val payments by viewModel.payments.collectAsState(emptyList())
+    val cardModifier = Modifier.fillMaxWidth()
 
     LaunchedEffect(contract.id) {
         viewModel.selectContract(contract)
     }
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = { Text("Contract Details") },
@@ -72,37 +72,28 @@ fun ContractDetailScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            PropertyCard(property = contract.property)
-            TenantCard(tenant = contract.tenant)
+            PropertyCard(
+                property = contract.property,
+                modifier = cardModifier
+            )
+            TenantCard(
+                tenant = contract.tenant,
+                modifier = cardModifier
+            )
+            ContractRentCard(
+                contract = contract,
+                modifier = cardModifier
+            )
+            ContractDurationCard(
+                contract = contract,
+                modifier = cardModifier
+            )
 
-            // Rent Info
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = "Rent", style = MaterialTheme.typography.labelLarge)
-                    Text(text = "Current: $${contract.currentValue().stripTrailingZeros().toPlainString()}", style = MaterialTheme.typography.bodyLarge)
-                    Text(text = "Initial: $${contract.rent.stripTrailingZeros().toPlainString()}", style = MaterialTheme.typography.bodyMedium)
-                }
-            }
-
-            // Dates
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = "Duration", style = MaterialTheme.typography.labelLarge)
-                    Text(text = "From: ${contract.startingDate.format(dateFormatter)}", style = MaterialTheme.typography.bodyMedium)
-                    Text(text = "To: ${contract.finishingDate.format(dateFormatter)}", style = MaterialTheme.typography.bodyMedium)
-                }
-            }
-
-            // Services
             if (contract.services.isNotEmpty()) {
-                Text(text = "Included Services", style = MaterialTheme.typography.titleSmall)
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    contract.services.forEach { service ->
-                        SuggestionChip(onClick = { }, label = { Text(service.name) })
-                    }
-                }
+                ContractServicesCard(
+                    services = contract.services,
+                    modifier = cardModifier
+                )
             }
 
             if (contract.adjustments.isNotEmpty()) {
@@ -115,6 +106,7 @@ fun ContractDetailScreen(
                         AdjustmentCard(
                             adjustment = adjustment,
                             contract = contract,
+                            modifier = cardModifier,
                             editable = !hasPaymentForMonth,
                             onAmountChange = { amount ->
                                 viewModel.updateAdjustmentAmount(contract, adjustment.time, amount)
@@ -125,7 +117,7 @@ fun ContractDetailScreen(
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = cardModifier,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Button(
