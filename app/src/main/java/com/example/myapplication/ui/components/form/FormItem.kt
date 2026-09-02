@@ -1,7 +1,6 @@
 package com.example.myapplication.ui.components.form
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -48,7 +47,7 @@ private fun TextFormItemContent(item: TextFormItemState, error: Error, modifier:
         keyboardOptions = KeyboardOptions(keyboardType = item.keyboardType),
         isError = error.hasMessage,
         supportingText = { Text(error.message) },
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
     )
 }
 
@@ -133,9 +132,7 @@ private fun DateFormItemContent(item: DateFormItemState, error: Error, modifier:
         label = { Text(item.displayLabel) },
         isError = error.hasMessage,
         supportingText = { Text(error.message) },
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { showDatePicker = true },
+        modifier = modifier.clickable { showDatePicker = true },
         readOnly = true,
         enabled = false,
         colors = OutlinedTextFieldDefaults.colors(

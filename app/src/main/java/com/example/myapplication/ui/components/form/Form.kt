@@ -22,16 +22,23 @@ fun Form(
     builder: FormScope.() -> Unit
 ) {
     val scope = FormScope().apply(builder)
-    val items = scope.items
-    val errors = items.map { it.error() }
+    val fields = scope.elements.filterIsInstance<FormElement.Field>()
+    val errors = fields.map { it.state.error() }
     val isFormValid = errors.none { it.isError }
 
     Column(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items.forEachIndexed { index, item ->
-            FormItem(item = item, modifier = Modifier, error = errors[index])
+        scope.elements.forEach { element ->
+            when (element) {
+                is FormElement.Field -> FormItem(
+                    item = element.state,
+                    modifier = Modifier.fillMaxWidth(),
+                    error = element.state.error()
+                )
+                is FormElement.Content -> element.content()
+            }
         }
 
         Spacer(modifier = Modifier.height(12.dp))

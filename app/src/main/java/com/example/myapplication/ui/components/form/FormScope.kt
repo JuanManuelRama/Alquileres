@@ -4,8 +4,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.input.KeyboardType
 import java.time.LocalDate
 
+internal sealed interface FormElement {
+    data class Field(val state: FormItemState) : FormElement
+    data class Content(val content: @Composable () -> Unit) : FormElement
+}
+
 class FormScope {
-    val items = mutableListOf<FormItemState>()
+    internal val elements = mutableListOf<FormElement>()
+
+    fun Content(content: @Composable () -> Unit) {
+        elements.add(FormElement.Content(content))
+    }
 
     fun DateItem(
         label: String,
@@ -14,14 +23,14 @@ class FormScope {
         validate: ((LocalDate?) -> Validation<*>)? = null,
         onValueChange: (LocalDate?) -> Unit
     ) {
-        items.add(
-            DateFormItemState(
+        elements.add(
+            FormElement.Field(DateFormItemState(
                 label = label,
                 value = value,
                 mandatory = mandatory,
                 validate = validate,
                 onValueChange = onValueChange
-            )
+            ))
         )
     }
 
@@ -38,8 +47,8 @@ class FormScope {
         onItemsChanged: (List<T>) -> Unit,
         onItemCreated: (T) -> Unit,
     ) {
-        this.items.add(
-            MultiPickerFormItemState(
+        elements.add(
+            FormElement.Field(MultiPickerFormItemState(
                 label = label,
                 mandatory = mandatory,
                 items = items,
@@ -51,7 +60,7 @@ class FormScope {
                 createContent = createContent,
                 placeholder = placeholder,
                 validate = validate,
-            )
+            ))
         )
     }
 
@@ -63,15 +72,15 @@ class FormScope {
         validate: ((String) -> Validation<*>)? = null,
         onValueChange: (String) -> Unit
     ) {
-        items.add(
-            TextFormItemState(
+        elements.add(
+            FormElement.Field(TextFormItemState(
                 field = field,
                 value = value,
                 mandatory = mandatory,
                 keyboardType = keyboardType,
                 validate = validate,
                 onValueChange = onValueChange
-            )
+            ))
         )
     }
 
@@ -88,8 +97,8 @@ class FormScope {
         onItemSelected: (T?) -> Unit,
         onItemCreated: (T) -> Unit,
     ) {
-        this.items.add(
-            PickerFormItemState(
+        elements.add(
+            FormElement.Field(PickerFormItemState(
                 label = label,
                 mandatory = mandatory,
                 items = items,
@@ -101,7 +110,7 @@ class FormScope {
                 createContent = createContent,
                 placeholder = placeholder,
                 validate = validate,
-            )
+            ))
         )
     }
 }
