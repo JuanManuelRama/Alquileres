@@ -13,7 +13,8 @@ class ServiceRepository(private val dao: ServiceDao) {
         }
     }
 
-    suspend fun insert(service: Service): Long {
-        return dao.insert(service.toEntity())
+    suspend fun insert(service: Service): Service {
+        val id = dao.insert(service.toEntity())
+        return service.copy(id = id)
     }
 }

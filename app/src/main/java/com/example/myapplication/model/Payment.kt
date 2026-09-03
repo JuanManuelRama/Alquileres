@@ -8,7 +8,7 @@ data class Payment(
     val services: List<ServicePayment>,
     val rent: BigDecimal,
     val date: LocalDate,
-    val id: Long? = null
+    val id: Long = 0L
 ) {
    val total: BigDecimal = rent + services.sumOf { it.amount }
 }

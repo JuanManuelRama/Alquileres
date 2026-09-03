@@ -29,10 +29,11 @@ interface ContractDao {
     suspend fun updateAdjustmentAmount(contractId: Long, time: java.time.LocalDate, amount: java.math.BigDecimal?)
 
     @Transaction
-    suspend fun saveContract(contract: ContractEntity, serviceIds: List<Long>, adjustments: List<AdjustmentEntity>) {
+    suspend fun saveContract(contract: ContractEntity, serviceIds: List<Long>, adjustments: List<AdjustmentEntity>): Long {
         val contractId = insertContract(contract)
         val crossRefs = serviceIds.map { ContractServiceCrossRef(contractId, it) }
         insertContractServiceCrossRefs(crossRefs)
         insertAdjustments(adjustments.map { it.copy(contractId = contractId) })
+        return contractId
     }
 }

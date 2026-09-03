@@ -9,15 +9,16 @@ import kotlinx.coroutines.flow.map
 
 class PaymentRepository(private val dao: PaymentDao) {
     fun getPaymentsForContract(contract: Contract): Flow<List<Payment>> {
-        return dao.getPaymentsForContract(contract.id!!).map { list ->
+        return dao.getPaymentsForContract(contract.id).map { list ->
             list.map { it.toDomain(contract) }
         }
     }
 
-    suspend fun save(payment: Payment) {
-        dao.savePayment(
+    suspend fun save(payment: Payment): Payment {
+        val id = dao.savePayment(
             payment = payment.toEntity(),
-            servicePayments = payment.services.map { it.toEntity(0) } // paymentId is handled in DAO
+            servicePayments = payment.services.map { it.toEntity() }
         )
+        return payment.copy(id = id)
     }
 }

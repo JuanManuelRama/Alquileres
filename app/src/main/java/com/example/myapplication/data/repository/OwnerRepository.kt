@@ -13,7 +13,8 @@ class OwnerRepository(private val dao: OwnerDao) {
         }
     }
 
-    suspend fun insert(owner: Owner): Long {
-        return dao.insert(owner.toEntity())
+    suspend fun insert(owner: Owner): Owner {
+        val id = dao.insert(owner.toEntity())
+        return owner.copy(id = id)
     }
 }

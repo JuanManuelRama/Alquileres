@@ -31,7 +31,7 @@ import com.example.myapplication.data.entity.TenantEntity
         PaymentEntity::class,
         ServicePaymentEntity::class
     ],
-    version = 9,
+    version = 10,
     exportSchema = false
 )
 @ColumnTypeConverters(Converters::class)

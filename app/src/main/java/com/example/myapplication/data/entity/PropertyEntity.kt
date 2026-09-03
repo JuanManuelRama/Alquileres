@@ -20,7 +20,7 @@ import com.example.myapplication.model.Property
 )
 data class PropertyEntity(
     @PrimaryKey(autoGenerate = true)
-    val id: Long? = null,
+    val id: Long = 0L,
     @Embedded(prefix = "addr_")
     val address: Address,
     val ownerId: Long
@@ -33,10 +33,10 @@ data class PropertyEntity(
     )
 }
 
-fun Property.toEntity(ownerId: Long): PropertyEntity {
+fun Property.toEntity(): PropertyEntity {
     return PropertyEntity(
         address = address,
-        ownerId = ownerId,
+        ownerId = owner.id,
         id = id
     )
 }

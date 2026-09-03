@@ -7,7 +7,7 @@ import com.example.myapplication.model.Tenant
 @Entity(tableName = "Tenant")
 data class TenantEntity(
     @PrimaryKey(autoGenerate = true)
-    val id: Long? = null,
+    val id: Long = 0L,
     val name: String,
     val phone: String
 ) {

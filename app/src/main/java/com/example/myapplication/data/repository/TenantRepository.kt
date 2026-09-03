@@ -13,7 +13,8 @@ class TenantRepository (private val dao: TenantDao) {
         }
     }
 
-    suspend fun insert(tenant: Tenant): Long {
-        return dao.insert(tenant.toEntity())
+    suspend fun insert(tenant: Tenant): Tenant {
+        val id = dao.insert(tenant.toEntity())
+        return tenant.copy(id = id)
     }
 }

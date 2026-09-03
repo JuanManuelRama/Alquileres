@@ -23,7 +23,7 @@ import java.time.LocalDate
 )
 data class PaymentEntity(
     @PrimaryKey(autoGenerate = true)
-    val id: Long? = null,
+    val id: Long = 0L,
     val contractId: Long,
     val rent: BigDecimal,
     val date: LocalDate
@@ -31,7 +31,7 @@ data class PaymentEntity(
 
 fun Payment.toEntity(): PaymentEntity = PaymentEntity(
     id = id,
-    contractId = contract.id!!,
+    contractId = contract.id,
     rent = rent,
     date = date
 )
@@ -55,15 +55,15 @@ fun Payment.toEntity(): PaymentEntity = PaymentEntity(
 )
 data class ServicePaymentEntity(
     @PrimaryKey(autoGenerate = true)
-    val id: Long? = null,
+    val id: Long = 0L,
     val paymentId: Long,
     val serviceId: Long,
     val amount: BigDecimal
 )
 
-fun ServicePayment.toEntity(paymentId: Long): ServicePaymentEntity = ServicePaymentEntity(
+fun ServicePayment.toEntity(): ServicePaymentEntity = ServicePaymentEntity(
     id = id,
-    paymentId = paymentId,
-    serviceId = service.id!!,
+    paymentId = 0L,
+    serviceId = service.id,
     amount = amount
 )

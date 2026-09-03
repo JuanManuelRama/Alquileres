@@ -27,7 +27,7 @@ import java.time.LocalDate
 )
 data class ContractEntity(
     @PrimaryKey(autoGenerate = true)
-    val id: Long? = null,
+    val id: Long = 0L,
     val propertyId: Long,
     val tenantId: Long,
     val rent: BigDecimal,
@@ -35,9 +35,10 @@ data class ContractEntity(
     val finishingDate: LocalDate,
 )
 
-fun Contract.toEntity(propertyId: Long, tenantId: Long): ContractEntity = ContractEntity(
-    propertyId = propertyId,
-    tenantId = tenantId,
+fun Contract.toEntity(): ContractEntity = ContractEntity(
+    id = id,
+    propertyId = property.id,
+    tenantId = tenant.id,
     rent = rent,
     startingDate = startingDate,
     finishingDate = finishingDate,
@@ -79,14 +80,14 @@ data class ContractServiceCrossRef(
 )
 data class AdjustmentEntity(
     @PrimaryKey(autoGenerate = true)
-    val id: Long? = null,
+    val id: Long = 0L,
     val contractId: Long,
     val time: LocalDate,
     val amount: BigDecimal?
 )
 
-fun Adjustment.toEntity(contractId: Long): AdjustmentEntity = AdjustmentEntity(
-    contractId = contractId,
+fun Adjustment.toEntity(): AdjustmentEntity = AdjustmentEntity(
+    contractId = 0L,
     time = time,
     amount = amount
 )

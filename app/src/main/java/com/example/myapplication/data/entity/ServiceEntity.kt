@@ -7,7 +7,7 @@ import com.example.myapplication.model.Service
 @Entity(tableName = "Service")
 data class ServiceEntity(
     @PrimaryKey(autoGenerate = true)
-    val id: Long? = null,
+    val id: Long = 0L,
     val name: String
 ) {
     fun toDomain(): Service = Service(

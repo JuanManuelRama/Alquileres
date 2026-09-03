@@ -15,12 +15,13 @@ class ContractRepository(private val dao: ContractDao) {
         }
     }
 
-    suspend fun insert(contract: Contract, propertyId: Long, tenantId: Long, serviceIds: List<Long>) {
-        dao.saveContract(
-            contract = contract.toEntity(propertyId, tenantId),
-            serviceIds = serviceIds,
-            adjustments = contract.adjustments.map { it.toEntity(0) }
+    suspend fun insert(contract: Contract): Contract {
+        val id = dao.saveContract(
+            contract = contract.toEntity(),
+            serviceIds = contract.services.map { it.id },
+            adjustments = contract.adjustments.map { it.toEntity() }
         )
+        return contract.copy(id = id)
     }
 
     suspend fun updateAdjustmentAmount(contractId: Long, time: LocalDate, amount: BigDecimal?) {

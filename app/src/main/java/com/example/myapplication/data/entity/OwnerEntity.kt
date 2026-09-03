@@ -7,7 +7,7 @@ import com.example.myapplication.model.Owner
 @Entity(tableName = "Owner")
 data class OwnerEntity(
     @PrimaryKey(autoGenerate = true)
-    val id: Long? = null,
+    val id: Long = 0L,
     val name: String
 ) {
     fun toDomain(): Owner = Owner(
@@ -18,6 +18,7 @@ data class OwnerEntity(
 
 fun Owner.toEntity(): OwnerEntity {
     return OwnerEntity(
+        id = id,
         name = name
     )
 }

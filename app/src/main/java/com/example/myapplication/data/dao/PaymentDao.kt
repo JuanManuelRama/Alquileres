@@ -22,9 +22,10 @@ interface PaymentDao {
     suspend fun insertServicePayments(servicePayments: List<ServicePaymentEntity>)
 
     @Transaction
-    suspend fun savePayment(payment: PaymentEntity, servicePayments: List<ServicePaymentEntity>) {
+    suspend fun savePayment(payment: PaymentEntity, servicePayments: List<ServicePaymentEntity>): Long {
         val paymentId = insertPayment(payment)
         val withId = servicePayments.map { it.copy(paymentId = paymentId) }
         insertServicePayments(withId)
+        return paymentId
     }
 }
