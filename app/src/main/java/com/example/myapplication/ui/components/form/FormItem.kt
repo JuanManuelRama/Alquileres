@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.components.form
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -17,6 +18,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
 import com.example.myapplication.ui.components.picker.EntityPicker
 import com.example.myapplication.ui.components.picker.MultiEntityPicker
 import java.time.Instant
@@ -25,13 +29,18 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 fun FormItem(item: FormItemState, modifier: Modifier = Modifier) {
-    FormItem(item, modifier, item.error())
+    FormItem(item, modifier, item.error(), isLastTextField = true)
 }
 
 @Composable
-internal fun FormItem(item: FormItemState, modifier: Modifier, error: Error) {
+internal fun FormItem(
+    item: FormItemState,
+    modifier: Modifier,
+    error: Error,
+    isLastTextField: Boolean
+) {
     when (item) {
-        is TextFormItemState -> TextFormItemContent(item, error, modifier)
+        is TextFormItemState -> TextFormItemContent(item, error, isLastTextField, modifier)
         is PickerFormItemState<*> -> PickerFormItemContent(item, error, modifier)
         is MultiPickerFormItemState<*> -> MultiPickerFormItemContent(item, error, modifier)
         is DateFormItemState -> DateFormItemContent(item, error, modifier)
@@ -39,12 +48,27 @@ internal fun FormItem(item: FormItemState, modifier: Modifier, error: Error) {
 }
 
 @Composable
-private fun TextFormItemContent(item: TextFormItemState, error: Error, modifier: Modifier = Modifier) {
+private fun TextFormItemContent(
+    item: TextFormItemState,
+    error: Error,
+    isLastTextField: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val focusManager = LocalFocusManager.current
+
     OutlinedTextField(
         value = item.value,
         onValueChange = item.onValueChange,
         label = { Text(item.displayLabel) },
-        keyboardOptions = KeyboardOptions(keyboardType = item.keyboardType),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = item.keyboardType,
+            imeAction = if (isLastTextField) ImeAction.Done else ImeAction.Next
+        ),
+        keyboardActions = KeyboardActions(
+            onNext = { focusManager.moveFocus(FocusDirection.Down) },
+            onDone = { focusManager.clearFocus() }
+        ),
+        singleLine = true,
         isError = error.hasMessage,
         supportingText = { Text(error.message) },
         modifier = modifier

@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.DropdownMenuItem
@@ -21,9 +23,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 
 @Composable
 fun <T> EntityPicker(
@@ -41,6 +47,18 @@ fun <T> EntityPicker(
     supportingText: String? = null
 ) {
     var mode by remember { mutableStateOf(EntityPickerMode.SELECT) }
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val focusManager = LocalFocusManager.current
+    val coroutineScope = rememberCoroutineScope()
+
+    fun collapseCreator() {
+        mode = EntityPickerMode.SELECT
+        focusManager.clearFocus()
+        coroutineScope.launch {
+            withFrameNanos { }
+            bringIntoViewRequester.bringIntoView()
+        }
+    }
 
     Column(
         modifier = modifier,
@@ -56,7 +74,9 @@ fun <T> EntityPicker(
             },
             itemLabel = itemLabel,
             itemSearchText = itemSearchText,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .bringIntoViewRequester(bringIntoViewRequester),
             label = label,
             placeholder = placeholder,
             isError = isError,
@@ -77,9 +97,9 @@ fun <T> EntityPicker(
                     createContent(
                         {
                             onItemCreated(it)
-                            mode = EntityPickerMode.SELECT
+                            collapseCreator()
                         },
-                        { mode = EntityPickerMode.SELECT }
+                        { collapseCreator() }
                     )
                 }
             }

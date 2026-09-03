@@ -25,6 +25,7 @@ fun Form(
     val fields = scope.elements.filterIsInstance<FormElement.Field>()
     val errors = fields.map { it.state.error() }
     val isFormValid = errors.none { it.isError }
+    val lastTextField = fields.lastOrNull { it.state is TextFormItemState }?.state
 
     Column(
         modifier = modifier,
@@ -35,7 +36,8 @@ fun Form(
                 is FormElement.Field -> FormItem(
                     item = element.state,
                     modifier = Modifier.fillMaxWidth(),
-                    error = element.state.error()
+                    error = element.state.error(),
+                    isLastTextField = element.state === lastTextField
                 )
                 is FormElement.Content -> element.content()
             }
