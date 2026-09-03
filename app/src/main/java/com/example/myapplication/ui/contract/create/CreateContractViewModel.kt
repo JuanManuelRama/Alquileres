@@ -1,0 +1,116 @@
+package com.example.myapplication.ui.contract.create
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.myapplication.data.repository.ContractRepository
+import com.example.myapplication.data.repository.OwnerRepository
+import com.example.myapplication.data.repository.PropertyRepository
+import com.example.myapplication.data.repository.ServiceRepository
+import com.example.myapplication.data.repository.TenantRepository
+import com.example.myapplication.model.Contract
+import com.example.myapplication.model.Owner
+import com.example.myapplication.model.Property
+import com.example.myapplication.model.Service
+import com.example.myapplication.model.Tenant
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+
+class CreateContractViewModel(
+    private val propertyRepository: PropertyRepository,
+    private val ownerRepository: OwnerRepository,
+    private val tenantRepository: TenantRepository,
+    private val serviceRepository: ServiceRepository,
+    private val contractRepository: ContractRepository
+) : ViewModel() {
+    fun owners(): StateFlow<List<Owner>> {
+        return ownerRepository.getAll()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptyList()
+            )
+    }
+
+    fun properties(): StateFlow<List<Property>> {
+        return propertyRepository.getAll()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptyList()
+            )
+
+    }
+
+    fun tenants(): StateFlow<List<Tenant>> {
+        return tenantRepository.getAll()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptyList()
+            )
+    }
+
+    fun services(): StateFlow<List<Service>> {
+        return serviceRepository.getAll()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptyList()
+            )
+    }
+
+    fun contracts(): StateFlow<List<Contract>> {
+        return contractRepository.getAll()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptyList()
+            )
+    }
+
+    fun addProperty(property: Property) {
+        viewModelScope.launch {
+            val owner = if (property.owner.id == 0L) {
+                ownerRepository.insert(property.owner)
+            } else {
+                property.owner
+            }
+            propertyRepository.insert(property.copy(owner = owner))
+        }
+    }
+
+    fun saveContract(contract: Contract) {
+        viewModelScope.launch {
+            val tenant = if (contract.tenant.id == 0L) {
+                tenantRepository.insert(contract.tenant)
+            } else {
+                contract.tenant
+            }
+
+            val property = if (contract.property.id == 0L) {
+                val owner = if (contract.property.owner.id == 0L) {
+                    ownerRepository.insert(contract.property.owner)
+                } else {
+                    contract.property.owner
+                }
+                propertyRepository.insert(contract.property.copy(owner = owner))
+            } else {
+                contract.property
+            }
+
+            val services = contract.services.map { service ->
+                if (service.id == 0L) serviceRepository.insert(service) else service
+            }
+
+            contractRepository.insert(
+                contract.copy(
+                    tenant = tenant,
+                    property = property,
+                    services = services
+                )
+            )
+        }
+    }
+}
