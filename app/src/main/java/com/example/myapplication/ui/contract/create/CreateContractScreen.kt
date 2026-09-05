@@ -185,9 +185,7 @@ fun CreateContractScreen(
                     value = endDate,
                     validate = {
                         Validate(it).check("must be after starting date") { date ->
-                            date?.isAfter(
-                                startDate
-                            ) == true
+                            startDate == null || date?.isAfter(startDate) == true
                         }
                     },
                     onValueChange = { endDate = it }
@@ -196,7 +194,7 @@ fun CreateContractScreen(
                     field = "Adjustment Time",
                     value = adjustmentTime,
                     keyboardType = KeyboardType.Number,
-                    validate = { Validate(it).isLong() },
+                    validate = { Validate(it).isLong().isPositive() },
                     onValueChange = { adjustmentTime = it }
                 )
                 Item(
