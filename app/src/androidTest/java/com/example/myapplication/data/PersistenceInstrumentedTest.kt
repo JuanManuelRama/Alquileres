@@ -10,7 +10,7 @@ import com.example.myapplication.data.entity.PaymentEntity
 import com.example.myapplication.data.entity.PropertyEntity
 import com.example.myapplication.data.entity.ServiceEntity
 import com.example.myapplication.data.entity.ServicePaymentEntity
-import com.example.myapplication.data.entity.TenantEntity
+import com.example.myapplication.model.Tenant
 import com.example.myapplication.model.Address
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -41,11 +41,9 @@ class PersistenceInstrumentedTest {
     @Test
     fun basicEntitiesRoundTripThroughRoom() = runTest {
         database.ownerDao().insert(OwnerEntity(name = "Ada"))
-        database.tenantDao().insert(TenantEntity(name = "Grace", phone = "555-0100"))
         database.serviceDao().insert(ServiceEntity(name = "Water"))
 
         assertEquals("Ada", database.ownerDao().getAll().first().single().name)
-        assertEquals("Grace", database.tenantDao().getAll().first().single().name)
         assertEquals("Water", database.serviceDao().getAll().first().single().name)
     }
 
@@ -69,7 +67,7 @@ class PersistenceInstrumentedTest {
         val propertyId = database.propertyDao().insertProperty(
             PropertyEntity(address = Address("Main", "10", null), ownerId = ownerId),
         )
-        val tenantId = database.tenantDao().insert(TenantEntity(name = "Tenant", phone = "123"))
+        val tenant = Tenant(name = "Tenant", phone = "123")
         val serviceId = database.serviceDao().insert(ServiceEntity(name = "Electricity"))
         val start = LocalDate.of(2026, 1, 1)
         val finish = LocalDate.of(2027, 1, 1)
@@ -78,7 +76,7 @@ class PersistenceInstrumentedTest {
         database.contractDao().saveContract(
             contract = ContractEntity(
                 propertyId = propertyId,
-                tenantId = tenantId,
+                tenant = tenant,
                 rent = BigDecimal("1250.50"),
                 startingDate = start,
                 finishingDate = finish,
@@ -94,6 +92,8 @@ class PersistenceInstrumentedTest {
         assertEquals(BigDecimal("1250.50"), result.contract.rent)
         assertEquals(start, result.contract.startingDate)
         assertEquals(finish, result.contract.finishingDate)
+        assertEquals(tenant, result.contract.tenant)
+        assertEquals(tenant, result.toDomain().tenant)
         assertEquals("Electricity", result.services.single().name)
         assertEquals(adjustmentDate, result.adjustments.single().time)
         assertEquals(BigDecimal("0.10"), result.adjustments.single().amount)
@@ -105,12 +105,11 @@ class PersistenceInstrumentedTest {
         val propertyId = database.propertyDao().insertProperty(
             PropertyEntity(address = Address("Main", "10", null), ownerId = ownerId),
         )
-        val tenantId = database.tenantDao().insert(TenantEntity(name = "Tenant", phone = "123"))
         val serviceId = database.serviceDao().insert(ServiceEntity(name = "Gas"))
         val contractId = database.contractDao().insertContract(
             ContractEntity(
                 propertyId = propertyId,
-                tenantId = tenantId,
+                tenant = Tenant(name = "Tenant", phone = "123"),
                 rent = BigDecimal("900.00"),
                 startingDate = LocalDate.of(2026, 1, 1),
                 finishingDate = LocalDate.of(2027, 1, 1),

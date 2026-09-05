@@ -65,7 +65,7 @@ private fun TextFormItemContent(
             imeAction = if (isLastTextField) ImeAction.Done else ImeAction.Next
         ),
         keyboardActions = KeyboardActions(
-            onNext = { focusManager.moveFocus(FocusDirection.Down) },
+            onNext = { focusManager.moveFocus(FocusDirection.Next) },
             onDone = { focusManager.clearFocus() }
         ),
         singleLine = true,

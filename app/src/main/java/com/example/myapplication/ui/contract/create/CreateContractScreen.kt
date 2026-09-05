@@ -2,6 +2,7 @@ package com.example.myapplication.ui.contract.create
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -15,6 +16,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -37,7 +39,6 @@ import com.example.myapplication.ui.components.form.isBigDecimal
 import com.example.myapplication.ui.components.form.isLong
 import com.example.myapplication.ui.components.form.isPositive
 import com.example.myapplication.ui.service.ServiceCreator
-import com.example.myapplication.ui.tenant.TenantCreator
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,10 +50,10 @@ fun CreateContractScreen(
 ) {
     val properties by viewModel.properties().collectAsState()
     val owners by viewModel.owners().collectAsState()
-    val tenants by viewModel.tenants().collectAsState()
     val services by viewModel.services().collectAsState()
 
-    var selectedTenant by remember { mutableStateOf<Tenant?>(null) }
+    var tenantName by remember { mutableStateOf("") }
+    var tenantPhone by remember { mutableStateOf("") }
     var selectedProperty by remember { mutableStateOf<Property?>(null) }
     var rent by remember { mutableStateOf("") }
     var fixedHike by remember { mutableStateOf("") }
@@ -87,12 +88,11 @@ fun CreateContractScreen(
                 submitText = "Create Contract",
                 onSubmit = {
                     val property = checkNotNull(selectedProperty)
-                    val tenant = checkNotNull(selectedTenant)
                     val startingDate = checkNotNull(startDate)
                     val finishingDate = checkNotNull(endDate)
                     val contract = Contract(
                         property = property,
-                        tenant = tenant,
+                        tenant = Tenant(name = tenantName, phone = tenantPhone),
                         rent = rent.toBigDecimal(), // will not fail due to validation
                         startingDate = startingDate,
                         finishingDate = finishingDate,
@@ -129,23 +129,29 @@ fun CreateContractScreen(
                         selectedProperty = it
                     }
                 )
-                PickerItem(
-                    label = "Tenant",
-                    items = tenants,
-                    selectedItem = selectedTenant,
-                    itemLabel = { it.name },
-                    createContent = { onCreated, onCanceled ->
-                        TenantCreator(
-                            onCreated = onCreated,
-                            cancelText = "Cancel",
-                            onCancel = onCanceled,
-                        )
-                    },
-                    onItemSelected = { selectedTenant = it },
-                    onItemCreated = {
-                        selectedTenant = it
+                Content {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("Tenant", style = MaterialTheme.typography.titleMedium)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Item(
+                                field = "Name",
+                                value = tenantName,
+                                modifier = Modifier.weight(1f),
+                                onValueChange = { tenantName = it }
+                            )
+                            Item(
+                                field = "Phone",
+                                value = tenantPhone,
+                                keyboardType = KeyboardType.Phone,
+                                modifier = Modifier.weight(1f),
+                                onValueChange = { tenantPhone = it }
+                            )
+                        }
                     }
-                )
+                }
                 Item(
                     field = "Rent",
                     value = rent,

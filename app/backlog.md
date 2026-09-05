@@ -24,4 +24,6 @@
 
 ## Changable language
 
-Language should be able to be changed, I've never done it before, but it probably involves every string beign parameriticized and whatnot. God that sounds like a drag
+Language should be able to be changed, I've never done it before, but it probably involves every string beign parameriticized and whatnot. God that sounds like a drag.
+
+## Figure out a way to make the contract card show if a payment, adjustment or deadline is near

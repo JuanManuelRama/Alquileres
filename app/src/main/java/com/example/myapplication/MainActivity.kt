@@ -15,7 +15,6 @@ import com.example.myapplication.data.repository.OwnerRepository
 import com.example.myapplication.data.repository.PaymentRepository
 import com.example.myapplication.data.repository.PropertyRepository
 import com.example.myapplication.data.repository.ServiceRepository
-import com.example.myapplication.data.repository.TenantRepository
 import com.example.myapplication.navigation.AppNavigation
 import com.example.myapplication.ui.contract.ContractViewModel
 import com.example.myapplication.ui.contract.create.CreateContractViewModel
@@ -31,7 +30,6 @@ class MainActivity : ComponentActivity() {
             val factory = AppViewModelFactory(
                 propertyRepository = PropertyRepository(application.database.propertyDao()),
                 ownerRepository = OwnerRepository(application.database.ownerDao()),
-                tenantRepository = TenantRepository(application.database.tenantDao()),
                 serviceRepository = ServiceRepository(application.database.serviceDao()),
                 contractRepository = ContractRepository(application.database.contractDao()),
                 paymentRepository = PaymentRepository(application.database.paymentDao())

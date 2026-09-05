@@ -6,12 +6,10 @@ import com.example.myapplication.data.repository.ContractRepository
 import com.example.myapplication.data.repository.OwnerRepository
 import com.example.myapplication.data.repository.PropertyRepository
 import com.example.myapplication.data.repository.ServiceRepository
-import com.example.myapplication.data.repository.TenantRepository
 import com.example.myapplication.model.Contract
 import com.example.myapplication.model.Owner
 import com.example.myapplication.model.Property
 import com.example.myapplication.model.Service
-import com.example.myapplication.model.Tenant
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -20,7 +18,6 @@ import kotlinx.coroutines.launch
 class CreateContractViewModel(
     private val propertyRepository: PropertyRepository,
     private val ownerRepository: OwnerRepository,
-    private val tenantRepository: TenantRepository,
     private val serviceRepository: ServiceRepository,
     private val contractRepository: ContractRepository
 ) : ViewModel() {
@@ -41,15 +38,6 @@ class CreateContractViewModel(
                 initialValue = emptyList()
             )
 
-    }
-
-    fun tenants(): StateFlow<List<Tenant>> {
-        return tenantRepository.getAll()
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = emptyList()
-            )
     }
 
     fun services(): StateFlow<List<Service>> {
@@ -83,12 +71,6 @@ class CreateContractViewModel(
 
     fun saveContract(contract: Contract) {
         viewModelScope.launch {
-            val tenant = if (contract.tenant.id == 0L) {
-                tenantRepository.insert(contract.tenant)
-            } else {
-                contract.tenant
-            }
-
             val property = if (contract.property.id == 0L) {
                 val owner = if (contract.property.owner.id == 0L) {
                     ownerRepository.insert(contract.property.owner)
@@ -106,7 +88,6 @@ class CreateContractViewModel(
 
             contractRepository.insert(
                 contract.copy(
-                    tenant = tenant,
                     property = property,
                     services = services
                 )

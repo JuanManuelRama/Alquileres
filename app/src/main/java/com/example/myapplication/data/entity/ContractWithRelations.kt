@@ -14,11 +14,6 @@ data class ContractWithRelations(
     )
     val property: PropertyWithOwner,
     @Relation(
-        parentColumns = ["tenantId"],
-        entityColumns = ["id"]
-    )
-    val tenant: TenantEntity,
-    @Relation(
         parentColumns = ["id"],
         entityColumns = ["id"],
         associateBy = Junction(
@@ -36,7 +31,7 @@ data class ContractWithRelations(
 ) {
     fun toDomain(): Contract = Contract(
         property = property.toDomain(),
-        tenant = tenant.toDomain(),
+        tenant = contract.tenant,
         rent = contract.rent,
         startingDate = contract.startingDate,
         finishingDate = contract.finishingDate,

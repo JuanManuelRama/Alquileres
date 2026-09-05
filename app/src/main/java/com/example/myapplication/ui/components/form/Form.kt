@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
@@ -19,29 +20,15 @@ fun Form(
     cancelText: String,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
-    builder: FormScope.() -> Unit
+    builder: @Composable FormScope.() -> Unit
 ) {
-    val scope = FormScope().apply(builder)
-    val fields = scope.elements.filterIsInstance<FormElement.Field>()
-    val errors = fields.map { it.state.error() }
-    val isFormValid = errors.none { it.isError }
-    val lastTextField = fields.lastOrNull { it.state is TextFormItemState }?.state
+    val scope = remember { FormScope() }
 
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        scope.elements.forEach { element ->
-            when (element) {
-                is FormElement.Field -> FormItem(
-                    item = element.state,
-                    modifier = Modifier.fillMaxWidth(),
-                    error = element.state.error(),
-                    isLastTextField = element.state === lastTextField
-                )
-                is FormElement.Content -> element.content()
-            }
-        }
+        scope.builder()
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -56,7 +43,7 @@ fun Form(
             }
             Button(
                 onClick = onSubmit,
-                enabled = isFormValid,
+                enabled = scope.isValid,
             ) {
                 Text(text = submitText)
             }

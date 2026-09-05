@@ -7,14 +7,12 @@ import com.example.myapplication.data.repository.OwnerRepository
 import com.example.myapplication.data.repository.PaymentRepository
 import com.example.myapplication.data.repository.PropertyRepository
 import com.example.myapplication.data.repository.ServiceRepository
-import com.example.myapplication.data.repository.TenantRepository
 import com.example.myapplication.ui.contract.ContractViewModel
 import com.example.myapplication.ui.contract.create.CreateContractViewModel
 
 class AppViewModelFactory(
     private val propertyRepository: PropertyRepository,
     private val ownerRepository: OwnerRepository,
-    private val tenantRepository: TenantRepository,
     private val serviceRepository: ServiceRepository,
     private val contractRepository: ContractRepository,
     private val paymentRepository: PaymentRepository
@@ -29,7 +27,6 @@ class AppViewModelFactory(
                 CreateContractViewModel(
                     propertyRepository = propertyRepository,
                     ownerRepository = ownerRepository,
-                    tenantRepository = tenantRepository,
                     serviceRepository = serviceRepository,
                     contractRepository = contractRepository
                 ) as T
