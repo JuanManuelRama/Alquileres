@@ -16,6 +16,10 @@ interface ContractDao {
     @Query("SELECT * FROM Contract")
     fun getAllContracts(): Flow<List<ContractWithRelations>>
 
+    @Transaction
+    @Query("SELECT * FROM Contract WHERE id = :contractId")
+    fun observeById(contractId: Long): Flow<ContractWithRelations?>
+
     @Insert
     suspend fun insertContract(contract: ContractEntity): Long
 

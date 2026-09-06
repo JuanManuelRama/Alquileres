@@ -26,7 +26,7 @@ import com.example.myapplication.model.Property
 import com.example.myapplication.model.Service
 import com.example.myapplication.model.Tenant
 import com.example.myapplication.ui.property.PropertyCreator
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,9 +48,9 @@ fun CreateContractScreen(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val properties by viewModel.properties().collectAsState()
-    val owners by viewModel.owners().collectAsState()
-    val services by viewModel.services().collectAsState()
+    val properties by viewModel.properties.collectAsStateWithLifecycle()
+    val owners by viewModel.owners.collectAsStateWithLifecycle()
+    val services by viewModel.services.collectAsStateWithLifecycle()
 
     var tenantName by remember { mutableStateOf("") }
     var tenantPhone by remember { mutableStateOf("") }

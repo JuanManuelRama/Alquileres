@@ -11,8 +11,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import java.time.LocalDate
 
 class ContractViewModel(
     private val contractRepository: ContractRepository,
@@ -32,14 +30,6 @@ class ContractViewModel(
     fun savePayment(payment: Payment) {
         viewModelScope.launch {
             paymentRepository.save(payment)
-        }
-    }
-
-
-    fun updateAdjustmentAmount(contract: Contract, time: LocalDate, amount: BigDecimal?) {
-        if (contract.id == 0L) return
-        viewModelScope.launch {
-            contractRepository.updateAdjustmentAmount(contract.id, time, amount)
         }
     }
 }

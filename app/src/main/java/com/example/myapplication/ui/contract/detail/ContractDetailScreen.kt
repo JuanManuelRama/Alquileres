@@ -19,27 +19,23 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.model.Contract
-import com.example.myapplication.ui.contract.ContractViewModel
 import java.time.YearMonth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContractDetailScreen(
-    contract: Contract,
-    viewModel: ContractViewModel,
+    viewModel: ContractDetailViewModel,
     onCreatePaymentButtonClick: (Contract) -> Unit,
     onViewPaymentsButtonClick: (Contract) -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val paymentsFlow = remember(contract) { viewModel.paymentsFor(contract) }
-    val payments by paymentsFlow.collectAsState(emptyList())
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val cardModifier = Modifier.fillMaxWidth()
 
     Scaffold(
@@ -63,6 +59,12 @@ fun ContractDetailScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            val state = uiState as? ContractDetailUiState.Ready
+            if (state == null) {
+                Text(if (uiState == ContractDetailUiState.Loading) "Loading contract..." else "Contract not found.")
+                return@Column
+            }
+            val contract = state.contract
             PropertyCard(
                 property = contract.property,
                 modifier = cardModifier
@@ -91,16 +93,14 @@ fun ContractDetailScreen(
                 Text(text = "Adjustment Schedule", style = MaterialTheme.typography.titleSmall)
                 Column {
                     contract.adjustments.forEach { adjustment ->
-                        val hasPaymentForMonth = payments.any {
-                            YearMonth.from(it.date) == YearMonth.from(adjustment.time)
-                        }
+                        val hasPaymentForMonth = YearMonth.from(adjustment.time) in state.paidMonths
                         AdjustmentCard(
                             adjustment = adjustment,
                             contract = contract,
                             modifier = cardModifier,
                             editable = !hasPaymentForMonth,
                             onAmountChange = { amount ->
-                                viewModel.updateAdjustmentAmount(contract, adjustment.time, amount)
+                                viewModel.updateAdjustmentAmount(adjustment.time, amount)
                             }
                         )
                     }

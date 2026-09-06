@@ -21,42 +21,33 @@ class CreateContractViewModel(
     private val serviceRepository: ServiceRepository,
     private val contractRepository: ContractRepository
 ) : ViewModel() {
-    fun owners(): StateFlow<List<Owner>> {
-        return ownerRepository.getAll()
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = emptyList()
-            )
-    }
+    val owners: StateFlow<List<Owner>> = ownerRepository.getAll()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList()
+        )
 
-    fun properties(): StateFlow<List<Property>> {
-        return propertyRepository.getAll()
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = emptyList()
-            )
+    val properties: StateFlow<List<Property>> = propertyRepository.getAll()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList()
+        )
 
-    }
+    val services: StateFlow<List<Service>> = serviceRepository.getAll()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList()
+        )
 
-    fun services(): StateFlow<List<Service>> {
-        return serviceRepository.getAll()
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = emptyList()
-            )
-    }
-
-    fun contracts(): StateFlow<List<Contract>> {
-        return contractRepository.getAll()
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = emptyList()
-            )
-    }
+    val contracts: StateFlow<List<Contract>> = contractRepository.getAll()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList()
+        )
 
     fun addProperty(property: Property) {
         viewModelScope.launch {

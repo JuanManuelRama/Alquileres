@@ -9,6 +9,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class ContractRepository(private val dao: ContractDao) {
+    fun observeById(contractId: Long): Flow<Contract?> =
+        dao.observeById(contractId).map { it?.toDomain() }
+
     fun getAll(): Flow<List<Contract>> {
         return dao.getAllContracts().map { list ->
             list.map { it.toDomain() }

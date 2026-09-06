@@ -2,6 +2,9 @@ package com.example.myapplication.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.myapplication.ui.contract.detail.ContractDetailViewModel
 import com.example.myapplication.data.repository.ContractRepository
 import com.example.myapplication.data.repository.OwnerRepository
 import com.example.myapplication.data.repository.PaymentRepository
@@ -17,6 +20,12 @@ class AppViewModelFactory(
     private val contractRepository: ContractRepository,
     private val paymentRepository: PaymentRepository
 ) : ViewModelProvider.Factory {
+
+    fun contractDetailFactory(contractId: Long): ViewModelProvider.Factory = viewModelFactory {
+        initializer {
+            ContractDetailViewModel(contractId, contractRepository, paymentRepository)
+        }
+    }
 
     override fun <T : ViewModel> create(
         modelClass: Class<T>

@@ -43,6 +43,7 @@ class MainActivity : ComponentActivity() {
                     AppNavigation(
                         createContractViewModel = createContractViewModel,
                         contractViewModel = contractViewModel,
+                        viewModelFactory = factory,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }

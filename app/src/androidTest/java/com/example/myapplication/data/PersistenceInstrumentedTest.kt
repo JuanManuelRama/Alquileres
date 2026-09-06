@@ -17,6 +17,8 @@ import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -45,6 +47,35 @@ class PersistenceInstrumentedTest {
 
         assertEquals("Ada", database.ownerDao().getAll().first().single().name)
         assertEquals("Water", database.serviceDao().getAll().first().single().name)
+    }
+
+    @Test
+    fun detailQueriesFilterByIdAndReadUpdatedRelationsAndPaymentDates() = runTest {
+        val ownerId = database.ownerDao().insert(OwnerEntity(name = "Owner"))
+        val propertyId = database.propertyDao().insertProperty(
+            PropertyEntity(address = Address("Main", "1", null), ownerId = ownerId)
+        )
+        val date = LocalDate.of(2026, 7, 1)
+        val contract = ContractEntity(
+            propertyId = propertyId, tenant = Tenant("Tenant", "123"),
+            rent = BigDecimal("1000"), startingDate = date.minusMonths(6), finishingDate = date.plusMonths(6)
+        )
+        val firstId = database.contractDao().saveContract(
+            contract, emptyList(), listOf(AdjustmentEntity(contractId = 0, time = date, amount = null))
+        )
+        val secondId = database.contractDao().insertContract(contract)
+        assertNull(database.contractDao().observeById(-1L).first())
+        assertEquals(firstId, database.contractDao().observeById(firstId).first()!!.contract.id)
+
+        database.contractDao().updateAdjustmentAmount(firstId, date, BigDecimal("0.20"))
+        val updated = database.contractDao().observeById(firstId).first()!!
+        assertEquals(BigDecimal("0.20"), updated.adjustments.single().amount)
+        assertEquals("Owner", updated.property.owner.name)
+        assertTrue(database.contractDao().observeById(secondId).first()!!.adjustments.isEmpty())
+
+        database.paymentDao().insertPayment(PaymentEntity(contractId = firstId, rent = BigDecimal("1000"), date = date))
+        assertEquals(listOf(date), database.paymentDao().observePaymentDates(firstId).first())
+        assertTrue(database.paymentDao().observePaymentDates(secondId).first().isEmpty())
     }
 
     @Test

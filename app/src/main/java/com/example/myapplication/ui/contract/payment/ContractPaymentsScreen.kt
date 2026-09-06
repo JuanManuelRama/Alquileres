@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.contract.payment
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,8 +23,14 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.model.Contract
 import com.example.myapplication.ui.contract.ContractViewModel
@@ -71,40 +78,52 @@ fun ContractPaymentsScreen(
                 Text(text = "No payments recorded yet.", style = MaterialTheme.typography.bodyMedium)
             } else {
                 payments.forEach { payment ->
-                    Card(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                text = payment.date.format(dateFormatter),
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
+                    key(payment.id) {
+                        var expanded by rememberSaveable { mutableStateOf(false) }
+                        Card(
+                            onClick = { expanded = !expanded },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .semantics { stateDescription = if (expanded) "Expanded" else "Collapsed" }
+                        ) {
+                            Column(modifier = Modifier.animateContentSize().padding(16.dp)) {
+                                Text(
+                                    text = payment.date.format(dateFormatter),
+                                    style = MaterialTheme.typography.labelSmall
+                                )
                                 Text(
                                     text = "Total: $${payment.total}",
                                     style = MaterialTheme.typography.titleMedium
                                 )
-                                Text(
-                                    text = "Rent: $${payment.rent}",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-                            if (payment.services.isNotEmpty()) {
-                                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                                payment.services.forEach { servicePayment ->
+                                if (expanded) {
+                                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(
-                                            text = servicePayment.service.name,
+                                            text = "Rent",
                                             style = MaterialTheme.typography.bodySmall
                                         )
                                         Text(
-                                            text = "$${servicePayment.amount}",
+                                            text = "${payment.rent}",
                                             style = MaterialTheme.typography.bodySmall
                                         )
+                                    }
+                                    payment.services.forEach { servicePayment ->
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(
+                                                text = servicePayment.service.name,
+                                                style = MaterialTheme.typography.bodySmall
+                                            )
+                                            Text(
+                                                text = "$${servicePayment.amount}",
+                                                style = MaterialTheme.typography.bodySmall
+                                            )
+                                        }
                                     }
                                 }
                             }

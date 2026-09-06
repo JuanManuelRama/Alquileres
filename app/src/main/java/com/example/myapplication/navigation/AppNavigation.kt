@@ -6,9 +6,13 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavEntry
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.example.myapplication.ui.contract.ContractViewModel
+import com.example.myapplication.ui.AppViewModelFactory
 import com.example.myapplication.ui.contract.create.CreateContractScreen
 import com.example.myapplication.ui.contract.create.CreateContractViewModel
 import com.example.myapplication.ui.contract.detail.ContractDetailScreen
@@ -20,21 +24,26 @@ import com.example.myapplication.ui.contract.payment.ContractPaymentsScreen
 fun AppNavigation(
     createContractViewModel: CreateContractViewModel,
     contractViewModel: ContractViewModel,
+    viewModelFactory: AppViewModelFactory,
     modifier: Modifier = Modifier
 ) {
     val backStack = remember { mutableStateListOf<Route>(ContractList) }
-    val contracts by contractViewModel.contracts.collectAsStateWithLifecycle()
 
     NavDisplay(
         backStack = backStack,
         modifier = modifier,
+        entryDecorators = listOf(
+            rememberSaveableStateHolderNavEntryDecorator(),
+            rememberViewModelStoreNavEntryDecorator()
+        ),
         onBack = { backStack.removeLastOrNull() },
         entryProvider = { key: Route ->
             when (key) {
                 is ContractList -> NavEntry(key) {
+                    val contracts by contractViewModel.contracts.collectAsStateWithLifecycle()
                     ContractListScreen(
                         contracts = contracts,
-                        onContractClick = { backStack.add(ContractDetail(it)) },
+                        onContractClick = { backStack.add(ContractDetail(it.id)) },
                         addContractClick = { backStack.add(AddPropiedad) }
                     )
                 }
@@ -45,12 +54,13 @@ fun AppNavigation(
                     )
                 }
                 is ContractDetail -> NavEntry(key) {
-                    val currentContract = contracts.firstOrNull { it.id == key.contract.id } ?: key.contract
+                    val detailFactory = remember(key.contractId, viewModelFactory) {
+                        viewModelFactory.contractDetailFactory(key.contractId)
+                    }
                     ContractDetailScreen(
-                        contract = currentContract,
-                        viewModel = contractViewModel,
-                        onCreatePaymentButtonClick = { backStack.add(CreatePaymentScreen(currentContract)) },
-                        onViewPaymentsButtonClick = { backStack.add(ContractPayments(currentContract)) },
+                        viewModel = viewModel(factory = detailFactory),
+                        onCreatePaymentButtonClick = { backStack.add(CreatePaymentScreen(it)) },
+                        onViewPaymentsButtonClick = { backStack.add(ContractPayments(it)) },
                         onBackClick = { backStack.removeLastOrNull() }
                     )
                 }
