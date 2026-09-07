@@ -68,6 +68,7 @@ fun PropertyCreator(
             itemLabel = { it.name },
             createContent = { onCreated, onCanceled ->
                 OwnerCreator(
+                    owners = owners,
                     onCreated = onCreated,
                     cancelText = "Cancel",
                     onCancel = onCanceled,

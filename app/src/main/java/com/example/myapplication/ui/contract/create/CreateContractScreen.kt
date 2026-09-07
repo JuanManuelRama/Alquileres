@@ -12,32 +12,32 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.example.myapplication.model.Contract
-import com.example.myapplication.model.Property
-import com.example.myapplication.model.Service
-import com.example.myapplication.model.Tenant
-import com.example.myapplication.ui.property.PropertyCreator
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.myapplication.model.Contract
+import com.example.myapplication.model.Property
+import com.example.myapplication.model.Service
+import com.example.myapplication.model.Tenant
 import com.example.myapplication.ui.components.form.Form
 import com.example.myapplication.ui.components.form.Validate
 import com.example.myapplication.ui.components.form.check
 import com.example.myapplication.ui.components.form.isBigDecimal
 import com.example.myapplication.ui.components.form.isLong
 import com.example.myapplication.ui.components.form.isPositive
+import com.example.myapplication.ui.property.PropertyCreator
 import com.example.myapplication.ui.service.ServiceCreator
 import java.time.LocalDate
 
@@ -166,6 +166,7 @@ fun CreateContractScreen(
                     itemLabel = { it.name },
                     createContent = { onCreated, onCanceled ->
                         ServiceCreator(
+                            services = services + selectedServices,
                             onCreated = onCreated,
                             cancelText = "Cancel",
                             onCancel = onCanceled,

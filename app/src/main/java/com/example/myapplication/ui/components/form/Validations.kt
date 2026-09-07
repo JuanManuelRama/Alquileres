@@ -52,16 +52,22 @@ fun Validation<String>.isBigDecimal(
     message: String = "must be a valid decimal number"
 ): Validation<BigDecimal> = map(message) { it.toBigDecimalOrNull() }
 
+fun Validation<String>.isLong(
+    message: String = "must be a valid number"
+): Validation<Long> = map(message) { it.toLongOrNull() }
+
 @JvmName("isPositiveBigDecimal")
 fun Validation<BigDecimal>.isPositive(
     message: String = "must be positive"
 ): Validation<BigDecimal> = check(message) { it > BigDecimal.ZERO }
 
-fun Validation<String>.isLong(
-    message: String = "must be a valid number"
-): Validation<Long> = map(message) { it.toLongOrNull() }
-
 @JvmName("isPositiveLong")
 fun Validation<Long>.isPositive(
     message: String = "must be positive"
 ): Validation<Long> = check(message) { it > 0.toLong() }
+
+
+fun <T> Validation<T>.doesntExist(
+    elements: Set<T>,
+    message: String = "must be unique"
+): Validation<T> = check(message) { it !in elements }
