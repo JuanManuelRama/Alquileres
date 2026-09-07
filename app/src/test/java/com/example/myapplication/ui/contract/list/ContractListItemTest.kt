@@ -17,26 +17,11 @@ class ContractListItemTest {
     )
 
     @Test
-    fun paymentDueOnlyForOverlappingUnpaidContracts() {
-        assertTrue(contract().listItem(month, setOf(2L)).paymentDue)
-        assertFalse(contract().listItem(month, setOf(1L)).paymentDue)
-        assertFalse(contract().copy(startingDate = month.plusMonths(1).atDay(1)).listItem(month, emptySet()).paymentDue)
-        assertFalse(contract().copy(finishingDate = month.atDay(1).minusDays(1)).listItem(month, emptySet()).paymentDue)
-        assertTrue(contract().copy(startingDate = month.atEndOfMonth()).listItem(month, emptySet()).paymentDue)
-    }
-
-    @Test
     fun expiryIncludesThisAndNextMonthAcrossYearBoundary() {
-        assertTrue(contract().listItem(month, emptySet()).expiresSoon)
-        assertTrue(contract().copy(finishingDate = month.atDay(1)).listItem(month, emptySet()).expiresSoon)
-        assertFalse(contract().copy(finishingDate = month.minusMonths(1).atEndOfMonth()).listItem(month, emptySet()).expiresSoon)
-        assertFalse(contract().copy(finishingDate = month.plusMonths(2).atDay(1)).listItem(month, emptySet()).expiresSoon)
+        assertTrue(contract().listItem(month, false, false).expiresSoon)
+        assertTrue(contract().copy(finishingDate = month.atDay(1)).listItem(month, false, false).expiresSoon)
+        assertFalse(contract().copy(finishingDate = month.minusMonths(1).atEndOfMonth()).listItem(month, false, false).expiresSoon)
+        assertFalse(contract().copy(finishingDate = month.plusMonths(2).atDay(1)).listItem(month, false, false).expiresSoon)
     }
 
-    @Test
-    fun hikeMatchesYearAndMonthEvenWhenAmountIsPending() {
-        assertTrue(contract().copy(adjustments = listOf(Adjustment(month.atEndOfMonth()))).listItem(month, emptySet()).hikeThisMonth)
-        assertFalse(contract().copy(adjustments = listOf(Adjustment(month.minusYears(1).atDay(1)))).listItem(month, emptySet()).hikeThisMonth)
-        assertFalse(contract().listItem(month, emptySet()).hikeThisMonth)
-    }
 }

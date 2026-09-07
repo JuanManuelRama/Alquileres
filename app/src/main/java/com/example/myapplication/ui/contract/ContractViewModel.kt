@@ -21,7 +21,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import com.example.myapplication.ui.contract.list.ContractListItem
 import com.example.myapplication.ui.contract.list.listItem
 import kotlin.time.Duration.Companion.milliseconds
@@ -43,8 +43,8 @@ class ContractViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val listItems: StateFlow<List<ContractListItem>> = currentMonth.flatMapLatest { month ->
-        combine(contractRepository.getAll(), paymentRepository.observePaidContractIds(month)) { contracts, paidIds ->
-            contracts.map { it.listItem(month, paidIds) }
+        contractRepository.observeWithStatus(month).map { contracts ->
+            contracts.map { it.details.toDomain().listItem(month, it.paymentDue, it.hikeThisMonth) }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 

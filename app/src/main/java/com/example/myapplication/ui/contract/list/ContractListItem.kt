@@ -10,14 +10,12 @@ data class ContractListItem(
     val hikeThisMonth: Boolean
 )
 
-internal fun Contract.listItem(month: YearMonth, paidContractIds: Set<Long>): ContractListItem {
-    val overlapsMonth = !startingDate.isAfter(month.atEndOfMonth()) &&
-        !finishingDate.isBefore(month.atDay(1))
+internal fun Contract.listItem(month: YearMonth, paymentDue: Boolean, hikeThisMonth: Boolean): ContractListItem {
     val expiryMonth = YearMonth.from(finishingDate)
     return ContractListItem(
         contract = this,
-        paymentDue = overlapsMonth && id !in paidContractIds,
+        paymentDue = paymentDue,
         expiresSoon = expiryMonth == month || expiryMonth == month.plusMonths(1),
-        hikeThisMonth = adjustments.any { YearMonth.from(it.time) == month }
+        hikeThisMonth = hikeThisMonth
     )
 }

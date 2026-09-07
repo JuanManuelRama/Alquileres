@@ -112,6 +112,7 @@ class ContractDetailViewModelTest {
     }
 
     private class TestContractDao : ContractDao {
+        override fun observeWithStatus(monthStart: LocalDate, nextMonthStart: LocalDate): Flow<List<ContractWithStatus>> = error("Unused")
         val results = mutableMapOf<Long, MutableStateFlow<ContractWithRelations?>>()
         override fun observeById(contractId: Long): Flow<ContractWithRelations?> =
             results.getOrPut(contractId) { MutableStateFlow(null) }
@@ -128,7 +129,6 @@ class ContractDetailViewModelTest {
     }
 
     private class TestPaymentDao : PaymentDao {
-        override fun observePaidContractIds(start: LocalDate, end: LocalDate): Flow<List<Long>> = error("Unused")
         val results = mutableMapOf<Long, MutableStateFlow<List<LocalDate>>>()
         override fun observePaymentDates(contractId: Long): Flow<List<LocalDate>> =
             results.getOrPut(contractId) { MutableStateFlow(emptyList()) }

@@ -8,10 +8,31 @@ import com.example.myapplication.data.entity.AdjustmentEntity
 import com.example.myapplication.data.entity.ContractEntity
 import com.example.myapplication.data.entity.ContractServiceCrossRef
 import com.example.myapplication.data.entity.ContractWithRelations
+import com.example.myapplication.data.entity.ContractWithStatus
+import java.time.LocalDate
 import kotlinx.coroutines.flow.Flow
+import java.math.BigDecimal
 
 @Dao
 interface ContractDao {
+    @Transaction
+    @Query("""
+        SELECT c.*,
+            (c.startingDate < :nextMonthStart AND c.finishingDate >= :monthStart
+                AND NOT EXISTS (
+                    SELECT 1 FROM Payment p
+                    WHERE p.contractId = c.id
+                        AND p.date >= :monthStart AND p.date < :nextMonthStart
+                )) AS paymentDue,
+            EXISTS (
+                SELECT 1 FROM Adjustment a
+                WHERE a.contractId = c.id
+                    AND a.time >= :monthStart AND a.time < :nextMonthStart
+            ) AS hikeThisMonth
+        FROM Contract c
+    """)
+    fun observeWithStatus(monthStart: LocalDate, nextMonthStart: LocalDate): Flow<List<ContractWithStatus>>
+
     @Transaction
     @Query("SELECT * FROM Contract")
     fun getAllContracts(): Flow<List<ContractWithRelations>>
@@ -30,7 +51,7 @@ interface ContractDao {
     suspend fun insertAdjustments(adjustments: List<AdjustmentEntity>)
 
     @Query("UPDATE Adjustment SET amount = :amount WHERE contractId = :contractId AND time = :time")
-    suspend fun updateAdjustmentAmount(contractId: Long, time: java.time.LocalDate, amount: java.math.BigDecimal?)
+    suspend fun updateAdjustmentAmount(contractId: Long, time: LocalDate, amount: BigDecimal?)
 
     @Transaction
     suspend fun saveContract(contract: ContractEntity, serviceIds: List<Long>, adjustments: List<AdjustmentEntity>): Long {

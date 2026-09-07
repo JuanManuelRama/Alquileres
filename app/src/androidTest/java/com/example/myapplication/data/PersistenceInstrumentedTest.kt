@@ -19,6 +19,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -76,8 +77,14 @@ class PersistenceInstrumentedTest {
         database.paymentDao().insertPayment(PaymentEntity(contractId = firstId, rent = BigDecimal("1000"), date = date))
         assertEquals(listOf(date), database.paymentDao().observePaymentDates(firstId).first())
         assertTrue(database.paymentDao().observePaymentDates(secondId).first().isEmpty())
-        assertEquals(listOf(firstId), database.paymentDao().observePaidContractIds(date, date.plusMonths(1)).first())
-        assertTrue(database.paymentDao().observePaidContractIds(date.minusMonths(1), date).first().isEmpty())
+        val statuses = database.contractDao().observeWithStatus(date, date.plusMonths(1)).first()
+            .associateBy { it.details.contract.id }
+        assertFalse(statuses.getValue(firstId).paymentDue)
+        assertTrue(statuses.getValue(firstId).hikeThisMonth)
+        assertTrue(statuses.getValue(secondId).paymentDue)
+        assertFalse(statuses.getValue(secondId).hikeThisMonth)
+        val previousMonth = database.contractDao().observeWithStatus(date.minusMonths(1), date).first()
+        assertTrue(previousMonth.all { it.paymentDue && !it.hikeThisMonth })
     }
 
     @Test
