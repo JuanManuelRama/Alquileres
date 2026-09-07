@@ -10,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,6 +26,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -37,6 +41,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
@@ -46,7 +52,7 @@ import com.example.myapplication.model.Contract
 
 @Composable
 fun ContractListScreen(
-    contracts: List<Contract>,
+    contracts: List<ContractListItem>,
     onContractClick: (Contract) -> Unit,
     addContractClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -62,7 +68,8 @@ fun ContractListScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
-                items(contracts) { contract ->
+                items(contracts, key = { it.contract.id }) { item ->
+                    val contract = item.contract
                     Card(
                         modifier = Modifier
                             .padding(8.dp)
@@ -74,6 +81,17 @@ fun ContractListScreen(
                             supportingContent = { Text("Tenant: ${contract.tenant.name}") },
                             trailingContent = { Text("$${contract.currentValue().stripTrailingZeros().toPlainString()}") }
                         )
+                        if (item.paymentDue || item.expiresSoon || item.hikeThisMonth) {
+                            FlowRow(
+                                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                if (item.paymentDue) ContractStatus(Icons.Default.Warning, "Payment due", MaterialTheme.colorScheme.error)
+                                if (item.expiresSoon) ContractStatus(Icons.Default.DateRange, "Expires soon", MaterialTheme.colorScheme.tertiary)
+                                if (item.hikeThisMonth) ContractStatus(Icons.Default.KeyboardArrowUp, "Hike this month", MaterialTheme.colorScheme.primary)
+                            }
+                        }
                     }
                 }
             }
@@ -89,6 +107,17 @@ fun ContractListScreen(
                 contentDescription = "Create new contract"
             )
         }
+    }
+}
+
+@Composable
+private fun ContractStatus(icon: ImageVector, label: String, color: Color) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(18.dp))
+        Text(label, color = color, style = MaterialTheme.typography.labelSmall)
     }
 }
 

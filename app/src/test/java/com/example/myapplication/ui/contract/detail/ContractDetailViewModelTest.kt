@@ -128,6 +128,7 @@ class ContractDetailViewModelTest {
     }
 
     private class TestPaymentDao : PaymentDao {
+        override fun observePaidContractIds(start: LocalDate, end: LocalDate): Flow<List<Long>> = error("Unused")
         val results = mutableMapOf<Long, MutableStateFlow<List<LocalDate>>>()
         override fun observePaymentDates(contractId: Long): Flow<List<LocalDate>> =
             results.getOrPut(contractId) { MutableStateFlow(emptyList()) }

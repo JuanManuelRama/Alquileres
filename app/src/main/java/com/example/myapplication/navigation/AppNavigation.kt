@@ -40,7 +40,7 @@ fun AppNavigation(
         entryProvider = { key: Route ->
             when (key) {
                 is ContractList -> NavEntry(key) {
-                    val contracts by contractViewModel.contracts.collectAsStateWithLifecycle()
+                    val contracts by contractViewModel.listItems.collectAsStateWithLifecycle()
                     ContractListScreen(
                         contracts = contracts,
                         onContractClick = { backStack.add(ContractDetail(it.id)) },

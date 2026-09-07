@@ -12,6 +12,9 @@ import java.time.LocalDate
 
 @Dao
 interface PaymentDao {
+    @Query("SELECT DISTINCT contractId FROM Payment WHERE date >= :start AND date < :end")
+    fun observePaidContractIds(start: LocalDate, end: LocalDate): Flow<List<Long>>
+
     @Transaction
     @Query("SELECT * FROM Payment WHERE contractId = :contractId")
     fun getPaymentsForContract(contractId: Long): Flow<List<PaymentWithServices>>

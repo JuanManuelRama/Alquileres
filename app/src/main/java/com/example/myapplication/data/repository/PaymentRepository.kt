@@ -10,6 +10,9 @@ import java.time.LocalDate
 import java.time.YearMonth
 
 class PaymentRepository(private val dao: PaymentDao) {
+    fun observePaidContractIds(month: YearMonth): Flow<Set<Long>> =
+        dao.observePaidContractIds(month.atDay(1), month.plusMonths(1).atDay(1)).map { it.toSet() }
+
     fun observePaidMonths(contractId: Long): Flow<Set<YearMonth>> =
         observePaymentDates(contractId).map { dates -> dates.map { YearMonth.from(it) }.toSet() }
 

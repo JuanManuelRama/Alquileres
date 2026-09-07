@@ -76,6 +76,8 @@ class PersistenceInstrumentedTest {
         database.paymentDao().insertPayment(PaymentEntity(contractId = firstId, rent = BigDecimal("1000"), date = date))
         assertEquals(listOf(date), database.paymentDao().observePaymentDates(firstId).first())
         assertTrue(database.paymentDao().observePaymentDates(secondId).first().isEmpty())
+        assertEquals(listOf(firstId), database.paymentDao().observePaidContractIds(date, date.plusMonths(1)).first())
+        assertTrue(database.paymentDao().observePaidContractIds(date.minusMonths(1), date).first().isEmpty())
     }
 
     @Test
