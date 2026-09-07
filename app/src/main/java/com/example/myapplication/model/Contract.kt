@@ -28,13 +28,14 @@ data class Contract(
         fun generateAdjustments(
             startingDate: LocalDate,
             finishingDate: LocalDate,
-            adjustmentTime: Long,
+            adjustmentTime: Long? = null,
             hike: BigDecimal? = null
-        ): List<Adjustment> {
-            return generateSequence(startingDate.plusMonths(adjustmentTime)) { it.plusMonths(adjustmentTime) }
+        ): List<Adjustment> =
+            if (adjustmentTime == null) emptyList()
+            else generateSequence(startingDate.plusMonths(adjustmentTime))
+            { it.plusMonths(adjustmentTime) }
                 .takeWhile { it.isBefore(finishingDate) }
                 .map { Adjustment(it, hike) }
                 .toList()
-        }
     }
 }

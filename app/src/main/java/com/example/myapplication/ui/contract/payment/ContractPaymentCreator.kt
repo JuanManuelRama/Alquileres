@@ -14,20 +14,23 @@ import com.example.myapplication.model.Payment
 import com.example.myapplication.model.ServicePayment
 import com.example.myapplication.ui.components.form.Form
 import com.example.myapplication.ui.components.form.Validate
+import com.example.myapplication.ui.components.form.doesntExist
 import com.example.myapplication.ui.components.form.isBigDecimal
 import com.example.myapplication.ui.components.form.isPositive
 import java.time.LocalDate
+import java.time.YearMonth
 
 @Composable
 fun ContractPaymentCreator(
     contract: Contract,
+    paidMonths: Set<YearMonth>,
     onCreated: (Payment) -> Unit,
     cancelText: String,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var price by remember { mutableStateOf(contract.currentValue().toString()) }
-    var date by remember { mutableStateOf(LocalDate.now()) }
+    var date: LocalDate by remember { mutableStateOf(LocalDate.now()) }
     val serviceFees = remember(contract.services) {
         contract.services.map { "" }.toMutableStateList()
     }
@@ -59,7 +62,13 @@ fun ContractPaymentCreator(
         DateItem(
             label = "Payment date",
             value = date,
-            onValueChange = { date = it }
+            onValueChange = { it?.let { date = it } },
+            validate = {
+                Validate(YearMonth.from(it)).doesntExist(
+                    paidMonths,
+                    message = "A payment already exists for this month."
+                )
+            }
         )
         Content {
             Text(text = "Services")

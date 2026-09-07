@@ -17,6 +17,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.model.Contract
@@ -30,6 +33,9 @@ fun ContractPaymentCreateScreen(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val paidMonthsFlow = remember(contract.id, viewModel) { viewModel.paidMonthsFor(contract.id) }
+    val paidMonths by paidMonthsFlow.collectAsStateWithLifecycle(initialValue = null)
+
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -52,8 +58,14 @@ fun ContractPaymentCreateScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            val months = paidMonths
+            if (months == null) {
+                Text("Checking existing payments...")
+                return@Column
+            }
             ContractPaymentCreator(
                 contract = contract,
+                paidMonths = months,
                 onCreated = {
                     viewModel.savePayment(it)
                     onBackClick()

@@ -28,13 +28,12 @@ class ContractDetailViewModel(
     private val contractRepository: ContractRepository,
     paymentRepository: PaymentRepository
 ) : ViewModel() {
-    // One subscription per source for this navigation entry's fixed contract ID.
     val uiState: StateFlow<ContractDetailUiState> = combine(
         contractRepository.observeById(contractId),
-        paymentRepository.observePaymentDates(contractId)
-    ) { contract, paymentDates ->
+        paymentRepository.observePaidMonths(contractId)
+    ) { contract, paidMonths ->
         if (contract == null) ContractDetailUiState.NotFound
-        else ContractDetailUiState.Ready(contract, paymentDates.map { YearMonth.from(it) }.toSet())
+        else ContractDetailUiState.Ready(contract, paidMonths)
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),

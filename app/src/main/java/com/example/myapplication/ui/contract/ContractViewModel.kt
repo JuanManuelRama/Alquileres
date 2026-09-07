@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.YearMonth
 
 class ContractViewModel(
     private val contractRepository: ContractRepository,
@@ -26,6 +27,9 @@ class ContractViewModel(
 
     fun paymentsFor(contract: Contract): Flow<List<Payment>> =
         paymentRepository.getPaymentsForContract(contract)
+
+    fun paidMonthsFor(contractId: Long): Flow<Set<YearMonth>> =
+        paymentRepository.observePaidMonths(contractId)
 
     fun savePayment(payment: Payment) {
         viewModelScope.launch {

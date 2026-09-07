@@ -71,7 +71,7 @@ class FormScope {
         value: LocalDate?,
         mandatory: Boolean = true,
         validate: ((LocalDate?) -> Validation<*>)? = null,
-        modifier: Modifier = Modifier.fillMaxWidth(),
+        modifier: Modifier = Modifier,
         onValueChange: (LocalDate?) -> Unit
     ) {
         Field(

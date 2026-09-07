@@ -7,8 +7,12 @@ import com.example.myapplication.model.Payment
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
+import java.time.YearMonth
 
 class PaymentRepository(private val dao: PaymentDao) {
+    fun observePaidMonths(contractId: Long): Flow<Set<YearMonth>> =
+        observePaymentDates(contractId).map { dates -> dates.map { YearMonth.from(it) }.toSet() }
+
     fun observePaymentDates(contractId: Long): Flow<List<LocalDate>> =
         dao.observePaymentDates(contractId)
 
