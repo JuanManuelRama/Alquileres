@@ -80,6 +80,11 @@ class PersistenceInstrumentedTest {
         val statuses = database.contractDao().observeWithStatus(date, date.plusMonths(1)).first()
             .associateBy { it.details.contract.id }
         assertFalse(statuses.getValue(firstId).paymentDue)
+        val summary = statuses.getValue(firstId).details.toDomain()
+        assertEquals("Owner", summary.property.owner.name)
+        assertEquals(Address("Main", "1", null), summary.property.address)
+        assertTrue(summary.adjustments.isEmpty())
+        assertTrue(summary.services.isEmpty())
         assertTrue(statuses.getValue(firstId).hikeThisMonth)
         assertTrue(statuses.getValue(secondId).paymentDue)
         assertFalse(statuses.getValue(secondId).hikeThisMonth)

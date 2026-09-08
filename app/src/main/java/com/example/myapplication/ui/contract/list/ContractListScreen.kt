@@ -90,7 +90,7 @@ fun ContractListScreen(
                         ListItem(
                             headlineContent = { Text(contract.property.toString()) },
                             supportingContent = { Text("Tenant: ${contract.tenant.name}") },
-                            trailingContent = { Text("$${contract.currentValue().stripTrailingZeros().toPlainString()}") }
+                            trailingContent = { Text("Base: $${contract.rent.stripTrailingZeros().toPlainString()}") }
                         )
                         if (item.paymentDue || item.expiresSoon || item.hikeThisMonth) {
                             FlowRow(
