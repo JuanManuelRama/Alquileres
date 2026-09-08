@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -52,13 +53,23 @@ import com.example.myapplication.model.Contract
 
 @Composable
 fun ContractListScreen(
-    contracts: List<ContractListItem>,
+    state: ContractListUiState,
     onContractClick: (Contract) -> Unit,
     addContractClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier) {
-        if (contracts.isEmpty()) {
+    val contracts = (state as? ContractListUiState.Loaded)?.contracts
+    Box(modifier = modifier.fillMaxSize()) {
+        if (contracts == null) {
+            Column(
+                modifier = Modifier.align(Alignment.Center),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                CircularProgressIndicator()
+                Text("Loading contracts...", style = MaterialTheme.typography.bodyMedium)
+            }
+        } else if (contracts.isEmpty()) {
             EmptyContracts(
                 onCreateContract = addContractClick,
                 modifier = Modifier.fillMaxSize().padding(bottom = 88.dp)

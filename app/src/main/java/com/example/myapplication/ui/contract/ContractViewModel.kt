@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import com.example.myapplication.ui.contract.list.ContractListItem
+import com.example.myapplication.ui.contract.list.ContractListUiState
 import com.example.myapplication.ui.contract.list.listItem
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -42,11 +43,12 @@ class ContractViewModel(
     }.distinctUntilChanged()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val listItems: StateFlow<List<ContractListItem>> = currentMonth.flatMapLatest { month ->
+    val listState: StateFlow<ContractListUiState> = currentMonth.flatMapLatest { month ->
         contractRepository.observeWithStatus(month).map { contracts ->
             contracts.map { it.details.toDomain().listItem(month, it.paymentDue, it.hikeThisMonth) }
         }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    }.map<List<ContractListItem>, ContractListUiState> { ContractListUiState.Loaded(it) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ContractListUiState.Loading)
 
     val contracts: StateFlow<List<Contract>> = contractRepository.getAll()
         .stateIn(
