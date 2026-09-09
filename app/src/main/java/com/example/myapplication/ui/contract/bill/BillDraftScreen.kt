@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -26,13 +25,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -44,31 +41,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import java.math.BigDecimal
+import com.example.myapplication.ui.components.form.Form
+import com.example.myapplication.ui.components.form.Validate
+import com.example.myapplication.ui.components.form.isBigDecimal
+import com.example.myapplication.ui.components.form.isPositive
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BillDraftScreen(viewModel: BillDraftViewModel, onBackClick: () -> Unit, modifier: Modifier = Modifier) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
-    DisposableEffect(lifecycle, viewModel) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_STOP) viewModel.savePending()
-        }
-        lifecycle.addObserver(observer)
-        onDispose { lifecycle.removeObserver(observer) }
-    }
-    BackHandler { viewModel.leave(onBackClick) }
+    val onBack = { if (!state.isSaving) onBackClick() }
+    BackHandler(onBack = onBack)
     Scaffold(
         modifier = modifier,
         topBar = {
             TopAppBar(title = { Text("Prepare bill") }, navigationIcon = {
-                IconButton(onClick = { viewModel.leave(onBackClick) }) {
+                IconButton(onClick = onBack, enabled = !state.isSaving) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                 }
             })
@@ -82,43 +72,14 @@ fun BillDraftScreen(viewModel: BillDraftViewModel, onBackClick: () -> Unit, modi
             if (state.isLoading) CircularProgressIndicator()
             state.error?.let {
                 Text(it, color = MaterialTheme.colorScheme.error)
-                TextButton(onClick = viewModel::retry, enabled = !state.isNavigating) { Text("Retry") }
+                if (state.draft == null) TextButton(onClick = viewModel::retry) { Text("Retry") }
             }
             val draft = state.draft
             if (draft != null) {
-                BillCards(state.bills, state.month, !state.isNavigating, viewModel::selectMonth) {
-                    Text("Draft bill - does not record a payment.", style = MaterialTheme.typography.bodySmall)
-                    Text(when (state.saveStatus) {
-                        DraftSaveStatus.Saved -> "Saved"
-                        DraftSaveStatus.Unsaved -> "Unsaved changes"
-                        DraftSaveStatus.Saving -> "Saving..."
-                        DraftSaveStatus.Error -> "Not saved"
-                    })
-                    BillAmountField(
-                        "Rent", draft.rentInput, viewModel::changeRent,
-                        enabled = !state.isNavigating,
-                        invalid = draft.rentInput.toBigDecimalOrNull()?.let { it > BigDecimal.ZERO } != true,
-                        error = "Enter a positive rent amount"
-                    )
-                    Text("Services", style = MaterialTheme.typography.titleMedium)
-                    if (draft.services.isEmpty()) Text("No services on this bill.")
-                    draft.services.forEach { service ->
-                        key(draft.id, service.serviceId) {
-                            BillAmountField(
-                                service.name, service.amountInput,
-                                { viewModel.changeService(service.serviceId, it) },
-                                enabled = !state.isNavigating,
-                                invalid = service.amountInput.toBigDecimalOrNull() == null,
-                                error = "Enter a service amount (zero is allowed)"
-                            )
-                        }
-                    }
-                    draft.total?.let { Text("Total: $${it.toPlainString()}", style = MaterialTheme.typography.titleLarge) }
-                    Text(
-                        if (state.readyToSend) "Ready to send"
-                        else if (draft.isValid) "Waiting for changes to be saved"
-                        else "Complete all amounts to make this bill ready to send.",
-                        color = if (state.readyToSend) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                BillCards(state.bills, state.month, !state.isSaving, viewModel::selectMonth) {
+                    BillCompletionForm(
+                        bill = draft, isSaving = state.isSaving, saved = state.saved,
+                        onSubmit = viewModel::save, onCancel = onBack
                     )
                 }
             }
@@ -127,17 +88,49 @@ fun BillDraftScreen(viewModel: BillDraftViewModel, onBackClick: () -> Unit, modi
 }
 
 @Composable
-private fun BillAmountField(
-    label: String, value: String, onValueChange: (String) -> Unit,
-    enabled: Boolean, invalid: Boolean, error: String
+private fun BillCompletionForm(
+    bill: BillDraft, isSaving: Boolean, saved: Boolean,
+    onSubmit: (BillDraft) -> Unit, onCancel: () -> Unit
 ) {
-    OutlinedTextField(
-        value = value, onValueChange = onValueChange, label = { Text(label) },
-        modifier = Modifier.fillMaxWidth(), enabled = enabled, singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-        isError = invalid && value.isNotEmpty(),
-        supportingText = { if (invalid) Text(error) }
-    )
+    var input by remember(bill) { mutableStateOf(bill) }
+    Form(
+        submitText = if (isSaving) "Saving..." else "Save bill",
+        onSubmit = { if (!isSaving) onSubmit(input) },
+        cancelText = "Cancel",
+        onCancel = { if (!isSaving) onCancel() }
+    ) {
+        Content {
+            Text("Complete the amounts, then save this bill.", style = MaterialTheme.typography.bodySmall)
+            if (saved && input == bill) Text("Bill saved.", color = MaterialTheme.colorScheme.primary)
+        }
+        Item(
+            field = "Rent", value = input.rentInput,
+            keyboardType = KeyboardType.Decimal,
+            validate = { Validate(it).isBigDecimal().isPositive() },
+            onValueChange = { if (!isSaving) input = input.copy(rentInput = it) }
+        )
+        Content {
+            Text("Services", style = MaterialTheme.typography.titleMedium)
+            if (input.services.isEmpty()) Text("No services on this bill.")
+        }
+        input.services.forEach { service ->
+            key(service.serviceId) {
+                Item(
+                    field = service.name, value = service.amountInput,
+                    keyboardType = KeyboardType.Decimal,
+                    validate = { Validate(it).isBigDecimal() },
+                    onValueChange = { amount ->
+                        if (!isSaving) input = input.copy(services = input.services.map {
+                            if (it.serviceId == service.serviceId) it.copy(amountInput = amount) else it
+                        })
+                    }
+                )
+            }
+        }
+        Content {
+            input.total?.let { Text("Total: $" + it.toPlainString(), style = MaterialTheme.typography.titleLarge) }
+        }
+    }
 }
 
 /** Displays a finite collection of bill cards supplied by the caller. */
