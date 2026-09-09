@@ -54,6 +54,19 @@ class ContractTest {
         assertEquals(emptyList<Adjustment>(), Contract.generateAdjustments(start, finish, adjustmentTime = 12))
     }
 
+    @Test
+    fun billsCoverEveryContractMonthWithScheduledRent() {
+        val bills = contract(listOf(Adjustment(LocalDate.of(2025, 4, 1), BigDecimal("0.10"))))
+            .copy(id = 42, startingDate = LocalDate.of(2025, 1, 31)).createBills(123)
+        assertEquals(13, bills.size)
+        assertEquals(java.time.YearMonth.of(2025, 1), bills.first().month)
+        assertEquals(java.time.YearMonth.of(2026, 1), bills.last().month)
+        assertEquals(bills.size, bills.map { it.month }.distinct().size)
+        assertEquals(42L, bills.last().contractId)
+        assertMoney("1000", bills[2].rentInput.toBigDecimal())
+        assertMoney("1100", bills[3].rentInput.toBigDecimal())
+    }
+
     private fun contract(adjustments: List<Adjustment>) = Contract(
         property = Property(Address("Main", "1", null), Owner("Owner")),
         tenant = Tenant("Tenant", "123"),

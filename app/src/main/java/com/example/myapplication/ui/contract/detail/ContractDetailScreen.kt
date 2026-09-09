@@ -30,7 +30,7 @@ import java.time.YearMonth
 @Composable
 fun ContractDetailScreen(
     viewModel: ContractDetailViewModel,
-    onCreatePaymentButtonClick: (Contract) -> Unit,
+    onPrepareBillClick: (Contract) -> Unit,
     onViewPaymentsButtonClick: (Contract) -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -118,10 +118,10 @@ fun ContractDetailScreen(
                     Text(text = "View Payments")
                 }
                 Button(
-                    onClick = { onCreatePaymentButtonClick(contract) },
+                    onClick = { onPrepareBillClick(contract) },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(text = "New Payment")
+                    Text(text = "Prepare bill")
                 }
             }
         }

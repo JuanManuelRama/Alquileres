@@ -16,6 +16,9 @@ import com.example.myapplication.data.entity.PaymentEntity
 import com.example.myapplication.data.entity.PropertyEntity
 import com.example.myapplication.data.entity.ServiceEntity
 import com.example.myapplication.data.entity.ServicePaymentEntity
+import com.example.myapplication.data.entity.BillDraftEntity
+import com.example.myapplication.data.entity.BillDraftServiceEntity
+import com.example.myapplication.data.dao.BillDraftDao
 
 @Database(
     entities = [
@@ -26,13 +29,16 @@ import com.example.myapplication.data.entity.ServicePaymentEntity
         ContractServiceCrossRef::class,
         AdjustmentEntity::class,
         PaymentEntity::class,
-        ServicePaymentEntity::class
+        ServicePaymentEntity::class,
+        BillDraftEntity::class,
+        BillDraftServiceEntity::class
     ],
-    version = 11,
+    version = 12,
     exportSchema = false
 )
 @ColumnTypeConverters(Converters::class)
 abstract class AppDatabase: RoomDatabase() {
+    abstract fun billDraftDao(): BillDraftDao
     abstract fun propertyDao(): PropertyDao
     abstract fun ownerDao(): OwnerDao
     abstract fun serviceDao(): ServiceDao

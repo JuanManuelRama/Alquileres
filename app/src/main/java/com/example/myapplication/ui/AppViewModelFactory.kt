@@ -12,14 +12,20 @@ import com.example.myapplication.data.repository.PropertyRepository
 import com.example.myapplication.data.repository.ServiceRepository
 import com.example.myapplication.ui.contract.ContractViewModel
 import com.example.myapplication.ui.contract.create.CreateContractViewModel
+import com.example.myapplication.data.repository.BillDraftStore
+import com.example.myapplication.ui.contract.bill.BillDraftViewModel
 
 class AppViewModelFactory(
     private val propertyRepository: PropertyRepository,
     private val ownerRepository: OwnerRepository,
     private val serviceRepository: ServiceRepository,
     private val contractRepository: ContractRepository,
-    private val paymentRepository: PaymentRepository
+    private val paymentRepository: PaymentRepository,
+    private val billDraftStore: BillDraftStore
 ) : ViewModelProvider.Factory {
+    fun billDraftFactory(contractId: Long): ViewModelProvider.Factory = viewModelFactory {
+        initializer { BillDraftViewModel(contractId, billDraftStore) }
+    }
 
     fun contractDetailFactory(contractId: Long): ViewModelProvider.Factory = viewModelFactory {
         initializer {

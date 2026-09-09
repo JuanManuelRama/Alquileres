@@ -9,4 +9,4 @@ data class ContractPayments(val contract: Contract) : Route
 
 data object AddPropiedad : Route
 
-data class CreatePaymentScreen(val contract: Contract) : Route
+data class PrepareBill(val contractId: Long) : Route

@@ -10,7 +10,8 @@ class MyApplication : Application() {
             applicationContext,
             AppDatabase::class.java,
             "my-app.db"
-        ).fallbackToDestructiveMigration(dropAllTables = true)
+        )
+            .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
     }
 }

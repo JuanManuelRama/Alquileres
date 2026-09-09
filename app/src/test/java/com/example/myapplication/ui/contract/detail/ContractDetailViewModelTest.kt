@@ -27,6 +27,11 @@ import kotlin.time.Duration.Companion.milliseconds
 @OptIn(ExperimentalCoroutinesApi::class)
 class ContractDetailViewModelTest {
     private val contracts = TestContractDao()
+    private val unusedBills = java.lang.reflect.Proxy.newProxyInstance(
+        com.example.myapplication.data.dao.BillDraftDao::class.java.classLoader,
+        arrayOf(com.example.myapplication.data.dao.BillDraftDao::class.java)
+    ) { _, _, _ -> error("Bill storage is not used by contract detail") }
+        as com.example.myapplication.data.dao.BillDraftDao
     private val payments = TestPaymentDao()
     private val viewModels = mutableListOf<ContractDetailViewModel>()
 
@@ -40,7 +45,7 @@ class ContractDetailViewModelTest {
     }
 
     private fun viewModel(id: Long) = ContractDetailViewModel(
-        id, ContractRepository(contracts), PaymentRepository(payments)
+        id, ContractRepository(contracts, unusedBills), PaymentRepository(payments)
     ).also { viewModels.add(it) }
 
     @Test

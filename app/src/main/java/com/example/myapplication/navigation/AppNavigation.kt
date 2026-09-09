@@ -17,7 +17,7 @@ import com.example.myapplication.ui.contract.create.CreateContractScreen
 import com.example.myapplication.ui.contract.create.CreateContractViewModel
 import com.example.myapplication.ui.contract.detail.ContractDetailScreen
 import com.example.myapplication.ui.contract.list.ContractListScreen
-import com.example.myapplication.ui.contract.payment.ContractPaymentCreateScreen
+import com.example.myapplication.ui.contract.bill.BillDraftScreen
 import com.example.myapplication.ui.contract.payment.ContractPaymentsScreen
 
 @Composable
@@ -59,7 +59,7 @@ fun AppNavigation(
                     }
                     ContractDetailScreen(
                         viewModel = viewModel(factory = detailFactory),
-                        onCreatePaymentButtonClick = { backStack.add(CreatePaymentScreen(it)) },
+                        onPrepareBillClick = { backStack.add(PrepareBill(it.id)) },
                         onViewPaymentsButtonClick = { backStack.add(ContractPayments(it)) },
                         onBackClick = { backStack.removeLastOrNull() }
                     )
@@ -71,12 +71,13 @@ fun AppNavigation(
                         onBackClick = { backStack.removeLastOrNull() }
                     )
                 }
-                is CreatePaymentScreen -> NavEntry(key) {
-                    ContractPaymentCreateScreen(
-                        contract = key.contract,
-                        viewModel = contractViewModel,
-                        onBackClick = { backStack.removeLastOrNull() },
-                        modifier = modifier
+                is PrepareBill -> NavEntry(key) {
+                    val factory = remember(key.contractId, viewModelFactory) {
+                        viewModelFactory.billDraftFactory(key.contractId)
+                    }
+                    BillDraftScreen(
+                        viewModel = viewModel(factory = factory),
+                        onBackClick = { backStack.removeLastOrNull() }
                     )
                 }
             }
