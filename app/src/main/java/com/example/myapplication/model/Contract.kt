@@ -15,12 +15,12 @@ data class Contract(
     val id: Long = 0L
 ) {
     // Match the inclusive month boundaries used by payment status.
-    fun createBills(updatedAt: Long = System.currentTimeMillis()): List<BillDraft> =
+    fun createBills(updatedAt: Long = System.currentTimeMillis()): List<Bill> =
         generateSequence(YearMonth.from(startingDate)) { it.plusMonths(1) }
             .takeWhile { it <= YearMonth.from(finishingDate) }
             .map { month ->
-                BillDraft(0, id, month, valueAfterDate(month.atDay(1)).toPlainString(),
-                    services.map { BillDraftService(it.id, it.name) }, updatedAt)
+                Bill(0, id, month, valueAfterDate(month.atDay(1)).toPlainString(),
+                    services.map { BillItem(it.name) }, updatedAt)
             }.toList()
 
     fun currentValue(): BigDecimal = valueAfterDate(LocalDate.now())

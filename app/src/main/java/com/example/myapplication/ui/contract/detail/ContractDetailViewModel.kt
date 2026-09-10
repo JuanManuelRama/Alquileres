@@ -3,7 +3,7 @@ package com.example.myapplication.ui.contract.detail
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.repository.ContractRepository
-import com.example.myapplication.data.repository.PaymentRepository
+import com.example.myapplication.data.repository.BillStore
 import com.example.myapplication.model.Contract
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -26,11 +26,11 @@ sealed interface ContractDetailUiState {
 class ContractDetailViewModel(
     private val contractId: Long,
     private val contractRepository: ContractRepository,
-    paymentRepository: PaymentRepository
+    billStore: BillStore
 ) : ViewModel() {
     val uiState: StateFlow<ContractDetailUiState> = combine(
         contractRepository.observeById(contractId),
-        paymentRepository.observePaidMonths(contractId)
+        billStore.observePaidMonths(contractId)
     ) { contract, paidMonths ->
         if (contract == null) ContractDetailUiState.NotFound
         else ContractDetailUiState.Ready(contract, paidMonths)

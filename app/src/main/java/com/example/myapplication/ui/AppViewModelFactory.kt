@@ -7,29 +7,27 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.myapplication.ui.contract.detail.ContractDetailViewModel
 import com.example.myapplication.data.repository.ContractRepository
 import com.example.myapplication.data.repository.OwnerRepository
-import com.example.myapplication.data.repository.PaymentRepository
 import com.example.myapplication.data.repository.PropertyRepository
 import com.example.myapplication.data.repository.ServiceRepository
 import com.example.myapplication.ui.contract.ContractViewModel
 import com.example.myapplication.ui.contract.create.CreateContractViewModel
-import com.example.myapplication.data.repository.BillDraftStore
-import com.example.myapplication.ui.contract.bill.BillDraftViewModel
+import com.example.myapplication.data.repository.BillStore
+import com.example.myapplication.ui.contract.bill.BillViewModel
 
 class AppViewModelFactory(
     private val propertyRepository: PropertyRepository,
     private val ownerRepository: OwnerRepository,
     private val serviceRepository: ServiceRepository,
     private val contractRepository: ContractRepository,
-    private val paymentRepository: PaymentRepository,
-    private val billDraftStore: BillDraftStore
+    private val billStore: BillStore
 ) : ViewModelProvider.Factory {
-    fun billDraftFactory(contractId: Long): ViewModelProvider.Factory = viewModelFactory {
-        initializer { BillDraftViewModel(contractId, billDraftStore) }
+    fun billFactory(contractId: Long): ViewModelProvider.Factory = viewModelFactory {
+        initializer { BillViewModel(contractId, billStore) }
     }
 
     fun contractDetailFactory(contractId: Long): ViewModelProvider.Factory = viewModelFactory {
         initializer {
-            ContractDetailViewModel(contractId, contractRepository, paymentRepository)
+            ContractDetailViewModel(contractId, contractRepository, billStore)
         }
     }
 
@@ -48,8 +46,7 @@ class AppViewModelFactory(
             }
             modelClass.isAssignableFrom(ContractViewModel::class.java) -> {
                 ContractViewModel(
-                    contractRepository = contractRepository,
-                    paymentRepository = paymentRepository
+                    contractRepository = contractRepository
                 ) as T
             }
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")

@@ -24,9 +24,10 @@ interface ContractDao {
             o.id AS owner_id, o.name AS owner_name,
             (c.startingDate < :nextMonthStart AND c.finishingDate >= :monthStart
                 AND NOT EXISTS (
-                    SELECT 1 FROM Payment p
-                    WHERE p.contractId = c.id
-                        AND p.date >= :monthStart AND p.date < :nextMonthStart
+                    SELECT 1 FROM Bill b
+                    WHERE b.contractId = c.id AND b.paidAt IS NOT NULL
+                        AND b.billingMonth || '-01' >= :monthStart
+                        AND b.billingMonth || '-01' < :nextMonthStart
                 )) AS paymentDue,
             EXISTS (
                 SELECT 1 FROM Adjustment a

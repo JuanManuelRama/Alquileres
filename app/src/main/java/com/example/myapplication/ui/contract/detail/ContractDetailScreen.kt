@@ -31,7 +31,6 @@ import java.time.YearMonth
 fun ContractDetailScreen(
     viewModel: ContractDetailViewModel,
     onPrepareBillClick: (Contract) -> Unit,
-    onViewPaymentsButtonClick: (Contract) -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -93,12 +92,12 @@ fun ContractDetailScreen(
                 Text(text = "Adjustment Schedule", style = MaterialTheme.typography.titleSmall)
                 Column {
                     contract.adjustments.forEach { adjustment ->
-                        val hasPaymentForMonth = YearMonth.from(adjustment.time) in state.paidMonths
+                        val hasPaidBillForMonth = YearMonth.from(adjustment.time) in state.paidMonths
                         AdjustmentCard(
                             adjustment = adjustment,
                             contract = contract,
                             modifier = cardModifier,
-                            editable = !hasPaymentForMonth,
+                            editable = !hasPaidBillForMonth,
                             onAmountChange = { amount ->
                                 viewModel.updateAdjustmentAmount(adjustment.time, amount)
                             }
@@ -112,16 +111,10 @@ fun ContractDetailScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Button(
-                    onClick = { onViewPaymentsButtonClick(contract) },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(text = "View Payments")
-                }
-                Button(
                     onClick = { onPrepareBillClick(contract) },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(text = "Prepare bill")
+                    Text(text = "View bills")
                 }
             }
         }

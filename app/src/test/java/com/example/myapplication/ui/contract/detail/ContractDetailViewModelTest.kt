@@ -2,15 +2,15 @@ package com.example.myapplication.ui.contract.detail
 
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.dao.ContractDao
-import com.example.myapplication.data.dao.PaymentDao
 import com.example.myapplication.data.entity.*
 import com.example.myapplication.data.repository.ContractRepository
-import com.example.myapplication.data.repository.PaymentRepository
+import com.example.myapplication.data.repository.BillStore
 import com.example.myapplication.model.Address
 import com.example.myapplication.model.Tenant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -28,11 +28,11 @@ import kotlin.time.Duration.Companion.milliseconds
 class ContractDetailViewModelTest {
     private val contracts = TestContractDao()
     private val unusedBills = java.lang.reflect.Proxy.newProxyInstance(
-        com.example.myapplication.data.dao.BillDraftDao::class.java.classLoader,
-        arrayOf(com.example.myapplication.data.dao.BillDraftDao::class.java)
+        com.example.myapplication.data.dao.BillDao::class.java.classLoader,
+        arrayOf(com.example.myapplication.data.dao.BillDao::class.java)
     ) { _, _, _ -> error("Bill storage is not used by contract detail") }
-        as com.example.myapplication.data.dao.BillDraftDao
-    private val payments = TestPaymentDao()
+        as com.example.myapplication.data.dao.BillDao
+    private val bills = TestBillStore()
     private val viewModels = mutableListOf<ContractDetailViewModel>()
 
     @Before
@@ -45,11 +45,11 @@ class ContractDetailViewModelTest {
     }
 
     private fun viewModel(id: Long) = ContractDetailViewModel(
-        id, ContractRepository(contracts, unusedBills), PaymentRepository(payments)
+        id, ContractRepository(contracts, unusedBills), bills
     ).also { viewModels.add(it) }
 
     @Test
-    fun entriesObserveTheirOwnContractsAndPaymentsAndEditsUseTheirFixedId() = runTest {
+    fun entriesObserveTheirOwnContractsAndBillsAndEditsUseTheirFixedId() = runTest {
         contracts.results[1L] = MutableStateFlow(contract(1L))
         contracts.results[2L] = MutableStateFlow(contract(2L))
         val first = viewModel(1L)
@@ -59,7 +59,7 @@ class ContractDetailViewModelTest {
         runCurrent()
 
         val date = LocalDate.of(2026, 7, 1)
-        payments.results.getValue(1L).value = listOf(date, date.plusDays(1))
+        bills.results.getValue(1L).value = listOf(date, date.plusDays(1))
         first.updateAdjustmentAmount(date, BigDecimal("0.20"))
         runCurrent()
 
@@ -96,14 +96,14 @@ class ContractDetailViewModelTest {
         val second = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { model.uiState.collect {} }
         runCurrent()
         assertEquals(1, contracts.results.getValue(1L).subscriptionCount.value)
-        assertEquals(1, payments.results.getValue(1L).subscriptionCount.value)
+        assertEquals(1, bills.results.getValue(1L).subscriptionCount.value)
         first.cancel()
         second.cancel()
         runCurrent()
         advanceTimeBy(5_000.milliseconds)
         runCurrent()
         assertEquals(0, contracts.results.getValue(1L).subscriptionCount.value)
-        assertEquals(0, payments.results.getValue(1L).subscriptionCount.value)
+        assertEquals(0, bills.results.getValue(1L).subscriptionCount.value)
     }
 
     private fun contract(id: Long): ContractWithRelations {
@@ -133,12 +133,13 @@ class ContractDetailViewModelTest {
         override suspend fun insertAdjustments(adjustments: List<AdjustmentEntity>): Unit = error("Unused")
     }
 
-    private class TestPaymentDao : PaymentDao {
+    private class TestBillStore : BillStore {
         val results = mutableMapOf<Long, MutableStateFlow<List<LocalDate>>>()
-        override fun observePaymentDates(contractId: Long): Flow<List<LocalDate>> =
+        override fun observePaidMonths(contractId: Long): Flow<Set<YearMonth>> =
             results.getOrPut(contractId) { MutableStateFlow(emptyList()) }
-        override fun getPaymentsForContract(contractId: Long): Flow<List<PaymentWithServices>> = error("Unused")
-        override suspend fun insertPayment(payment: PaymentEntity): Long = error("Unused")
-        override suspend fun insertServicePayments(servicePayments: List<ServicePaymentEntity>): Unit = error("Unused")
+                .map { dates -> dates.map { YearMonth.from(it) }.toSet() }
+        override suspend fun list(contractId: Long): List<com.example.myapplication.model.Bill> = error("Unused")
+        override suspend fun save(bill: com.example.myapplication.model.Bill): com.example.myapplication.model.Bill = error("Unused")
+        override suspend fun markPaid(bill: com.example.myapplication.model.Bill, date: LocalDate): com.example.myapplication.model.Bill = error("Unused")
     }
 }

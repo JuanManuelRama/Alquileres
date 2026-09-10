@@ -2,37 +2,38 @@ package com.example.myapplication.ui.contract.bill
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myapplication.data.repository.BillDraftStore
-import com.example.myapplication.model.BillDraft
+import com.example.myapplication.data.repository.BillStore
+import com.example.myapplication.model.Bill
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.YearMonth
+import java.time.LocalDate
 
-data class BillDraftUiState(
+data class BillUiState(
     val month: YearMonth,
-    val bills: List<BillDraft> = emptyList(),
+    val bills: List<Bill> = emptyList(),
     val isLoading: Boolean = true,
     val isSaving: Boolean = false,
     val saved: Boolean = false,
     val error: String? = null
 ) {
-    val draft: BillDraft? get() = bills.firstOrNull { it.month == month }
+    val bill: Bill? get() = bills.firstOrNull { it.month == month }
 }
 
-class BillDraftViewModel(
+class BillViewModel(
     private val contractId: Long,
-    private val store: BillDraftStore,
+    private val store: BillStore,
     initialMonth: YearMonth = YearMonth.now()
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(BillDraftUiState(initialMonth))
+    private val _uiState = MutableStateFlow(BillUiState(initialMonth))
     val uiState = _uiState.asStateFlow()
 
     init { load() }
 
     fun retry() {
-        if (!_uiState.value.isLoading && _uiState.value.draft == null) load()
+        if (!_uiState.value.isLoading && _uiState.value.bill == null) load()
     }
 
     private fun load() {
@@ -43,7 +44,7 @@ class BillDraftViewModel(
                 val month = _uiState.value.month
                 val selected = bills.firstOrNull { it.month >= month } ?: bills.lastOrNull()
                 checkNotNull(selected) { "No bills for this contract" }
-                _uiState.value = BillDraftUiState(selected.month, bills, isLoading = false)
+                _uiState.value = BillUiState(selected.month, bills, isLoading = false)
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Exception) {
@@ -59,24 +60,32 @@ class BillDraftViewModel(
     }
 
     // Only an explicit, valid form submission writes to storage.
-    fun save(draft: BillDraft) {
+    fun save(bill: Bill) = persist(bill, null)
+
+    fun markPaid(bill: Bill, date: LocalDate) {
+        if (date.isAfter(LocalDate.now())) return
+        persist(bill, date)
+    }
+
+    private fun persist(bill: Bill, paymentDate: LocalDate?) {
         val state = _uiState.value
-        val original = state.draft ?: return
-        if (state.isLoading || state.isSaving || !draft.isValid ||
-            draft.id != original.id || draft.contractId != contractId || draft.month != state.month) return
+        val original = state.bill ?: return
+        if (state.isLoading || state.isSaving || original.isPaid || bill.isPaid || !bill.isValid ||
+            bill.id != original.id || bill.contractId != contractId || bill.month != state.month) return
         _uiState.value = state.copy(isSaving = true, saved = false, error = null)
         viewModelScope.launch {
             try {
-                val saved = store.save(draft)
+                val saved = if (paymentDate == null) store.save(bill) else store.markPaid(bill, paymentDate)
                 _uiState.value = _uiState.value.copy(
                     bills = state.bills.map { if (it.id == saved.id) saved else it },
                     isSaving = false, saved = true
                 )
             } catch (error: CancellationException) {
                 throw error
-            } catch (_: Exception) {
+            } catch (error: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    isSaving = false, error = "Could not save this bill. Please try Save bill again."
+                    isSaving = false, error = if (paymentDate == null) "Could not save this bill. Please try Save bill again."
+                    else "Could not confirm payment. " + (error.message ?: "Please retry.")
                 )
             }
         }

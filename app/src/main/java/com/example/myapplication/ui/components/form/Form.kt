@@ -20,6 +20,8 @@ fun Form(
     cancelText: String,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
+    showActions: Boolean = true,
+    enabled: Boolean = true,
     builder: @Composable FormScope.() -> Unit
 ) {
     val scope = remember { FormScope() }
@@ -30,22 +32,25 @@ fun Form(
     ) {
         scope.builder()
 
-        Spacer(modifier = Modifier.height(12.dp))
+        if (showActions) {
+            Spacer(modifier = Modifier.height(12.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
-        ) {
-            Button(
-                onClick = onCancel,
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
             ) {
-                Text(text = cancelText)
-            }
-            Button(
-                onClick = onSubmit,
-                enabled = scope.isValid,
-            ) {
-                Text(text = submitText)
+                Button(
+                    onClick = onCancel,
+                    enabled = enabled,
+                ) {
+                    Text(text = cancelText)
+                }
+                Button(
+                    onClick = onSubmit,
+                    enabled = enabled && scope.isValid,
+                ) {
+                    Text(text = submitText)
+                }
             }
         }
     }

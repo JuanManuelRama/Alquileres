@@ -4,11 +4,11 @@
 
 - It should be allowed for multiple tenants to share an appartment
 
-## Payments
+## Bills
 
-- Allow payments (or rather payment bills) to be generated without the need to  be payed, mostly used to just put waht the service costs are, and send a message informing the tenant
+- Send a bill to the tenant with the service costs before it is paid.
 
-- Better UI for when you missed some update on a payment
+- Better UI for when you missed some update on a bill
 
 ## Deleting unused stuff
 
@@ -55,7 +55,7 @@ To get the contracts it makes a separate query for stuff like services and adjus
 
   5. Medium — Screens close before saves succeed, and write failures are unhandled.
      /C:/Users/user/Desktop/MyApplication/app/src/main/java/com/example/myapplication/ui/contract/create/CreateContractScreen.kt:107 starts saving and
-     immediately navigates back. Payment creation follows the same pattern. The ViewModel coroutines provide no error handling or success state. A database
+     immediately navigates back. The ViewModel coroutines provide no error handling or success state. A database
      exception can terminate the app after the draft has disappeared. Expose saving/success/error state, prevent duplicate submissions, and navigate only
      after successful persistence.
 
