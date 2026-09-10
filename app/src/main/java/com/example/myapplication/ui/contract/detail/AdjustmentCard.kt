@@ -41,7 +41,7 @@ fun AdjustmentCard(
     editable: Boolean = false,
     onAmountChange: (BigDecimal) -> Unit
 ) {
-    val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    val dateFormatter = DateTimeFormatter.ofPattern("MMMM yyyy")
     var showEditor by remember { mutableStateOf(false) }
     Card(modifier = modifier) {
         Row(
@@ -83,7 +83,7 @@ fun AdjustmentCard(
                 }
 
                 Text(
-                    text = "$${contract.valueAfterDate(adjustment.time).stripTrailingZeros().toPlainString()}",
+                    text = "$${contract.valueAtMonth(adjustment.time).stripTrailingZeros().toPlainString()}",
                     modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.bodyMedium
                 )

@@ -29,7 +29,7 @@ import com.example.myapplication.ui.property.PropertyCreator
 import com.example.myapplication.ui.service.ServiceCreator
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.time.LocalDate
+import java.time.YearMonth
 
 @Composable
 fun ContractCreator(
@@ -47,25 +47,25 @@ fun ContractCreator(
     var rent by remember { mutableStateOf("") }
     var fixedHike by remember { mutableStateOf("") }
     var selectedServices by remember { mutableStateOf<List<Service>>(emptyList()) }
-    var startDate by remember { mutableStateOf<LocalDate?>(null) }
-    var endDate by remember { mutableStateOf<LocalDate?>(null) }
+    var startMonth by remember { mutableStateOf<YearMonth?>(null) }
+    var endMonth by remember { mutableStateOf<YearMonth?>(null) }
     var adjustmentTime by remember { mutableStateOf("") }
 
     Form(
         submitText = "Create Contract",
         onSubmit = {
             val property = checkNotNull(selectedProperty)
-            val startingDate = checkNotNull(startDate)
-            val finishingDate = checkNotNull(endDate)
+            val startingMonth = checkNotNull(startMonth)
+            val finishingMonth = checkNotNull(endMonth)
             val contract = Contract(
                 property = property,
                 tenant = Tenant(name = tenantName, phone = tenantPhone),
                 rent = rent.toBigDecimal(),
-                startingDate = startingDate,
-                finishingDate = finishingDate,
+                startingMonth = startingMonth,
+                finishingMonth = finishingMonth,
                 adjustments = Contract.generateAdjustments(
-                    startingDate,
-                    finishingDate,
+                    startingMonth,
+                    finishingMonth,
                     adjustmentTime.toLongOrNull(),
                     fixedHike.toBigDecimalOrNull()?.divide(BigDecimal("100"), 4, RoundingMode.HALF_UP)
                 ),
@@ -143,26 +143,27 @@ fun ContractCreator(
         )
 
         Content {
-            Text("Dates", style = MaterialTheme.typography.titleMedium)
+            Text("Months", style = MaterialTheme.typography.titleMedium)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                DateItem(
-                    label = "Starting Date",
-                    value = startDate,
-                    onValueChange = { startDate = it },
+                MonthItem(
+                    label = "Starting month",
+                    value = startMonth,
+                    onValueChange = { startMonth = it },
                     modifier = Modifier.weight(1f)
                 )
-                DateItem(
-                    label = "Finishing Date",
-                    value = endDate,
+                MonthItem(
+                    label = "Finishing month",
+                    value = endMonth,
                     validate = {
-                        Validate(it).check("must be after starting date") { date ->
-                            startDate == null || date?.isAfter(startDate) == true
+                        Validate(it).check("must be on or after starting month") { date ->
+                            val start = startMonth
+                            start == null || date != null && date >= start
                         }
                     },
-                    onValueChange = { endDate = it },
+                    onValueChange = { endMonth = it },
                     modifier = Modifier.weight(1f)
                 )
             }

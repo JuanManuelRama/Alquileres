@@ -58,8 +58,8 @@ class ContractDetailViewModelTest {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { second.uiState.collect {} }
         runCurrent()
 
-        val date = LocalDate.of(2026, 7, 1)
-        bills.results.getValue(1L).value = listOf(date, date.plusDays(1))
+        val date = YearMonth.of(2026, 7)
+        bills.results.getValue(1L).value = listOf(date, date)
         first.updateAdjustmentAmount(date, BigDecimal("0.20"))
         runCurrent()
 
@@ -107,7 +107,7 @@ class ContractDetailViewModelTest {
     }
 
     private fun contract(id: Long): ContractWithRelations {
-        val date = LocalDate.of(2026, 7, 1)
+        val date = YearMonth.of(2026, 7)
         return ContractWithRelations(
             ContractEntity(id, 1L, Tenant("Tenant $id", "123"), BigDecimal("1000"), date.minusMonths(6), date.plusMonths(6)),
             PropertyWithOwner(PropertyEntity(1L, Address("Main", "1", null), 1L), OwnerEntity(1L, "Owner")),
@@ -117,11 +117,11 @@ class ContractDetailViewModelTest {
     }
 
     private class TestContractDao : ContractDao {
-        override fun observeWithStatus(monthStart: LocalDate, nextMonthStart: LocalDate): Flow<List<ContractWithStatus>> = error("Unused")
+        override fun observeWithStatus(month: YearMonth): Flow<List<ContractWithStatus>> = error("Unused")
         val results = mutableMapOf<Long, MutableStateFlow<ContractWithRelations?>>()
         override fun observeById(contractId: Long): Flow<ContractWithRelations?> =
             results.getOrPut(contractId) { MutableStateFlow(null) }
-        override suspend fun updateAdjustmentAmount(contractId: Long, time: LocalDate, amount: BigDecimal?) {
+        override suspend fun updateAdjustmentAmount(contractId: Long, time: YearMonth, amount: BigDecimal?) {
             val state = results.getValue(contractId)
             state.value = state.value?.let { contract ->
                 contract.copy(adjustments = contract.adjustments.map { if (it.time == time) it.copy(amount = amount) else it })
@@ -134,10 +134,10 @@ class ContractDetailViewModelTest {
     }
 
     private class TestBillStore : BillStore {
-        val results = mutableMapOf<Long, MutableStateFlow<List<LocalDate>>>()
+        val results = mutableMapOf<Long, MutableStateFlow<List<YearMonth>>>()
         override fun observePaidMonths(contractId: Long): Flow<Set<YearMonth>> =
             results.getOrPut(contractId) { MutableStateFlow(emptyList()) }
-                .map { dates -> dates.map { YearMonth.from(it) }.toSet() }
+                .map { dates -> dates.toSet() }
         override suspend fun list(contractId: Long): List<com.example.myapplication.model.Bill> = error("Unused")
         override suspend fun save(bill: com.example.myapplication.model.Bill): com.example.myapplication.model.Bill = error("Unused")
         override suspend fun markPaid(bill: com.example.myapplication.model.Bill, date: LocalDate): com.example.myapplication.model.Bill = error("Unused")

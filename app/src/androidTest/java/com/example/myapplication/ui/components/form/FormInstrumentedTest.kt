@@ -29,10 +29,32 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import java.time.LocalDate
+import java.time.Month
+import java.time.YearMonth
 
 class FormInstrumentedTest {
     @get:Rule
     val composeRule = createComposeRule()
+
+    @Test
+    fun monthPickerSelectsYearAndMonthAndEnablesSubmission() {
+        var month by mutableStateOf<YearMonth?>(null)
+        composeRule.setContent {
+            MaterialTheme {
+                Form("Save", {}, "Cancel", {}) {
+                    MonthItem("Starting month", month, onValueChange = { month = it })
+                }
+            }
+        }
+        composeRule.onNodeWithText("Save").assertIsNotEnabled()
+        composeRule.onNodeWithText("Starting month *").performClick()
+        composeRule.onNodeWithText("Year").performTextReplacement("2028")
+        val february = Month.FEBRUARY.getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.getDefault())
+        composeRule.onNodeWithText(february).performClick()
+        composeRule.runOnIdle { assertEquals(YearMonth.of(2028, 2), month) }
+        composeRule.onNodeWithText("Save").assertIsEnabled()
+    }
 
     @Test
     fun nestedContentUsesItsLayoutAndValidatesCurrentValues() {
@@ -144,7 +166,7 @@ class FormInstrumentedTest {
 
     @Test
     fun nestedDateAndPickersAllParticipateInSubmission() {
-        var date by mutableStateOf<java.time.LocalDate?>(null)
+        var date by mutableStateOf<LocalDate?>(null)
         var selected by mutableStateOf<String?>(null)
         var selections by mutableStateOf(emptyList<String>())
         composeRule.setContent {
@@ -170,7 +192,7 @@ class FormInstrumentedTest {
         }
 
         composeRule.onNodeWithText("Save").assertIsNotEnabled()
-        composeRule.runOnIdle { date = java.time.LocalDate.of(2026, 1, 1) }
+        composeRule.runOnIdle { date = LocalDate.of(2026, 1, 1) }
         composeRule.onNodeWithText("Save").assertIsNotEnabled()
         composeRule.runOnIdle { selected = "A" }
         composeRule.onNodeWithText("Save").assertIsNotEnabled()

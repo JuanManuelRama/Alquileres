@@ -33,8 +33,8 @@ data class ContractWithRelations(
         property = property.toDomain(),
         tenant = contract.tenant,
         rent = contract.rent,
-        startingDate = contract.startingDate,
-        finishingDate = contract.finishingDate,
+        startingMonth = contract.startingMonth,
+        finishingMonth = contract.finishingMonth,
         adjustments = adjustments.map { it.toDomain() },
         services = services.map { it.toDomain() },
         id = contract.id

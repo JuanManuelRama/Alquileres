@@ -9,7 +9,7 @@ import com.example.myapplication.model.Adjustment
 import com.example.myapplication.model.Contract
 import com.example.myapplication.model.Tenant
 import java.math.BigDecimal
-import java.time.LocalDate
+import java.time.YearMonth
 
 @Entity(
     tableName = "Contract",
@@ -28,8 +28,8 @@ data class ContractEntity(
     val propertyId: Long,
     @Embedded(prefix = "tenant_") val tenant: Tenant,
     val rent: BigDecimal,
-    val startingDate: LocalDate,
-    val finishingDate: LocalDate,
+    val startingMonth: YearMonth,
+    val finishingMonth: YearMonth,
 )
 
 fun Contract.toEntity(): ContractEntity = ContractEntity(
@@ -37,8 +37,8 @@ fun Contract.toEntity(): ContractEntity = ContractEntity(
     propertyId = property.id,
     tenant = tenant,
     rent = rent,
-    startingDate = startingDate,
-    finishingDate = finishingDate,
+    startingMonth = startingMonth,
+    finishingMonth = finishingMonth,
 )
 
 @Entity(
@@ -79,7 +79,7 @@ data class AdjustmentEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0L,
     val contractId: Long,
-    val time: LocalDate,
+    val time: YearMonth,
     val amount: BigDecimal?
 )
 

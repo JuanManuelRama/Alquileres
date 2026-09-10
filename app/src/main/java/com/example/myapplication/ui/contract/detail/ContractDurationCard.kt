@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import com.example.myapplication.model.Contract
 import java.time.format.DateTimeFormatter
 
-private val contractDateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+private val contractDateFormatter = DateTimeFormatter.ofPattern("MMMM yyyy")
 
 @Composable
 fun ContractDurationCard(
@@ -22,11 +22,11 @@ fun ContractDurationCard(
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = "Duration", style = MaterialTheme.typography.labelLarge)
             Text(
-                text = "From: ${contract.startingDate.format(contractDateFormatter)}",
+                text = "From: ${contract.startingMonth.format(contractDateFormatter)}",
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = "To: ${contract.finishingDate.format(contractDateFormatter)}",
+                text = "To: ${contract.finishingMonth.format(contractDateFormatter)}",
                 style = MaterialTheme.typography.bodyMedium
             )
         }

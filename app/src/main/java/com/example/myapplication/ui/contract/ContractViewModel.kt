@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import java.time.Duration
 import java.time.Instant
-import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
 import kotlin.time.Duration.Companion.milliseconds
@@ -26,13 +25,13 @@ import kotlin.time.Duration.Companion.milliseconds
 class ContractViewModel(
     private val contractRepository: ContractRepository
 ) : ViewModel() {
-    // Re-evaluate the calendar while observed, including when the screen crosses midnight.
+    // Re-evaluate the calendar while observed, including when the screen crosses into a new month.
     private val currentMonth = flow {
         while (true) {
             val zone = ZoneId.systemDefault()
-            val today = LocalDate.now(zone)
-            emit(YearMonth.from(today))
-            val midnight = today.plusDays(1).atStartOfDay(zone).toInstant()
+            val month = YearMonth.now(zone)
+            emit(month)
+            val midnight = month.plusMonths(1).atDay(1).atStartOfDay(zone).toInstant()
             delay(Duration.between(Instant.now(), midnight).toMillis().coerceAtLeast(1).milliseconds)
         }
     }.distinctUntilChanged()

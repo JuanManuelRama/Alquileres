@@ -5,6 +5,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
+import java.time.YearMonth
 
 class FormItemStateTest {
     private fun fields(
@@ -29,6 +30,10 @@ class FormItemStateTest {
             mandatory = mandatory, validate = validate,
             onItemsChanged = {}, onItemCreated = {}, itemLabel = { it },
             createContent = { _, _ -> }
+        ),
+        MonthFormItemState(
+            label = "Field", value = if (empty) null else YearMonth.of(2026, 1),
+            mandatory = mandatory, validate = validate, onValueChange = {}
         ),
         DateFormItemState(
             label = "Field", value = if (empty) null else LocalDate.of(2026, 1, 1),
@@ -56,7 +61,7 @@ class FormItemStateTest {
             received.add(it)
             Validation.Valid(it)
         }.forEach { assertEquals(Error.None, it.error()) }
-        assertEquals(listOf("value", "value", listOf("value"), LocalDate.of(2026, 1, 1)), received)
+        assertEquals(listOf("value", "value", listOf("value"), YearMonth.of(2026, 1), LocalDate.of(2026, 1, 1)), received)
     }
 
     @Test

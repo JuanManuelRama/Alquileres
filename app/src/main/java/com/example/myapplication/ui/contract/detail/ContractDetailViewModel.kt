@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
-import java.time.LocalDate
 import java.time.YearMonth
 
 sealed interface ContractDetailUiState {
@@ -40,7 +39,7 @@ class ContractDetailViewModel(
         initialValue = ContractDetailUiState.Loading
     )
 
-    fun updateAdjustmentAmount(time: LocalDate, amount: BigDecimal?) {
+    fun updateAdjustmentAmount(time: YearMonth, amount: BigDecimal?) {
         viewModelScope.launch {
             contractRepository.updateAdjustmentAmount(contractId, time, amount)
         }

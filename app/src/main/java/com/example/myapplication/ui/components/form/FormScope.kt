@@ -19,6 +19,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.LayoutDirection
 import java.time.LocalDate
+import java.time.YearMonth
 
 /**
  * Items compose at their call site and participate in the enclosing form, even inside
@@ -65,6 +66,27 @@ class FormScope {
             modifier = modifier.onGloballyPositioned { registration.position = it.positionInRoot() },
             error = error,
             isLastTextField = registration === lastTextField
+        )
+    }
+
+    @Composable
+    fun MonthItem(
+        label: String,
+        value: YearMonth?,
+        mandatory: Boolean = true,
+        validate: ((YearMonth?) -> Validation<*>)? = null,
+        modifier: Modifier = Modifier,
+        onValueChange: (YearMonth?) -> Unit
+    ) {
+        Field(
+            state = MonthFormItemState(
+                label = label,
+                value = value,
+                mandatory = mandatory,
+                validate = validate,
+                onValueChange = onValueChange
+            ),
+            modifier = modifier
         )
     }
 

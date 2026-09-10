@@ -22,7 +22,7 @@ class BillRepository(
     private val dao: BillDao
 ) : BillStore {
     override fun observePaidMonths(contractId: Long): Flow<Set<YearMonth>> =
-        dao.observePaidMonths(contractId).map { months -> months.map { YearMonth.parse(it) }.toSet() }
+        dao.observePaidMonths(contractId).map { months -> months.toSet() }
 
     override suspend fun list(contractId: Long): List<Bill> =
         dao.list(contractId).map { it.toDomain() }

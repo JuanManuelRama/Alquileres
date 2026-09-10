@@ -13,11 +13,12 @@ import com.example.myapplication.model.Bill
 import com.example.myapplication.model.Contract
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
+import java.time.YearMonth
 
 @Dao
 interface BillDao {
     @Query("SELECT billingMonth FROM Bill WHERE contractId = :contractId AND paidAt IS NOT NULL")
-    fun observePaidMonths(contractId: Long): Flow<List<String>>
+    fun observePaidMonths(contractId: Long): Flow<List<YearMonth>>
 
     @Transaction
     @Query("SELECT * FROM Bill WHERE contractId = :contractId ORDER BY billingMonth")
@@ -41,7 +42,7 @@ interface BillDao {
 
     @Transaction
     @Query("SELECT * FROM Bill WHERE contractId = :contractId AND billingMonth = :month")
-    suspend fun find(contractId: Long, month: String): BillWithItems?
+    suspend fun find(contractId: Long, month: YearMonth): BillWithItems?
 
     @Insert
     suspend fun insertBill(bill: BillEntity): Long
@@ -61,7 +62,7 @@ interface BillDao {
         require(!date.isAfter(LocalDate.now())) { "Payment date cannot be in the future" }
         save(bill.toEntity(), bill.itemEntities())
         check(setPaidDate(bill.id, date) == 1) { "Bill is already paid" }
-        return checkNotNull(find(bill.contractId, bill.month.toString()))
+        return checkNotNull(find(bill.contractId, bill.month))
     }
 
     @Query("DELETE FROM BillItem WHERE billId = :id")

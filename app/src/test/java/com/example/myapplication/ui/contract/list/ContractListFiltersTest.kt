@@ -8,7 +8,7 @@ import com.example.myapplication.model.Tenant
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.math.BigDecimal
-import java.time.LocalDate
+import java.time.YearMonth
 
 class ContractListFiltersTest {
     private fun item(id: Long, ownerId: Long, street: String, due: Boolean, expiry: Boolean, hike: Boolean) =
@@ -16,7 +16,7 @@ class ContractListFiltersTest {
             Contract(
                 property = Property(Address(street, "123", "B"), Owner("Same name", ownerId)),
                 tenant = Tenant("Tenant", "123"), rent = BigDecimal("1000"),
-                startingDate = LocalDate.of(2026, 1, 1), finishingDate = LocalDate.of(2027, 1, 1),
+                startingMonth = YearMonth.of(2026, 1), finishingMonth = YearMonth.of(2027, 1),
                 adjustments = emptyList(), services = emptyList(), id = id
             ), due, expiry, hike
         )

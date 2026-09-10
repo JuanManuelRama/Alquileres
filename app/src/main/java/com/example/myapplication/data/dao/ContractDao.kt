@@ -11,7 +11,7 @@ import com.example.myapplication.data.entity.ContractWithRelations
 import com.example.myapplication.data.entity.ContractWithStatus
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
-import java.time.LocalDate
+import java.time.YearMonth
 
 @Dao
 interface ContractDao {
@@ -22,23 +22,22 @@ interface ContractDao {
             p.addr_number AS property_addr_number,
             p.addr_unit AS property_addr_unit,
             o.id AS owner_id, o.name AS owner_name,
-            (c.startingDate < :nextMonthStart AND c.finishingDate >= :monthStart
+            (c.startingMonth <= :month AND c.finishingMonth >= :month
                 AND NOT EXISTS (
                     SELECT 1 FROM Bill b
                     WHERE b.contractId = c.id AND b.paidAt IS NOT NULL
-                        AND b.billingMonth || '-01' >= :monthStart
-                        AND b.billingMonth || '-01' < :nextMonthStart
+                        AND b.billingMonth = :month
                 )) AS paymentDue,
             EXISTS (
                 SELECT 1 FROM Adjustment a
                 WHERE a.contractId = c.id
-                    AND a.time >= :monthStart AND a.time < :nextMonthStart
+                    AND a.time = :month
             ) AS hikeThisMonth
         FROM Contract c
         INNER JOIN Property p ON p.id = c.propertyId
         INNER JOIN Owner o ON o.id = p.ownerId
     """)
-    fun observeWithStatus(monthStart: LocalDate, nextMonthStart: LocalDate): Flow<List<ContractWithStatus>>
+    fun observeWithStatus(month: YearMonth): Flow<List<ContractWithStatus>>
 
     @Transaction
     @Query("SELECT * FROM Contract")
@@ -58,7 +57,7 @@ interface ContractDao {
     suspend fun insertAdjustments(adjustments: List<AdjustmentEntity>)
 
     @Query("UPDATE Adjustment SET amount = :amount WHERE contractId = :contractId AND time = :time")
-    suspend fun updateAdjustmentAmount(contractId: Long, time: LocalDate, amount: BigDecimal?)
+    suspend fun updateAdjustmentAmount(contractId: Long, time: YearMonth, amount: BigDecimal?)
 
     @Transaction
     suspend fun saveContract(contract: ContractEntity, serviceIds: List<Long>, adjustments: List<AdjustmentEntity>): Long {

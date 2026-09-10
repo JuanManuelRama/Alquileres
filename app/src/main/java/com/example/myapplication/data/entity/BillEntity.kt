@@ -13,14 +13,23 @@ import java.time.YearMonth
 
 @Entity(
     tableName = "Bill",
-    foreignKeys = [ForeignKey(entity = ContractEntity::class, parentColumns = ["id"],
-        childColumns = ["contractId"], onDelete = ForeignKey.CASCADE)],
-    indices = [Index(value = ["contractId", "billingMonth"], unique = true)]
+    foreignKeys = [
+        ForeignKey(
+            entity = ContractEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["contractId"], onDelete = ForeignKey.CASCADE
+        )],
+    indices = [
+        Index(
+            value = ["contractId", "billingMonth"],
+            unique = true
+        )]
 )
 data class BillEntity(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
     val contractId: Long,
-    val billingMonth: String,
+    val billingMonth: YearMonth,
     val rentInput: String,
     val updatedAt: Long,
     val paidAt: LocalDate? = null
@@ -49,13 +58,25 @@ data class BillWithItems(
     val items: List<BillItemEntity>
 ) {
     fun toDomain(): Bill = Bill(
-        bill.id, bill.contractId, YearMonth.parse(bill.billingMonth), bill.rentInput,
-        items.sortedBy { it.position }.map { BillItem(it.description, it.amount) },
-        bill.updatedAt, bill.paidAt
+        id = bill.id,
+        contractId = bill.contractId,
+        month = bill.billingMonth,
+        rentInput = bill.rentInput,
+        items = items.sortedBy { it.position }.map { BillItem(it.description, it.amount) },
+        updatedAt = bill.updatedAt,
+        paidAt = bill.paidAt
+
     )
 }
 
-fun Bill.toEntity() = BillEntity(id, contractId, month.toString(), rentInput, updatedAt, paidAt)
+fun Bill.toEntity() = BillEntity(
+    id = id,
+    contractId = contractId,
+    billingMonth = month,
+    rentInput = rentInput,
+    updatedAt = updatedAt,
+    paidAt = paidAt
+)
 fun Bill.itemEntities() = items.mapIndexed { index, item ->
     BillItemEntity(id, item.description, index, item.amount)
 }

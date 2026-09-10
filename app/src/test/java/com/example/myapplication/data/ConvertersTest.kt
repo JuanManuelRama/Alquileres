@@ -5,9 +5,19 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.YearMonth
 
 class ConvertersTest {
     private val converters = Converters()
+
+    @Test
+    fun yearMonthRoundTripsWithoutADayAndPreservesNull() {
+        val month = YearMonth.of(2026, 12)
+        assertEquals("2026-12", converters.monthToString(month))
+        assertEquals(month, converters.monthFromString(converters.monthToString(month)))
+        assertNull(converters.monthFromString(null))
+        assertNull(converters.monthToString(null))
+    }
 
     @Test
     fun localDateRoundTripsAndPreservesNull() {

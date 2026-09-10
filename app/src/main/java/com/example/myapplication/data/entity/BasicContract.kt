@@ -14,8 +14,8 @@ data class BasicContract(
         property = property.toDomain(owner),
         tenant = contract.tenant,
         rent = contract.rent,
-        startingDate = contract.startingDate,
-        finishingDate = contract.finishingDate,
+        startingMonth = contract.startingMonth,
+        finishingMonth = contract.finishingMonth,
         services = emptyList(),
         adjustments = emptyList()
     )

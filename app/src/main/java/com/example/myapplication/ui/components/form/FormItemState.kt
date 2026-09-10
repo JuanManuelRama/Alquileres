@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import java.time.LocalDate
+import java.time.YearMonth
 
 data class Error(val isError: Boolean, val message: String) {
     companion object {
@@ -95,5 +96,15 @@ data class DateFormItemState(
     val onValueChange: (LocalDate?) -> Unit,
     override val validate: ((LocalDate?) -> Validation<*>)? = null,
 ) : ValidatedFormItemState<LocalDate?> {
+    override val isEmpty: Boolean get() = value == null
+}
+
+data class MonthFormItemState(
+    override val label: String,
+    override val mandatory: Boolean = false,
+    override val value: YearMonth?,
+    val onValueChange: (YearMonth?) -> Unit,
+    override val validate: ((YearMonth?) -> Validation<*>)? = null,
+) : ValidatedFormItemState<YearMonth?> {
     override val isEmpty: Boolean get() = value == null
 }

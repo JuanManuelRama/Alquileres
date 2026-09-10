@@ -44,6 +44,7 @@ internal fun FormItem(
         is TextFormItemState -> TextFormItemContent(item, error, isLastTextField, modifier)
         is PickerFormItemState<*> -> PickerFormItemContent(item, error, modifier)
         is MultiPickerFormItemState<*> -> MultiPickerFormItemContent(item, error, modifier)
+        is MonthFormItemState -> MonthFormItemContent(item, error, modifier)
         is DateFormItemState -> DateFormItemContent(item, error, modifier)
     }
 }

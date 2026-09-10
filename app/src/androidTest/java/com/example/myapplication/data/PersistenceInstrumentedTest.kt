@@ -22,7 +22,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.math.BigDecimal
-import java.time.LocalDate
+import java.time.YearMonth
 
 @RunWith(AndroidJUnit4::class)
 class PersistenceInstrumentedTest {
@@ -54,10 +54,10 @@ class PersistenceInstrumentedTest {
         val propertyId = database.propertyDao().insertProperty(
             PropertyEntity(address = Address("Main", "1", null), ownerId = ownerId)
         )
-        val date = LocalDate.of(2026, 7, 1)
+        val date = YearMonth.of(2026, 7)
         val contract = ContractEntity(
             propertyId = propertyId, tenant = Tenant("Tenant", "123"),
-            rent = BigDecimal("1000"), startingDate = date.minusMonths(6), finishingDate = date.plusMonths(6)
+            rent = BigDecimal("1000"), startingMonth = date.minusMonths(6), finishingMonth = date.plusMonths(6)
         )
         val firstId = database.contractDao().saveContract(
             contract, emptyList(), listOf(AdjustmentEntity(contractId = 0, time = date, amount = null))
@@ -73,11 +73,11 @@ class PersistenceInstrumentedTest {
         assertTrue(database.contractDao().observeById(secondId).first()!!.adjustments.isEmpty())
 
         database.billDao().createAll(updated.toDomain().createBills())
-        val bill = database.billDao().find(firstId, java.time.YearMonth.from(date).toString())!!.toDomain()
-        database.billDao().markPaid(bill, date)
-        assertEquals(listOf(java.time.YearMonth.from(date).toString()), database.billDao().observePaidMonths(firstId).first())
+        val bill = database.billDao().find(firstId, date)!!.toDomain()
+        database.billDao().markPaid(bill, date.atDay(1))
+        assertEquals(listOf(date), database.billDao().observePaidMonths(firstId).first())
         assertTrue(database.billDao().observePaidMonths(secondId).first().isEmpty())
-        val statuses = database.contractDao().observeWithStatus(date, date.plusMonths(1)).first()
+        val statuses = database.contractDao().observeWithStatus(date).first()
             .associateBy { it.details.contract.id }
         assertFalse(statuses.getValue(firstId).paymentDue)
         val summary = statuses.getValue(firstId).details.toDomain()
@@ -88,7 +88,7 @@ class PersistenceInstrumentedTest {
         assertTrue(statuses.getValue(firstId).hikeThisMonth)
         assertTrue(statuses.getValue(secondId).paymentDue)
         assertFalse(statuses.getValue(secondId).hikeThisMonth)
-        val previousMonth = database.contractDao().observeWithStatus(date.minusMonths(1), date).first()
+        val previousMonth = database.contractDao().observeWithStatus(date.minusMonths(1)).first()
         assertTrue(previousMonth.all { it.paymentDue && !it.hikeThisMonth })
     }
 
@@ -114,17 +114,17 @@ class PersistenceInstrumentedTest {
         )
         val tenant = Tenant(name = "Tenant", phone = "123")
         val serviceId = database.serviceDao().insert(ServiceEntity(name = "Electricity"))
-        val start = LocalDate.of(2026, 1, 1)
-        val finish = LocalDate.of(2027, 1, 1)
-        val adjustmentDate = LocalDate.of(2026, 7, 1)
+        val start = YearMonth.of(2026, 1)
+        val finish = YearMonth.of(2027, 1)
+        val adjustmentDate = YearMonth.of(2026, 7)
 
         database.contractDao().saveContract(
             contract = ContractEntity(
                 propertyId = propertyId,
                 tenant = tenant,
                 rent = BigDecimal("1250.50"),
-                startingDate = start,
-                finishingDate = finish,
+                startingMonth = start,
+                finishingMonth = finish,
             ),
             serviceIds = listOf(serviceId),
             adjustments = listOf(
@@ -135,8 +135,8 @@ class PersistenceInstrumentedTest {
         val result = database.contractDao().getAllContracts().first().single()
         assertNotNull(result.contract.id)
         assertEquals(BigDecimal("1250.50"), result.contract.rent)
-        assertEquals(start, result.contract.startingDate)
-        assertEquals(finish, result.contract.finishingDate)
+        assertEquals(start, result.contract.startingMonth)
+        assertEquals(finish, result.contract.finishingMonth)
         assertEquals(tenant, result.contract.tenant)
         assertEquals(tenant, result.toDomain().tenant)
         assertEquals("Electricity", result.services.single().name)

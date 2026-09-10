@@ -15,7 +15,7 @@ import com.example.myapplication.model.Tenant
 import org.junit.Rule
 import org.junit.Test
 import java.math.BigDecimal
-import java.time.LocalDate
+import java.time.YearMonth
 
 class ContractListScreenTest {
     @get:Rule
@@ -35,7 +35,7 @@ class ContractListScreenTest {
         val contract = Contract(
             property = Property(Address("Main", "1", null), Owner("Owner")),
             tenant = Tenant("Ada", "123"), rent = BigDecimal("1000"),
-            startingDate = LocalDate.of(2026, 1, 1), finishingDate = LocalDate.of(2027, 1, 1),
+            startingMonth = YearMonth.of(2026, 1), finishingMonth = YearMonth.of(2027, 1),
             adjustments = emptyList(), services = emptyList(), id = 1L
         )
         composeRule.runOnIdle {

@@ -7,12 +7,11 @@ import com.example.myapplication.model.Contract
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.math.BigDecimal
-import java.time.LocalDate
 import java.time.YearMonth
 
 class ContractRepository(private val dao: ContractDao, private val bills: BillDao) {
     fun observeWithStatus(month: YearMonth): Flow<List<ContractWithStatus>> =
-        dao.observeWithStatus(month.atDay(1), month.plusMonths(1).atDay(1))
+        dao.observeWithStatus(month)
 
     fun observeById(contractId: Long): Flow<Contract?> =
         dao.observeById(contractId).map { it?.toDomain() }
@@ -28,7 +27,7 @@ class ContractRepository(private val dao: ContractDao, private val bills: BillDa
         return contract.copy(id = id)
     }
 
-    suspend fun updateAdjustmentAmount(contractId: Long, time: LocalDate, amount: BigDecimal?) {
+    suspend fun updateAdjustmentAmount(contractId: Long, time: YearMonth, amount: BigDecimal?) {
         dao.updateAdjustmentAmount(contractId, time, amount)
     }
 }

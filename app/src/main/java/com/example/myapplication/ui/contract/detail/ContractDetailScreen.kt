@@ -24,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myapplication.model.Contract
-import java.time.YearMonth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,7 +91,7 @@ fun ContractDetailScreen(
                 Text(text = "Adjustment Schedule", style = MaterialTheme.typography.titleSmall)
                 Column {
                     contract.adjustments.forEach { adjustment ->
-                        val hasPaidBillForMonth = YearMonth.from(adjustment.time) in state.paidMonths
+                        val hasPaidBillForMonth = adjustment.time in state.paidMonths
                         AdjustmentCard(
                             adjustment = adjustment,
                             contract = contract,

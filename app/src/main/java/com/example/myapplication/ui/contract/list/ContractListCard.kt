@@ -38,7 +38,7 @@ data class ContractListItem(
 )
 
 internal fun Contract.listItem(month: YearMonth, paymentDue: Boolean, hikeThisMonth: Boolean): ContractListItem {
-    val expiryMonth = YearMonth.from(finishingDate)
+    val expiryMonth = finishingMonth
     return ContractListItem(
         contract = this,
         paymentDue = paymentDue,

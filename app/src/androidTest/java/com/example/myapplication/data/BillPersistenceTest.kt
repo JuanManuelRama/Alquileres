@@ -31,7 +31,7 @@ class BillPersistenceTest {
             val service = db.serviceDao().insert(ServiceEntity(name = "Water"))
             val id = db.contractDao().saveContract(
                 contract(property), listOf(service),
-                listOf(AdjustmentEntity(contractId = 0, time = month.atDay(1), amount = BigDecimal("0.10")))
+                listOf(AdjustmentEntity(contractId = 0, time = month, amount = BigDecimal("0.10")))
             )
             db.billDao().createAll(
                 db.contractDao().observeById(id).first()!!.toDomain().createBills()
@@ -48,7 +48,7 @@ class BillPersistenceTest {
             assertEquals("Water", first.items.single().description)
             assertFalse(first.isValid)
             repository.save(first.copy(items = first.items.map { it.copy(amount = "-") }))
-            db.contractDao().updateAdjustmentAmount(id, month.atDay(1), BigDecimal("0.50"))
+            db.contractDao().updateAdjustmentAmount(id, month, BigDecimal("0.50"))
             val extraService = db.serviceDao().insert(ServiceEntity(name = "Power"))
             db.contractDao().insertContractServiceCrossRefs(listOf(ContractServiceCrossRef(id, extraService)))
 
@@ -57,7 +57,7 @@ class BillPersistenceTest {
             assertEquals(first.rentInput, reopened.rentInput)
             assertEquals("-", reopened.items.single().amount)
             assertTrue(db.billDao().observePaidMonths(id).first().isEmpty())
-            assertTrue(db.contractDao().observeWithStatus(month.atDay(1), month.plusMonths(1).atDay(1)).first().first { it.details.contract.id == id }.paymentDue)
+            assertTrue(db.contractDao().observeWithStatus(month).first().first { it.details.contract.id == id }.paymentDue)
 
             val next = repository.open(id, month.plusMonths(1))
             assertNotEquals(first.id, next.id)
@@ -105,11 +105,11 @@ class BillPersistenceTest {
             val paymentDate = LocalDate.of(2026, 2, 5)
             val paid = repo.markPaid(original, paymentDate)
             assertEquals(paymentDate, repo.open(id, billingMonth).paidAt)
-            assertFalse(db.contractDao().observeWithStatus(billingMonth.atDay(1), billingMonth.plusMonths(1).atDay(1))
+            assertFalse(db.contractDao().observeWithStatus(billingMonth)
                 .first().single().paymentDue)
-            assertTrue(db.contractDao().observeWithStatus(billingMonth.plusMonths(1).atDay(1), billingMonth.plusMonths(2).atDay(1))
+            assertTrue(db.contractDao().observeWithStatus(billingMonth.plusMonths(1))
                 .first().single().paymentDue)
-            assertEquals(listOf(billingMonth.toString()), db.billDao().observePaidMonths(id).first())
+            assertEquals(listOf(billingMonth), db.billDao().observePaidMonths(id).first())
             try { repo.save(original.copy(rentInput = "999")); fail("Paid bill accepted a stale edit") }
             catch (_: IllegalStateException) { }
             try { repo.markPaid(original, paymentDate); fail("Duplicate payment accepted") }
@@ -146,6 +146,6 @@ class BillPersistenceTest {
 
     private fun contract(propertyId: Long) = ContractEntity(
         propertyId = propertyId, tenant = Tenant("Tenant", "123"), rent = BigDecimal("1000"),
-        startingDate = LocalDate.of(2026, 1, 1), finishingDate = LocalDate.of(2027, 12, 31)
+        startingMonth = YearMonth.of(2026, 1), finishingMonth = YearMonth.of(2027, 12)
     )
 }

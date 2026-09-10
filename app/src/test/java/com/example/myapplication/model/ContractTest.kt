@@ -3,36 +3,36 @@ package com.example.myapplication.model
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.math.BigDecimal
-import java.time.LocalDate
+import java.time.YearMonth
 
 class ContractTest {
-    private val start = LocalDate.of(2025, 1, 1)
-    private val finish = LocalDate.of(2026, 1, 1)
+    private val start = YearMonth.of(2025, 1)
+    private val finish = YearMonth.of(2026, 1)
 
     @Test
-    fun valueAfterDateAppliesOnlyAdjustmentsUpToAndIncludingDate() {
+    fun valueAtMonthAppliesOnlyAdjustmentsUpToAndIncludingMonth() {
         val contract = contract(
             adjustments = listOf(
-                Adjustment(LocalDate.of(2025, 4, 1), BigDecimal("0.10")),
-                Adjustment(LocalDate.of(2025, 7, 1), BigDecimal("0.20"))
+                Adjustment(YearMonth.of(2025, 4), BigDecimal("0.10")),
+                Adjustment(YearMonth.of(2025, 7), BigDecimal("0.20"))
             )
         )
 
-        assertMoney("1000.00", contract.valueAfterDate(LocalDate.of(2025, 3, 31)))
-        assertMoney("1100.00", contract.valueAfterDate(LocalDate.of(2025, 4, 1)))
-        assertMoney("1320.00", contract.valueAfterDate(LocalDate.of(2025, 7, 1)))
+        assertMoney("1000.00", contract.valueAtMonth(YearMonth.of(2025, 3)))
+        assertMoney("1100.00", contract.valueAtMonth(YearMonth.of(2025, 4)))
+        assertMoney("1320.00", contract.valueAtMonth(YearMonth.of(2025, 7)))
     }
 
     @Test
     fun nullAdjustmentAmountLeavesRentUnchanged() {
         val contract = contract(
             adjustments = listOf(
-                Adjustment(LocalDate.of(2025, 4, 1), null),
-                Adjustment(LocalDate.of(2025, 7, 1), BigDecimal("0.10"))
+                Adjustment(YearMonth.of(2025, 4), null),
+                Adjustment(YearMonth.of(2025, 7), BigDecimal("0.10"))
             )
         )
 
-        assertMoney("1100.00", contract.valueAfterDate(LocalDate.of(2025, 12, 1)))
+        assertMoney("1100.00", contract.valueAtMonth(YearMonth.of(2025, 12)))
     }
 
     @Test
@@ -41,9 +41,9 @@ class ContractTest {
 
         assertEquals(
             listOf(
-                Adjustment(LocalDate.of(2025, 4, 1), BigDecimal("0.15")),
-                Adjustment(LocalDate.of(2025, 7, 1), BigDecimal("0.15")),
-                Adjustment(LocalDate.of(2025, 10, 1), BigDecimal("0.15"))
+                Adjustment(YearMonth.of(2025, 4), BigDecimal("0.15")),
+                Adjustment(YearMonth.of(2025, 7), BigDecimal("0.15")),
+                Adjustment(YearMonth.of(2025, 10), BigDecimal("0.15"))
             ),
             adjustments
         )
@@ -56,23 +56,29 @@ class ContractTest {
 
     @Test
     fun billsCoverEveryContractMonthWithScheduledRent() {
-        val bills = contract(listOf(Adjustment(LocalDate.of(2025, 4, 1), BigDecimal("0.10"))))
-            .copy(id = 42, startingDate = LocalDate.of(2025, 1, 31)).createBills(123)
+        val bills = contract(listOf(Adjustment(YearMonth.of(2025, 4), BigDecimal("0.10"))))
+            .copy(id = 42, startingMonth = YearMonth.of(2025, 1)).createBills(123)
         assertEquals(13, bills.size)
-        assertEquals(java.time.YearMonth.of(2025, 1), bills.first().month)
-        assertEquals(java.time.YearMonth.of(2026, 1), bills.last().month)
+        assertEquals(YearMonth.of(2025, 1), bills.first().month)
+        assertEquals(YearMonth.of(2026, 1), bills.last().month)
         assertEquals(bills.size, bills.map { it.month }.distinct().size)
         assertEquals(42L, bills.last().contractId)
         assertMoney("1000", bills[2].rentInput.toBigDecimal())
         assertMoney("1100", bills[3].rentInput.toBigDecimal())
     }
 
+    @Test
+    fun singleMonthContractCreatesOneBill() {
+        val bills = contract(emptyList()).copy(finishingMonth = start).createBills()
+        assertEquals(listOf(start), bills.map { it.month })
+    }
+
     private fun contract(adjustments: List<Adjustment>) = Contract(
         property = Property(Address("Main", "1", null), Owner("Owner")),
         tenant = Tenant("Tenant", "123"),
         rent = BigDecimal("1000.00"),
-        startingDate = start,
-        finishingDate = finish,
+        startingMonth = start,
+        finishingMonth = finish,
         adjustments = adjustments,
         services = emptyList()
     )
