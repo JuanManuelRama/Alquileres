@@ -6,6 +6,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -59,7 +60,10 @@ private fun TextFormItemContent(
     OutlinedTextField(
         value = item.value,
         onValueChange = item.onValueChange,
-        label = { Text(item.displayLabel) },
+        readOnly = !item.modifiable,
+        label = if (item.showLabel) ( { Text(item.displayLabel) } ) else null,
+        prefix = item.prefix,
+        textStyle = item.textStyle ?: LocalTextStyle.current,
         keyboardOptions = KeyboardOptions(
             keyboardType = item.keyboardType,
             imeAction = if (isLastTextField) ImeAction.Done else ImeAction.Next

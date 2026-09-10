@@ -16,6 +16,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.Card
 import androidx.compose.material3.AlertDialog
 import com.example.myapplication.model.BillDraft
@@ -50,7 +53,11 @@ import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BillDraftScreen(viewModel: BillDraftViewModel, onBackClick: () -> Unit, modifier: Modifier = Modifier) {
+fun BillDraftScreen(
+    viewModel: BillDraftViewModel,
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val onBack = { if (!state.isSaving) onBackClick() }
     BackHandler(onBack = onBack)
@@ -78,8 +85,10 @@ fun BillDraftScreen(viewModel: BillDraftViewModel, onBackClick: () -> Unit, modi
             if (draft != null) {
                 BillCards(state.bills, state.month, !state.isSaving, viewModel::selectMonth) {
                     BillCompletionForm(
-                        bill = draft, isSaving = state.isSaving, saved = state.saved,
-                        onSubmit = viewModel::save, onCancel = onBack
+                        bill = draft,
+                        isSaving = state.isSaving,
+                        onSubmit = viewModel::save,
+                        onCancel = onBack
                     )
                 }
             }
@@ -89,8 +98,9 @@ fun BillDraftScreen(viewModel: BillDraftViewModel, onBackClick: () -> Unit, modi
 
 @Composable
 private fun BillCompletionForm(
-    bill: BillDraft, isSaving: Boolean, saved: Boolean,
-    onSubmit: (BillDraft) -> Unit, onCancel: () -> Unit
+    bill: BillDraft, isSaving: Boolean,
+    onSubmit: (BillDraft) -> Unit,
+    onCancel: () -> Unit
 ) {
     var input by remember(bill) { mutableStateOf(bill) }
     Form(
@@ -100,44 +110,94 @@ private fun BillCompletionForm(
         onCancel = { if (!isSaving) onCancel() }
     ) {
         Content {
-            Text("Complete the amounts, then save this bill.", style = MaterialTheme.typography.bodySmall)
-            if (saved && input == bill) Text("Bill saved.", color = MaterialTheme.colorScheme.primary)
-        }
-        Item(
-            field = "Rent", value = input.rentInput,
-            keyboardType = KeyboardType.Decimal,
-            validate = { Validate(it).isBigDecimal().isPositive() },
-            onValueChange = { if (!isSaving) input = input.copy(rentInput = it) }
-        )
-        Content {
-            Text("Services", style = MaterialTheme.typography.titleMedium)
-            if (input.services.isEmpty()) Text("No services on this bill.")
-        }
-        input.services.forEach { service ->
-            key(service.serviceId) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text("Item", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Amount", Modifier.weight(1f), textAlign = TextAlign.End,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            HorizontalDivider()
+            BillAmountRow("Rent") {
                 Item(
-                    field = service.name, value = service.amountInput,
+                    field = "Rent", value = input.rentInput,
+                    prefix = { Text("$") },
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.End),
+                    showLabel = false,
                     keyboardType = KeyboardType.Decimal,
-                    validate = { Validate(it).isBigDecimal() },
-                    onValueChange = { amount ->
-                        if (!isSaving) input = input.copy(services = input.services.map {
-                            if (it.serviceId == service.serviceId) it.copy(amountInput = amount) else it
-                        })
-                    }
+                    validate = { Validate(it).isBigDecimal().isPositive() },
+                    onValueChange = { if (!isSaving) input = input.copy(rentInput = it) },
+                    modifiable = false,
                 )
             }
         }
-        Content {
-            input.total?.let { Text("Total: $" + it.toPlainString(), style = MaterialTheme.typography.titleLarge) }
+        input.services.forEach { service ->
+            key(service.serviceId) {
+                Content {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                    BillAmountRow(service.name) {
+                        Item(
+                            field = service.name,
+                            value = service.amountInput,
+                            prefix = { Text("$") },
+                            textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.End),
+                            showLabel = false,
+                            keyboardType = KeyboardType.Decimal,
+                            validate = { Validate(it).isBigDecimal() },
+                            onValueChange = { amount ->
+                                if (!isSaving) input = input.copy(services = input.services.map {
+                                    if (it.serviceId == service.serviceId) it.copy(amountInput = amount) else it
+                                })
+                            }
+                        )
+                    }
+                }
+            }
         }
+        Content {
+            HorizontalDivider(thickness = 2.dp)
+            BillAmountRow("Total", total = true) {
+                Item(
+                    field = "Total",
+                    value = input.rentInput.toBigDecimalOrNull()?.let { input.total.toPlainString() } ?: "",
+                    modifiable = false,
+                    mandatory = false,
+                    showLabel = false,
+                    prefix = { Text("$") },
+                    textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.End)
+                )
+            }
+        }
+    }
+}
+
+/** Keep every amount box on the same column, including the calculated total. */
+@Composable
+private fun BillAmountRow(
+    label: String,
+    total: Boolean = false,
+    amount: @Composable () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Box(modifier = Modifier.weight(1f).heightIn(min = 56.dp), contentAlignment = Alignment.CenterStart) {
+            Text(label, style = if (total) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyLarge)
+        }
+        Box(modifier = Modifier.weight(1f)) { amount() }
     }
 }
 
 /** Displays a finite collection of bill cards supplied by the caller. */
 @Composable
 fun BillCards(
-    bills: List<BillDraft>, selectedMonth: YearMonth, enabled: Boolean,
-    onSelect: (YearMonth) -> Unit, content: @Composable () -> Unit
+    bills: List<BillDraft>,
+    selectedMonth: YearMonth,
+    enabled: Boolean,
+    onSelect: (YearMonth) -> Unit,
+    content: @Composable () -> Unit
 ) {
     val index = bills.indexOfFirst { it.month == selectedMonth }
     if (index < 0) return

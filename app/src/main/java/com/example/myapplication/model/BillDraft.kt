@@ -20,7 +20,6 @@ data class BillDraft(
     val isValid: Boolean get() = rentInput.toBigDecimalOrNull()?.let { it > BigDecimal.ZERO } == true &&
         services.all { it.amountInput.toBigDecimalOrNull() != null }
 
-    val total: BigDecimal? get() = if (isValid) {
-        rentInput.toBigDecimal() + services.sumOf { it.amountInput.toBigDecimal() }
-    } else null
+    val total: BigDecimal get() =
+        rentInput.toBigDecimal() + services.sumOf { it.amountInput.toBigDecimalOrNull() ?: BigDecimal.ZERO }
 }

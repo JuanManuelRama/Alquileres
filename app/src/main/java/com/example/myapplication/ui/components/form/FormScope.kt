@@ -1,6 +1,8 @@
 package com.example.myapplication.ui.components.form
 
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
@@ -43,7 +45,8 @@ class FormScope {
 
     @Composable
     private fun Field(state: FormItemState, modifier: Modifier) {
-        val registration = remember(this) { FieldRegistration(state is TextFormItemState) }
+        val isEditableText = state is TextFormItemState && state.modifiable
+        val registration = remember(this, isEditableText) { FieldRegistration(isEditableText) }
         val error = state.error()
         DisposableEffect(this, registration) {
             fields.add(registration)
@@ -127,7 +130,11 @@ class FormScope {
         keyboardType: KeyboardType = KeyboardType.Text,
         validate: ((String) -> Validation<*>)? = null,
         modifier: Modifier = Modifier.fillMaxWidth(),
-        onValueChange: (String) -> Unit
+        prefix: (@Composable () -> Unit)? = null,
+        textStyle: TextStyle = LocalTextStyle.current,
+        showLabel: Boolean = true,
+        modifiable: Boolean = true,
+        onValueChange: (String) -> Unit = {}
     ) {
         Field(
             state = TextFormItemState(
@@ -136,6 +143,10 @@ class FormScope {
                 mandatory = mandatory,
                 keyboardType = keyboardType,
                 validate = validate,
+                prefix = prefix,
+                textStyle = textStyle,
+                showLabel = showLabel,
+                modifiable = modifiable,
                 onValueChange = onValueChange
             ),
             modifier = modifier
