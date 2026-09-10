@@ -1,7 +1,7 @@
 package com.example.myapplication.data.repository
 
 import com.example.myapplication.data.dao.ContractDao
-import com.example.myapplication.data.dao.BillDraftDao
+import com.example.myapplication.data.dao.BillDao
 import com.example.myapplication.model.Contract
 import com.example.myapplication.data.entity.ContractWithStatus
 import java.time.YearMonth
@@ -10,7 +10,7 @@ import java.time.LocalDate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class ContractRepository(private val dao: ContractDao, private val bills: BillDraftDao) {
+class ContractRepository(private val dao: ContractDao, private val bills: BillDao) {
     fun observeWithStatus(month: YearMonth): Flow<List<ContractWithStatus>> =
         dao.observeWithStatus(month.atDay(1), month.plusMonths(1).atDay(1))
 

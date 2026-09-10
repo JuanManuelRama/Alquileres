@@ -17,8 +17,7 @@ import com.example.myapplication.ui.contract.create.CreateContractScreen
 import com.example.myapplication.ui.contract.create.CreateContractViewModel
 import com.example.myapplication.ui.contract.detail.ContractDetailScreen
 import com.example.myapplication.ui.contract.list.ContractListScreen
-import com.example.myapplication.ui.contract.bill.BillDraftScreen
-import com.example.myapplication.ui.contract.payment.ContractPaymentsScreen
+import com.example.myapplication.ui.contract.bill.BillScreen
 
 @Composable
 fun AppNavigation(
@@ -60,22 +59,14 @@ fun AppNavigation(
                     ContractDetailScreen(
                         viewModel = viewModel(factory = detailFactory),
                         onPrepareBillClick = { backStack.add(PrepareBill(it.id)) },
-                        onViewPaymentsButtonClick = { backStack.add(ContractPayments(it)) },
-                        onBackClick = { backStack.removeLastOrNull() }
-                    )
-                }
-                is ContractPayments -> NavEntry(key) {
-                    ContractPaymentsScreen(
-                        contract = key.contract,
-                        viewModel = contractViewModel,
                         onBackClick = { backStack.removeLastOrNull() }
                     )
                 }
                 is PrepareBill -> NavEntry(key) {
                     val factory = remember(key.contractId, viewModelFactory) {
-                        viewModelFactory.billDraftFactory(key.contractId)
+                        viewModelFactory.billFactory(key.contractId)
                     }
-                    BillDraftScreen(
+                    BillScreen(
                         viewModel = viewModel(factory = factory),
                         onBackClick = { backStack.removeLastOrNull() }
                     )

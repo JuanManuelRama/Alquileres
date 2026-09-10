@@ -11,9 +11,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import com.example.myapplication.ui.AppViewModelFactory
 import com.example.myapplication.data.repository.ContractRepository
-import com.example.myapplication.data.repository.BillDraftRepository
+import com.example.myapplication.data.repository.BillRepository
 import com.example.myapplication.data.repository.OwnerRepository
-import com.example.myapplication.data.repository.PaymentRepository
 import com.example.myapplication.data.repository.PropertyRepository
 import com.example.myapplication.data.repository.ServiceRepository
 import com.example.myapplication.navigation.AppNavigation
@@ -32,9 +31,8 @@ class MainActivity : ComponentActivity() {
                 propertyRepository = PropertyRepository(application.database.propertyDao()),
                 ownerRepository = OwnerRepository(application.database.ownerDao()),
                 serviceRepository = ServiceRepository(application.database.serviceDao()),
-                contractRepository = ContractRepository(application.database.contractDao(), application.database.billDraftDao()),
-                paymentRepository = PaymentRepository(application.database.paymentDao()),
-                billDraftStore = BillDraftRepository(application.database.billDraftDao())
+                contractRepository = ContractRepository(application.database.contractDao(), application.database.billDao()),
+                billStore = BillRepository(application.database.billDao())
             )
 
             val createContractViewModel: CreateContractViewModel by viewModels { factory }

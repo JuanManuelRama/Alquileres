@@ -3,33 +3,28 @@ package com.example.myapplication.ui.contract
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.repository.ContractRepository
-import com.example.myapplication.data.repository.PaymentRepository
 import com.example.myapplication.model.Contract
-import com.example.myapplication.model.Payment
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import java.time.YearMonth
-import java.time.LocalDate
-import java.time.ZoneId
-import java.time.Duration
-import java.time.Instant
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import com.example.myapplication.ui.contract.list.ContractListItem
 import com.example.myapplication.ui.contract.list.ContractListUiState
 import com.example.myapplication.ui.contract.list.listItem
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.ZoneId
 import kotlin.time.Duration.Companion.milliseconds
 
 class ContractViewModel(
-    private val contractRepository: ContractRepository,
-    private val paymentRepository: PaymentRepository
+    private val contractRepository: ContractRepository
 ) : ViewModel() {
     // Re-evaluate the calendar while observed, including when the screen crosses midnight.
     private val currentMonth = flow {
@@ -57,15 +52,4 @@ class ContractViewModel(
             initialValue = emptyList()
         )
 
-    fun paymentsFor(contract: Contract): Flow<List<Payment>> =
-        paymentRepository.getPaymentsForContract(contract)
-
-    fun paidMonthsFor(contractId: Long): Flow<Set<YearMonth>> =
-        paymentRepository.observePaidMonths(contractId)
-
-    fun savePayment(payment: Payment) {
-        viewModelScope.launch {
-            paymentRepository.save(payment)
-        }
-    }
 }

@@ -19,10 +19,12 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.AlertDialog
-import com.example.myapplication.model.BillDraft
+import com.example.myapplication.model.Bill
 import java.time.YearMonth
+import java.time.LocalDate
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -46,6 +48,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myapplication.ui.components.form.Form
+import com.example.myapplication.ui.components.form.check
 import com.example.myapplication.ui.components.form.Validate
 import com.example.myapplication.ui.components.form.isBigDecimal
 import com.example.myapplication.ui.components.form.isPositive
@@ -53,8 +56,8 @@ import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BillDraftScreen(
-    viewModel: BillDraftViewModel,
+fun BillScreen(
+    viewModel: BillViewModel,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -64,7 +67,7 @@ fun BillDraftScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
-            TopAppBar(title = { Text("Prepare bill") }, navigationIcon = {
+            TopAppBar(title = { Text("Bill") }, navigationIcon = {
                 IconButton(onClick = onBack, enabled = !state.isSaving) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                 }
@@ -79,15 +82,16 @@ fun BillDraftScreen(
             if (state.isLoading) CircularProgressIndicator()
             state.error?.let {
                 Text(it, color = MaterialTheme.colorScheme.error)
-                if (state.draft == null) TextButton(onClick = viewModel::retry) { Text("Retry") }
+                if (state.bill == null) TextButton(onClick = viewModel::retry) { Text("Retry") }
             }
-            val draft = state.draft
-            if (draft != null) {
+            val bill = state.bill
+            if (bill != null) {
                 BillCards(state.bills, state.month, !state.isSaving, viewModel::selectMonth) {
                     BillCompletionForm(
-                        bill = draft,
+                        bill = bill,
                         isSaving = state.isSaving,
                         onSubmit = viewModel::save,
+                        onMarkPaid = viewModel::markPaid,
                         onCancel = onBack
                     )
                 }
@@ -98,18 +102,37 @@ fun BillDraftScreen(
 
 @Composable
 private fun BillCompletionForm(
-    bill: BillDraft, isSaving: Boolean,
-    onSubmit: (BillDraft) -> Unit,
+    bill: Bill, isSaving: Boolean,
+    onSubmit: (Bill) -> Unit,
+    onMarkPaid: (Bill, LocalDate) -> Unit,
     onCancel: () -> Unit
 ) {
     var input by remember(bill) { mutableStateOf(bill) }
+    var confirmingPayment by remember(bill.id) { mutableStateOf(false) }
+    if (confirmingPayment && !bill.isPaid) {
+        PaymentConfirmation(
+            bill = input,
+            onConfirm = { date ->
+                confirmingPayment = false
+                onMarkPaid(input, date)
+            },
+            onDismiss = { confirmingPayment = false }
+        )
+    }
     Form(
+        showActions = !bill.isPaid,
+        enabled = !isSaving,
         submitText = if (isSaving) "Saving..." else "Save bill",
-        onSubmit = { if (!isSaving) onSubmit(input) },
+        onSubmit = { if (!isSaving && !bill.isPaid) onSubmit(input) },
         cancelText = "Cancel",
         onCancel = { if (!isSaving) onCancel() }
     ) {
         Content {
+            if (bill.isPaid) {
+                Text("Paid on " + bill.paidAt!!.format(DateTimeFormatter.ofPattern("dd MMM yyyy")),
+                    style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                Text("This bill is locked.", style = MaterialTheme.typography.bodySmall)
+            }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Text("Item", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -126,27 +149,28 @@ private fun BillCompletionForm(
                     showLabel = false,
                     keyboardType = KeyboardType.Decimal,
                     validate = { Validate(it).isBigDecimal().isPositive() },
-                    onValueChange = { if (!isSaving) input = input.copy(rentInput = it) },
+                    onValueChange = { if (!isSaving && !bill.isPaid) input = input.copy(rentInput = it) },
                     modifiable = false,
                 )
             }
         }
-        input.services.forEach { service ->
-            key(service.serviceId) {
+        input.items.forEachIndexed { position, item ->
+            key(position) {
                 Content {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                    BillAmountRow(service.name) {
+                    BillAmountRow(item.description) {
                         Item(
-                            field = service.name,
-                            value = service.amountInput,
+                            field = item.description,
+                            value = item.amount,
+                            modifiable = !bill.isPaid && !isSaving,
                             prefix = { Text("$") },
                             textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.End),
                             showLabel = false,
                             keyboardType = KeyboardType.Decimal,
                             validate = { Validate(it).isBigDecimal() },
                             onValueChange = { amount ->
-                                if (!isSaving) input = input.copy(services = input.services.map {
-                                    if (it.serviceId == service.serviceId) it.copy(amountInput = amount) else it
+                                if (!isSaving && !bill.isPaid) input = input.copy(items = input.items.mapIndexed { index, current ->
+                                    if (index == position) current.copy(amount = amount) else current
                                 })
                             }
                         )
@@ -168,7 +192,49 @@ private fun BillCompletionForm(
                 )
             }
         }
+        if (!bill.isPaid) {
+            Content {
+                Button(
+                    onClick = { confirmingPayment = true },
+                    enabled = input.isValid && !isSaving,
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("Mark as paid") }
+            }
+        }
     }
+}
+
+@Composable
+private fun PaymentConfirmation(
+    bill: Bill,
+    onConfirm: (LocalDate) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var paymentDate by remember { mutableStateOf<LocalDate?>(LocalDate.now()) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Confirm payment?") },
+        text = {
+            Form(
+                submitText = "Confirm payment",
+                onSubmit = { paymentDate?.let(onConfirm) },
+                cancelText = "Cancel", onCancel = onDismiss
+            ) {
+                Content {
+                    Text(bill.month.format(DateTimeFormatter.ofPattern("MMMM yyyy")) + " - $" + bill.total.toPlainString())
+                    Text("This will save these amounts, mark it as paid, and permanently lock this bill. You won't be able to edit it afterward.")
+                }
+                DateItem(
+                    label = "Payment date", value = paymentDate,
+                    validate = { date -> Validate(date).check("Payment date cannot be in the future") {
+                        it != null && !it.isAfter(LocalDate.now())
+                    } },
+                    onValueChange = { paymentDate = it }
+                )
+            }
+        },
+        confirmButton = {}
+    )
 }
 
 /** Keep every amount box on the same column, including the calculated total. */
@@ -193,7 +259,7 @@ private fun BillAmountRow(
 /** Displays a finite collection of bill cards supplied by the caller. */
 @Composable
 fun BillCards(
-    bills: List<BillDraft>,
+    bills: List<Bill>,
     selectedMonth: YearMonth,
     enabled: Boolean,
     onSelect: (YearMonth) -> Unit,

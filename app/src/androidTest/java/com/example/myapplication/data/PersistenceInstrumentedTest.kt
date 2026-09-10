@@ -6,10 +6,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.myapplication.data.entity.AdjustmentEntity
 import com.example.myapplication.data.entity.ContractEntity
 import com.example.myapplication.data.entity.OwnerEntity
-import com.example.myapplication.data.entity.PaymentEntity
 import com.example.myapplication.data.entity.PropertyEntity
 import com.example.myapplication.data.entity.ServiceEntity
-import com.example.myapplication.data.entity.ServicePaymentEntity
 import com.example.myapplication.model.Tenant
 import com.example.myapplication.model.Address
 import kotlinx.coroutines.flow.first
@@ -51,7 +49,7 @@ class PersistenceInstrumentedTest {
     }
 
     @Test
-    fun detailQueriesFilterByIdAndReadUpdatedRelationsAndPaymentDates() = runTest {
+    fun detailQueriesFilterByIdAndReadUpdatedRelationsAndPaidBills() = runTest {
         val ownerId = database.ownerDao().insert(OwnerEntity(name = "Owner"))
         val propertyId = database.propertyDao().insertProperty(
             PropertyEntity(address = Address("Main", "1", null), ownerId = ownerId)
@@ -74,9 +72,11 @@ class PersistenceInstrumentedTest {
         assertEquals("Owner", updated.property.owner.name)
         assertTrue(database.contractDao().observeById(secondId).first()!!.adjustments.isEmpty())
 
-        database.paymentDao().insertPayment(PaymentEntity(contractId = firstId, rent = BigDecimal("1000"), date = date))
-        assertEquals(listOf(date), database.paymentDao().observePaymentDates(firstId).first())
-        assertTrue(database.paymentDao().observePaymentDates(secondId).first().isEmpty())
+        database.billDao().createAll(updated.toDomain().createBills())
+        val bill = database.billDao().find(firstId, java.time.YearMonth.from(date).toString())!!.toDomain()
+        database.billDao().markPaid(bill, date)
+        assertEquals(listOf(java.time.YearMonth.from(date).toString()), database.billDao().observePaidMonths(firstId).first())
+        assertTrue(database.billDao().observePaidMonths(secondId).first().isEmpty())
         val statuses = database.contractDao().observeWithStatus(date, date.plusMonths(1)).first()
             .associateBy { it.details.contract.id }
         assertFalse(statuses.getValue(firstId).paymentDue)
@@ -144,37 +144,4 @@ class PersistenceInstrumentedTest {
         assertEquals(BigDecimal("0.10"), result.adjustments.single().amount)
     }
 
-    @Test
-    fun paymentTransactionPersistsServiceAmountsForItsContract() = runTest {
-        val ownerId = database.ownerDao().insert(OwnerEntity(name = "Owner"))
-        val propertyId = database.propertyDao().insertProperty(
-            PropertyEntity(address = Address("Main", "10", null), ownerId = ownerId),
-        )
-        val serviceId = database.serviceDao().insert(ServiceEntity(name = "Gas"))
-        val contractId = database.contractDao().insertContract(
-            ContractEntity(
-                propertyId = propertyId,
-                tenant = Tenant(name = "Tenant", phone = "123"),
-                rent = BigDecimal("900.00"),
-                startingDate = LocalDate.of(2026, 1, 1),
-                finishingDate = LocalDate.of(2027, 1, 1),
-            ),
-        )
-
-        database.paymentDao().savePayment(
-            payment = PaymentEntity(
-                contractId = contractId,
-                rent = BigDecimal("900.00"),
-                date = LocalDate.of(2026, 2, 1),
-            ),
-            servicePayments = listOf(
-                ServicePaymentEntity(paymentId = 0, serviceId = serviceId, amount = BigDecimal("45.75")),
-            ),
-        )
-
-        val result = database.paymentDao().getPaymentsForContract(contractId).first().single()
-        assertEquals(BigDecimal("900.00"), result.payment.rent)
-        assertEquals("Gas", result.servicePayments.single().service.name)
-        assertEquals(BigDecimal("45.75"), result.servicePayments.single().servicePayment.amount)
-    }
 }
