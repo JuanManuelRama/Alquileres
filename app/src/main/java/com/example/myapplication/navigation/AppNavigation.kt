@@ -11,13 +11,13 @@ import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDe
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.example.myapplication.ui.contract.ContractViewModel
 import com.example.myapplication.ui.AppViewModelFactory
+import com.example.myapplication.ui.contract.ContractViewModel
+import com.example.myapplication.ui.contract.bill.BillScreen
 import com.example.myapplication.ui.contract.create.CreateContractScreen
 import com.example.myapplication.ui.contract.create.CreateContractViewModel
 import com.example.myapplication.ui.contract.detail.ContractDetailScreen
 import com.example.myapplication.ui.contract.list.ContractListScreen
-import com.example.myapplication.ui.contract.bill.BillScreen
 
 @Composable
 fun AppNavigation(

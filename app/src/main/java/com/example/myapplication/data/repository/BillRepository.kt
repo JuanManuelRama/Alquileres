@@ -6,8 +6,8 @@ import com.example.myapplication.data.entity.toEntity
 import com.example.myapplication.model.Bill
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.time.YearMonth
 import java.time.LocalDate
+import java.time.YearMonth
 
 interface BillStore {
     fun observePaidMonths(contractId: Long): Flow<Set<YearMonth>>

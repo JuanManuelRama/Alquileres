@@ -4,15 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.myapplication.ui.contract.detail.ContractDetailViewModel
+import com.example.myapplication.data.repository.BillStore
 import com.example.myapplication.data.repository.ContractRepository
 import com.example.myapplication.data.repository.OwnerRepository
 import com.example.myapplication.data.repository.PropertyRepository
 import com.example.myapplication.data.repository.ServiceRepository
 import com.example.myapplication.ui.contract.ContractViewModel
-import com.example.myapplication.ui.contract.create.CreateContractViewModel
-import com.example.myapplication.data.repository.BillStore
 import com.example.myapplication.ui.contract.bill.BillViewModel
+import com.example.myapplication.ui.contract.create.CreateContractViewModel
+import com.example.myapplication.ui.contract.detail.ContractDetailViewModel
 
 class AppViewModelFactory(
     private val propertyRepository: PropertyRepository,

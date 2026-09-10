@@ -2,8 +2,8 @@ package com.example.myapplication.ui.contract.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myapplication.data.repository.ContractRepository
 import com.example.myapplication.data.repository.BillStore
+import com.example.myapplication.data.repository.ContractRepository
 import com.example.myapplication.model.Contract
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
