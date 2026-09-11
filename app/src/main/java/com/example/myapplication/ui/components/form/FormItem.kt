@@ -19,7 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import com.example.myapplication.ui.components.picker.EntityPicker
 import com.example.myapplication.ui.components.picker.MultiEntityPicker
@@ -55,7 +55,7 @@ private fun TextFormItemContent(
     onNext: (() -> Unit)?,
     modifier: Modifier = Modifier
 ) {
-    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     OutlinedTextField(
         value = item.value,
@@ -70,7 +70,8 @@ private fun TextFormItemContent(
         ),
         keyboardActions = KeyboardActions(
             onNext = { onNext?.invoke() },
-            onDone = { focusManager.clearFocus() }
+            // Keep keyboard navigation on this field instead of returning to the screen's first control.
+            onDone = { keyboardController?.hide() }
         ),
         singleLine = true,
         isError = error.hasMessage,
