@@ -65,6 +65,7 @@ data class ContractServiceCrossRef(
 
 @Entity(
     tableName = "Adjustment",
+    primaryKeys = ["contractId", "time"],
     foreignKeys = [
         ForeignKey(
             entity = ContractEntity::class,
@@ -72,12 +73,9 @@ data class ContractServiceCrossRef(
             childColumns = ["contractId"],
             onDelete = ForeignKey.CASCADE
         )
-    ],
-    indices = [Index("contractId")]
+    ]
 )
 data class AdjustmentEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0L,
     val contractId: Long,
     val time: YearMonth,
     val amount: BigDecimal?

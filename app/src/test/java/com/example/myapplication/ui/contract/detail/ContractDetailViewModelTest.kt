@@ -112,7 +112,7 @@ class ContractDetailViewModelTest {
             ContractEntity(id, 1L, Tenant("Tenant $id", "123"), BigDecimal("1000"), date.minusMonths(6), date.plusMonths(6)),
             PropertyWithOwner(PropertyEntity(1L, Address("Main", "1", null), 1L), OwnerEntity(1L, "Owner")),
             emptyList(),
-            listOf(AdjustmentEntity(id, id, date, BigDecimal("0.10")))
+            listOf(AdjustmentEntity(id, date, BigDecimal("0.10")))
         )
     }
 

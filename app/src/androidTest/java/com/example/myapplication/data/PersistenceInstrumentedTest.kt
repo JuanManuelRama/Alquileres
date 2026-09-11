@@ -40,6 +40,34 @@ class PersistenceInstrumentedTest {
     fun closeDatabase() = database.close()
 
     @Test
+    fun adjustmentKeyRejectsDuplicateMonthsAndUpdatesOnlyTheMatchingEntry() = runTest {
+        val ownerId = database.ownerDao().insert(OwnerEntity(name = "Owner"))
+        val propertyId = database.propertyDao().insertProperty(
+            PropertyEntity(address = Address("Main", "1", null), ownerId = ownerId)
+        )
+        val month = YearMonth.of(2026, 7)
+        val contract = ContractEntity(propertyId = propertyId, tenant = Tenant("Tenant", "123"),
+            rent = BigDecimal("1000"), startingMonth = month, finishingMonth = month.plusMonths(12))
+        val firstId = database.contractDao().insertContract(contract)
+        val secondId = database.contractDao().insertContract(contract)
+        database.contractDao().insertAdjustments(listOf(
+            AdjustmentEntity(firstId, month, null),
+            AdjustmentEntity(firstId, month.plusMonths(1), null),
+            AdjustmentEntity(secondId, month, null)
+        ))
+        val duplicate = runCatching {
+            database.contractDao().insertAdjustments(listOf(AdjustmentEntity(firstId, month, BigDecimal("0.50"))))
+        }
+        assertTrue("Duplicate contract/month must be rejected", duplicate.isFailure)
+        database.contractDao().updateAdjustmentAmount(firstId, month, BigDecimal("0.20"))
+        val first = database.contractDao().observeById(firstId).first()!!.adjustments
+        assertEquals(2, first.size)
+        assertEquals(BigDecimal("0.20"), first.single { it.time == month }.amount)
+        assertNull(first.single { it.time == month.plusMonths(1) }.amount)
+        assertNull(database.contractDao().observeById(secondId).first()!!.adjustments.single().amount)
+    }
+
+    @Test
     fun basicEntitiesRoundTripThroughRoom() = runTest {
         database.ownerDao().insert(OwnerEntity(name = "Ada"))
         database.serviceDao().insert(ServiceEntity(name = "Water"))
