@@ -4,11 +4,10 @@
 
 - It should be allowed for multiple tenants to share an appartment
 
-## Payments
+## Inputing numbers
 
-- Allow payments (or rather payment bills) to be generated without the need to  be payed, mostly used to just put waht the service costs are, and send a message informing the tenant
-
-- Better UI for when you missed some update on a payment
+- KeyboardType.DecimalSigned doesn't work on Samsung, what in the actuall fuck.
+- Something should be done so the number parser takes both . and , as decimal separators
 
 ## Deleting unused stuff
 
@@ -26,8 +25,7 @@ Language should be able to be changed, I've never done it before, but it probabl
 
   1. Medium — Activity recreation loses navigation and unfinished forms.
      /C:/Users/user/Desktop/MyApplication/app/src/main/java/com/example/myapplication/navigation/AppNavigation.kt:25 stores the back stack with remember;
-     creation forms do the same for their inputs. Rotating the device recreates the activity, returns navigation to the list, and discards drafts. Persist
-     navigation using restorable route identifiers and save draft state through appropriate saved-state APIs. See Compose state saving
+     creation forms do the same for their inputs. Rotating the device recreates the activity, returns navigation to the list, and discards drafts. Persist navigation using restorable route identifiers and save draft state through appropriate saved-state APIs. See Compose state saving
      (https://developer.android.com/develop/ui/compose/state-saving).
 
   2. Medium — Screens close before saves succeed, and write failures are unhandled.

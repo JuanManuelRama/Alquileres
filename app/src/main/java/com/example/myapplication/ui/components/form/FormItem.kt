@@ -2,7 +2,6 @@ package com.example.myapplication.ui.components.form
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -64,8 +63,7 @@ private fun TextFormItemContent(
         label = if (item.showLabel) ( { Text(item.displayLabel) } ) else null,
         prefix = item.prefix,
         textStyle = item.textStyle ?: LocalTextStyle.current,
-        keyboardOptions = KeyboardOptions(
-            keyboardType = item.keyboardType,
+        keyboardOptions = item.keyboardOptions.copy(
             imeAction = if (onNext == null) ImeAction.Done else ImeAction.Next
         ),
         keyboardActions = KeyboardActions(

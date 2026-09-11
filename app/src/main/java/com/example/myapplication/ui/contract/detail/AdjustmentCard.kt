@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Card
@@ -121,7 +122,7 @@ fun AdjustmentCard(
                         Item(
                             field = "Hike (%)",
                             value = percentage,
-                            keyboardType = KeyboardType.Decimal,
+                            keyboardOptions = KeyboardOptions(keyboardType =  KeyboardType.Decimal),
                             validate = { Validate(it).isBigDecimal().isPositive() },
                             onValueChange = { percentage = it }
                         )

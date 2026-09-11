@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -12,6 +13,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.autofill.ContentType
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.model.Contract
@@ -101,16 +105,20 @@ fun ContractCreator(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Item(
-                        field = "Name",
+                        field = "Full Name",
                         value = tenantName,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).semantics { ContentType.PersonFullName },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Text,
+                            capitalization = KeyboardCapitalization.Words
+                        ),
                         onValueChange = { tenantName = it }
                     )
                     Item(
                         field = "Phone",
                         value = tenantPhone,
-                        keyboardType = KeyboardType.Phone,
-                        modifier = Modifier.weight(1f),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                        modifier = Modifier.weight(1f).semantics { ContentType.PhoneNumber },
                         onValueChange = { tenantPhone = it }
                     )
                 }
@@ -119,7 +127,7 @@ fun ContractCreator(
         Item(
             field = "Rent",
             value = rent,
-            keyboardType = KeyboardType.Decimal,
+            keyboardOptions = KeyboardOptions(keyboardType =  KeyboardType.Decimal),
             validate = { Validate(it).isBigDecimal().isPositive() },
             onValueChange = { rent = it }
         )
@@ -176,7 +184,7 @@ fun ContractCreator(
                     field = "Adjustment Time",
                     value = adjustmentTime,
                     mandatory = false,
-                    keyboardType = KeyboardType.Number,
+                    keyboardOptions = KeyboardOptions(keyboardType =  KeyboardType.Number),
                     validate = { Validate(it).isLong().isPositive() },
                     onValueChange = { adjustmentTime = it },
                     modifier = Modifier.weight(1f)
@@ -185,7 +193,7 @@ fun ContractCreator(
                     field = "Fixed Hike (%)",
                     value = fixedHike,
                     mandatory = false,
-                    keyboardType = KeyboardType.Decimal,
+                    keyboardOptions = KeyboardOptions(keyboardType =  KeyboardType.Decimal),
                     validate = { Validate(it).isBigDecimal().check("can't have hikes without adjustment time") { adjustmentTime.isNotBlank() } },
                     onValueChange = { fixedHike = it },
                     modifier = Modifier.weight(1f)

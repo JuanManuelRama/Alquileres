@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.components.form
 
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -18,7 +19,6 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.LayoutDirection
 import java.time.LocalDate
 import java.time.YearMonth
@@ -163,21 +163,21 @@ class FormScope {
         field: String,
         value: String,
         mandatory: Boolean = true,
-        keyboardType: KeyboardType = KeyboardType.Text,
+        keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
         validate: ((String) -> Validation<*>)? = null,
         modifier: Modifier = Modifier.fillMaxWidth(),
         prefix: (@Composable () -> Unit)? = null,
         textStyle: TextStyle = LocalTextStyle.current,
         showLabel: Boolean = true,
         modifiable: Boolean = true,
-        onValueChange: (String) -> Unit = {}
+        onValueChange: (String) -> Unit
     ) {
         Field(
             state = TextFormItemState(
                 field = field,
                 value = value,
                 mandatory = mandatory,
-                keyboardType = keyboardType,
+                keyboardOptions = keyboardOptions,
                 validate = validate,
                 prefix = prefix,
                 textStyle = textStyle,

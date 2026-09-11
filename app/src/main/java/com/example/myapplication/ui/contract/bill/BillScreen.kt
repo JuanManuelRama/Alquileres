@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -50,7 +51,6 @@ import com.example.myapplication.ui.components.form.Form
 import com.example.myapplication.ui.components.form.Validate
 import com.example.myapplication.ui.components.form.check
 import com.example.myapplication.ui.components.form.isBigDecimal
-import com.example.myapplication.ui.components.form.isPositive
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -144,10 +144,8 @@ private fun BillCompletionForm(
                     prefix = { Text("$") },
                     textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.End),
                     showLabel = false,
-                    keyboardType = KeyboardType.Decimal,
-                    validate = { Validate(it).isBigDecimal().isPositive() },
-                    onValueChange = { if (!isSaving && !bill.isPaid) input = input.copy(rentInput = it) },
                     modifiable = false,
+                    onValueChange = {},
                 )
             }
         }
@@ -163,7 +161,7 @@ private fun BillCompletionForm(
                             prefix = { Text("$") },
                             textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.End),
                             showLabel = false,
-                            keyboardType = KeyboardType.Decimal,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.DecimalSigned),
                             validate = { Validate(it).isBigDecimal() },
                             onValueChange = { amount ->
                                 if (!isSaving && !bill.isPaid) input = input.copy(items = input.items.mapIndexed { index, current ->
@@ -185,7 +183,8 @@ private fun BillCompletionForm(
                     mandatory = false,
                     showLabel = false,
                     prefix = { Text("$") },
-                    textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.End)
+                    textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.End),
+                    onValueChange = {}
                 )
             }
         }

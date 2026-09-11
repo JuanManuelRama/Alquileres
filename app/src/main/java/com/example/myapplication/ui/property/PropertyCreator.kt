@@ -3,12 +3,16 @@ package com.example.myapplication.ui.property
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.autofill.ContentType
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.model.Address
@@ -33,9 +37,7 @@ fun PropertyCreator(
     Form(
         submitText = "Create",
         onSubmit = {
-            val owner = checkNotNull(selectedOwner) {
-                "A property cannot be created without an owner"
-            }
+            val owner = checkNotNull(selectedOwner)
             onCreated(
                 Property(
                     address = Address(
@@ -52,7 +54,11 @@ fun PropertyCreator(
             field = "Street",
             value = street,
             onValueChange = { street = it },
-            keyboardType = KeyboardType.Uri
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                capitalization = KeyboardCapitalization.Words
+            ),
+            modifier = Modifier.semantics { ContentType.AddressStreet }
         )
         Content {
             Row(
@@ -63,14 +69,14 @@ fun PropertyCreator(
                     field = "Number",
                     value = number,
                     onValueChange = { number = it },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f).semantics { ContentType.AddressAuxiliaryDetails }
                 )
                 Item(
                     field = "Unit",
                     value = unit,
                     mandatory = false,
                     onValueChange = { unit = it },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f).semantics { ContentType.AddressAuxiliaryDetails }
                 )
             }
         }

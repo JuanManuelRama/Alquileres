@@ -1,8 +1,8 @@
 package com.example.myapplication.ui.components.form
 
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.input.KeyboardType
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -43,7 +43,7 @@ data class TextFormItemState(
     val field: String,
     override val mandatory: Boolean = false,
     override val value: String,
-    val keyboardType: KeyboardType = KeyboardType.Text,
+    val keyboardOptions: KeyboardOptions,
     override val validate: ((String) -> Validation<*>)? = null,
     val onValueChange: (String) -> Unit = {},
     val prefix: (@Composable () -> Unit)? = null,
