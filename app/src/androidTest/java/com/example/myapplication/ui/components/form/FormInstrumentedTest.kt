@@ -38,6 +38,63 @@ class FormInstrumentedTest {
     val composeRule = createComposeRule()
 
     @Test
+    fun nextFromLastTextFieldFocusesAndExpandsPicker() {
+        checkNextOpensPicker(multiple = false)
+    }
+
+    @Test
+    fun nextFocusesAndExpandsMultiPickerBeforeLaterTextFields() {
+        checkNextOpensPicker(multiple = true)
+    }
+
+    private fun checkNextOpensPicker(multiple: Boolean) {
+        var querySelection by mutableStateOf<String?>(null)
+        var selections by mutableStateOf(emptyList<String>())
+        composeRule.setContent {
+            MaterialTheme {
+                Form("Save", {}, "Cancel", {}) {
+                    Content {
+                        Row {
+                            Item("Number", "12", modifier = Modifier.weight(1f))
+                            Item("Unit", "A", modifier = Modifier.weight(1f))
+                        }
+                    }
+                    if (multiple) {
+                        MultiPickerItem(
+                            label = "Services", items = listOf("Water"), selectedItems = selections,
+                            itemLabel = { it }, createContent = { _, _ -> },
+                            placeholder = "Find service",
+                            onItemsChanged = { selections = it }, onItemCreated = {}
+                        )
+                        Item("Later", "")
+                    } else {
+                        PickerItem(
+                            label = "Owner", items = listOf("Ada"), selectedItem = querySelection,
+                            itemLabel = { it }, createContent = { _, _ -> },
+                            placeholder = "Find owner",
+                            onItemSelected = { querySelection = it }, onItemCreated = {}
+                        )
+                    }
+                }
+            }
+        }
+
+        composeRule.onNodeWithText("Unit *")
+            .assert(SemanticsMatcher.expectValue(SemanticsProperties.ImeAction, ImeAction.Next))
+            .performClick().performImeAction()
+        composeRule.onNodeWithText(if (multiple) "Water" else "Ada").assertIsDisplayed()
+        composeRule.onNodeWithText(if (multiple) "Find service" else "Find owner")
+            .assertIsFocused()
+            .performTextInput(if (multiple) "Wat" else "Ad")
+        composeRule.onNodeWithText(if (multiple) "Water" else "Ada")
+            .assertIsDisplayed().performClick()
+        composeRule.runOnIdle {
+            if (multiple) assertEquals(listOf("Water"), selections)
+            else assertEquals("Ada", querySelection)
+        }
+    }
+
+    @Test
     fun monthPickerSelectsYearAndMonthAndEnablesSubmission() {
         var month by mutableStateOf<YearMonth?>(null)
         composeRule.setContent {

@@ -32,6 +32,7 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -146,7 +147,14 @@ private fun <T> EntitySelection(
     var expanded by remember(selectedItem) { mutableStateOf(false) }
     var query by remember(selectedItem) { mutableStateOf("") }
     val hasSelection = selectedItem != null
+    var inputFocused by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
+
+    LaunchedEffect(inputFocused) {
+        if (inputFocused && !hasSelection) {
+            expanded = true
+        }
+    }
 
     val filteredItems = remember(query, items) {
         items.filter {
@@ -181,6 +189,7 @@ private fun <T> EntitySelection(
                 readOnly = hasSelection,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .onFocusChanged { inputFocused = it.isFocused }
                     .menuAnchor(
                         type = ExposedDropdownMenuAnchorType.PrimaryEditable,
                         enabled = !hasSelection

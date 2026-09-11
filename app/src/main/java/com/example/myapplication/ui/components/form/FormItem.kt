@@ -19,7 +19,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import com.example.myapplication.ui.components.picker.EntityPicker
@@ -30,7 +29,7 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 fun FormItem(item: FormItemState, modifier: Modifier = Modifier) {
-    FormItem(item, modifier, item.error(), isLastTextField = true)
+    FormItem(item, modifier, item.error(), onNext = null)
 }
 
 @Composable
@@ -38,10 +37,10 @@ internal fun FormItem(
     item: FormItemState,
     modifier: Modifier,
     error: Error,
-    isLastTextField: Boolean
+    onNext: (() -> Unit)?
 ) {
     when (item) {
-        is TextFormItemState -> TextFormItemContent(item, error, isLastTextField, modifier)
+        is TextFormItemState -> TextFormItemContent(item, error, onNext, modifier)
         is PickerFormItemState<*> -> PickerFormItemContent(item, error, modifier)
         is MultiPickerFormItemState<*> -> MultiPickerFormItemContent(item, error, modifier)
         is MonthFormItemState -> MonthFormItemContent(item, error, modifier)
@@ -53,7 +52,7 @@ internal fun FormItem(
 private fun TextFormItemContent(
     item: TextFormItemState,
     error: Error,
-    isLastTextField: Boolean,
+    onNext: (() -> Unit)?,
     modifier: Modifier = Modifier
 ) {
     val focusManager = LocalFocusManager.current
@@ -67,10 +66,10 @@ private fun TextFormItemContent(
         textStyle = item.textStyle ?: LocalTextStyle.current,
         keyboardOptions = KeyboardOptions(
             keyboardType = item.keyboardType,
-            imeAction = if (isLastTextField) ImeAction.Done else ImeAction.Next
+            imeAction = if (onNext == null) ImeAction.Done else ImeAction.Next
         ),
         keyboardActions = KeyboardActions(
-            onNext = { focusManager.moveFocus(FocusDirection.Next) },
+            onNext = { onNext?.invoke() },
             onDone = { focusManager.clearFocus() }
         ),
         singleLine = true,

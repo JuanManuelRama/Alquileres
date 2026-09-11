@@ -11,6 +11,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
@@ -26,7 +28,8 @@ import java.time.YearMonth
  * Content, Column, Row, or another layout. Helpers that declare items must be @Composable.
  */
 class FormScope {
-    private class FieldRegistration(val isText: Boolean) {
+    private class FieldRegistration(val isNavigable: Boolean) {
+        val focusRequester = FocusRequester()
         var error by mutableStateOf(Error.None)
         var position by mutableStateOf(Offset.Zero)
     }
@@ -46,8 +49,13 @@ class FormScope {
 
     @Composable
     private fun Field(state: FormItemState, modifier: Modifier) {
-        val isEditableText = state is TextFormItemState && state.modifiable
-        val registration = remember(this, isEditableText) { FieldRegistration(isEditableText) }
+        val isNavigable = when (state) {
+            is TextFormItemState -> state.modifiable
+            is PickerFormItemState<*> -> state.selectedItem == null
+            is MultiPickerFormItemState<*> -> true
+            else -> false
+        }
+        val registration = remember(this, isNavigable) { FieldRegistration(isNavigable) }
         val error = state.error()
         DisposableEffect(this, registration) {
             fields.add(registration)
@@ -57,15 +65,21 @@ class FormScope {
 
         // Use rendered order so keyed children can be moved or inserted inside layouts.
         val direction = LocalLayoutDirection.current
-        val lastTextField = fields.filter { it.isText }.maxWithOrNull(
+        val navigableFields = fields.filter { it.isNavigable }.sortedWith(
             compareBy<FieldRegistration> { it.position.y }
                 .thenBy { if (direction == LayoutDirection.Ltr) it.position.x else -it.position.x }
         )
+        val nextField = navigableFields.indexOf(registration).takeIf { it >= 0 }
+            ?.let { navigableFields.getOrNull(it + 1) }
         FormItem(
             item = state,
-            modifier = modifier.onGloballyPositioned { registration.position = it.positionInRoot() },
+            modifier = modifier
+                .focusRequester(registration.focusRequester)
+                .onGloballyPositioned { registration.position = it.positionInRoot() },
             error = error,
-            isLastTextField = registration === lastTextField
+            onNext = if (nextField == null) null else {
+                { nextField.focusRequester.requestFocus() }
+            }
         )
     }
 
