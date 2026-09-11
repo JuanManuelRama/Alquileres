@@ -17,8 +17,7 @@ import androidx.compose.ui.unit.dp
 fun Form(
     submitText: String,
     onSubmit: () -> Unit,
-    cancelText: String,
-    onCancel: () -> Unit,
+    cancel: Cancel? = null,
     modifier: Modifier = Modifier,
     showActions: Boolean = true,
     enabled: Boolean = true,
@@ -39,11 +38,14 @@ fun Form(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
-                Button(
-                    onClick = onCancel,
-                    enabled = enabled,
-                ) {
-                    Text(text = cancelText)
+                if (cancel != null) {
+                    Button(
+                        onClick = cancel.onClick,
+                        enabled = enabled,
+                    ) {
+                        Text(text = cancel.text)
+                    }
+
                 }
                 Button(
                     onClick = onSubmit,

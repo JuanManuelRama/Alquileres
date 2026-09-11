@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.example.myapplication.model.Service
+import com.example.myapplication.ui.components.form.Cancel
 import com.example.myapplication.ui.components.form.Form
 import com.example.myapplication.ui.components.form.Validate
 import com.example.myapplication.ui.components.form.doesntExist
@@ -15,8 +16,7 @@ import com.example.myapplication.ui.components.form.doesntExist
 fun ServiceCreator(
     services: List<Service>,
     onCreated: (Service) -> Unit,
-    cancelText: String,
-    onCancel: () -> Unit,
+    cancel: Cancel? = null,
     modifier: Modifier = Modifier,
 ) {
     var serviceNames by remember(services) { mutableStateOf(services.map { it.name }.toSet()) }
@@ -31,8 +31,7 @@ fun ServiceCreator(
                 )
             )
         },
-        cancelText = cancelText,
-        onCancel = onCancel,
+        cancel = cancel,
         modifier = modifier,
     ) {
         Item(

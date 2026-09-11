@@ -19,6 +19,7 @@ import com.example.myapplication.model.Owner
 import com.example.myapplication.model.Property
 import com.example.myapplication.model.Service
 import com.example.myapplication.model.Tenant
+import com.example.myapplication.ui.components.form.Cancel
 import com.example.myapplication.ui.components.form.Form
 import com.example.myapplication.ui.components.form.Validate
 import com.example.myapplication.ui.components.form.check
@@ -37,8 +38,7 @@ fun ContractCreator(
     owners: List<Owner>,
     services: List<Service>,
     onCreated: (Contract) -> Unit,
-    cancelText: String,
-    onCancel: () -> Unit,
+    cancel: Cancel? = null,
     modifier: Modifier = Modifier,
 ) {
     var tenantName by remember { mutableStateOf("") }
@@ -73,8 +73,7 @@ fun ContractCreator(
             )
             onCreated(contract)
         },
-        cancelText = cancelText,
-        onCancel = onCancel,
+        cancel = cancel,
         modifier = modifier
     ) {
         PickerItem(
@@ -86,8 +85,7 @@ fun ContractCreator(
                 PropertyCreator(
                     owners = owners,
                     onCreated = onCreated,
-                    canceledText = "Cancel",
-                    onCanceled = onCanceled,
+                    cancel = Cancel(text = "Cancel", onClick = onCanceled)
                 )
             },
             onItemSelected = { selectedProperty = it },
@@ -134,8 +132,7 @@ fun ContractCreator(
                 ServiceCreator(
                     services = services + selectedServices,
                     onCreated = onCreated,
-                    cancelText = "Cancel",
-                    onCancel = onCanceled,
+                    cancel = Cancel(text = "Cancel", onClick = onCanceled)
                 )
             },
             onItemsChanged = { selectedServices = it },

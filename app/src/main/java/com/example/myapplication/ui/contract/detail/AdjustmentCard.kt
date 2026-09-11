@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.example.myapplication.model.Adjustment
 import com.example.myapplication.model.Contract
+import com.example.myapplication.ui.components.form.Cancel
 import com.example.myapplication.ui.components.form.Form
 import com.example.myapplication.ui.components.form.Validate
 import com.example.myapplication.ui.components.form.isBigDecimal
@@ -115,8 +116,7 @@ fun AdjustmentCard(
                             onAmountChange(percentage.toBigDecimal().divide(BigDecimal(100)))
                             showEditor = false
                         },
-                        cancelText = "Cancel",
-                        onCancel = { showEditor = false }
+                        cancel = Cancel(text = "Cancel", onClick = { showEditor = false })
                     ) {
                         Item(
                             field = "Hike (%)",

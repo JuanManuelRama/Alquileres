@@ -63,8 +63,6 @@ fun CreateContractScreen(
                     viewModel.saveContract(contract)
                     onBackClick()
                 },
-                cancelText = "Back",
-                onCancel = onBackClick,
                 modifier = Modifier.fillMaxWidth()
             )
         }

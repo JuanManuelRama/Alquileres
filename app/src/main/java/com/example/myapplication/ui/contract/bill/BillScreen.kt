@@ -45,6 +45,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myapplication.model.Bill
+import com.example.myapplication.ui.components.form.Cancel
 import com.example.myapplication.ui.components.form.Form
 import com.example.myapplication.ui.components.form.Validate
 import com.example.myapplication.ui.components.form.check
@@ -91,8 +92,7 @@ fun BillScreen(
                         bill = bill,
                         isSaving = state.isSaving,
                         onSubmit = viewModel::save,
-                        onMarkPaid = viewModel::markPaid,
-                        onCancel = onBack
+                        onMarkPaid = viewModel::markPaid
                     )
                 }
             }
@@ -104,8 +104,7 @@ fun BillScreen(
 private fun BillCompletionForm(
     bill: Bill, isSaving: Boolean,
     onSubmit: (Bill) -> Unit,
-    onMarkPaid: (Bill, LocalDate) -> Unit,
-    onCancel: () -> Unit
+    onMarkPaid: (Bill, LocalDate) -> Unit
 ) {
     var input by remember(bill) { mutableStateOf(bill) }
     var confirmingPayment by remember(bill.id) { mutableStateOf(false) }
@@ -124,8 +123,6 @@ private fun BillCompletionForm(
         enabled = !isSaving,
         submitText = if (isSaving) "Saving..." else "Save bill",
         onSubmit = { if (!isSaving && !bill.isPaid) onSubmit(input) },
-        cancelText = "Cancel",
-        onCancel = { if (!isSaving) onCancel() }
     ) {
         Content {
             if (bill.isPaid) {
@@ -218,7 +215,7 @@ private fun PaymentConfirmation(
             Form(
                 submitText = "Confirm payment",
                 onSubmit = { paymentDate?.let(onConfirm) },
-                cancelText = "Cancel", onCancel = onDismiss
+                cancel = Cancel(text = "Cancel", onClick = onDismiss)
             ) {
                 Content {
                     Text(bill.month.format(DateTimeFormatter.ofPattern("MMMM yyyy")) + " - $" + bill.total.toPlainString())

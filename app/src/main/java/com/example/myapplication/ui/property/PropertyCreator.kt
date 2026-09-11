@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.example.myapplication.model.Address
 import com.example.myapplication.model.Owner
 import com.example.myapplication.model.Property
+import com.example.myapplication.ui.components.form.Cancel
 import com.example.myapplication.ui.components.form.Form
 import com.example.myapplication.ui.owner.OwnerCreator
 
@@ -21,8 +22,7 @@ import com.example.myapplication.ui.owner.OwnerCreator
 fun PropertyCreator(
     owners: List<Owner>,
     onCreated: (Property) -> Unit,
-    canceledText: String,
-    onCanceled: () -> Unit,
+    cancel: Cancel? = null,
     modifier: Modifier = Modifier,
 ) {
     var street by remember { mutableStateOf("") }
@@ -45,8 +45,7 @@ fun PropertyCreator(
                     ),
                     owner = owner
                 )) },
-        cancelText = canceledText,
-        onCancel = onCanceled,
+        cancel = cancel,
         modifier = modifier
     ) {
         Item(
@@ -84,8 +83,7 @@ fun PropertyCreator(
                 OwnerCreator(
                     owners = owners,
                     onCreated = onCreated,
-                    cancelText = "Cancel",
-                    onCancel = onCanceled,
+                    cancel = Cancel(text = "Cancel", onClick = onCanceled),
                     modifier = Modifier.fillMaxWidth()
                 )
             },
