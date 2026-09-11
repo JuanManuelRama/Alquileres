@@ -10,6 +10,7 @@ import com.example.myapplication.data.entity.PropertyEntity
 import com.example.myapplication.data.entity.ServiceEntity
 import com.example.myapplication.model.Tenant
 import com.example.myapplication.model.Address
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -33,7 +34,9 @@ class PersistenceInstrumentedTest {
         database = Room.inMemoryDatabaseBuilder(
             ApplicationProvider.getApplicationContext(),
             AppDatabase::class.java,
-        ).allowMainThreadQueries().build()
+        ).allowMainThreadQueries()
+            .setQueryCoroutineContext(Dispatchers.IO.limitedParallelism(1))
+            .build()
     }
 
     @After

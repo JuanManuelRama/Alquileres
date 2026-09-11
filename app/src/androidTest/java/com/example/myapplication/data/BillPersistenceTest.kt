@@ -121,7 +121,9 @@ class BillPersistenceTest {
     }
 
     @Test fun itemsAllowRepeatedDescriptionsAndPreserveOrderWithoutServiceReferences() = runTest {
-        val db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
+        val db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
+            .setQueryCoroutineContext(Dispatchers.IO.limitedParallelism(1))
+            .build()
         try {
             val owner = db.ownerDao().insert(OwnerEntity(name = "Owner"))
             val property = db.propertyDao().insertProperty(PropertyEntity(address = Address("Main", "1", null), ownerId = owner))

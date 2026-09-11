@@ -52,7 +52,7 @@ class FormInstrumentedTest {
         var selections by mutableStateOf(emptyList<String>())
         composeRule.setContent {
             MaterialTheme {
-                Form("Save", {}, "Cancel", {}) {
+                Form("Save", {}, cancel = Cancel("Cancel", {})) {
                     Content {
                         Row {
                             Item("Number", "12", modifier = Modifier.weight(1f))
@@ -99,7 +99,7 @@ class FormInstrumentedTest {
         var month by mutableStateOf<YearMonth?>(null)
         composeRule.setContent {
             MaterialTheme {
-                Form("Save", {}, "Cancel", {}) {
+                Form("Save", {}, cancel = Cancel("Cancel", {})) {
                     MonthItem("Starting month", month, onValueChange = { month = it })
                 }
             }
@@ -119,7 +119,7 @@ class FormInstrumentedTest {
         var submissions = 0
         composeRule.setContent {
             MaterialTheme {
-                Form("Save", { submissions++ }, "Cancel", {}) {
+                Form("Save", { submissions++ }, cancel = Cancel("Cancel", {})) {
                     Item("Outside", "valid", onValueChange = {})
                     Content {
                         Column(Modifier.padding(start = 24.dp)) {
@@ -156,7 +156,7 @@ class FormInstrumentedTest {
         var visible by mutableStateOf(true)
         composeRule.setContent {
             MaterialTheme {
-                Form("Save", {}, "Cancel", {}) {
+                Form("Save", {}, cancel = Cancel("Cancel", {})) {
                     Item("Outside", "valid", onValueChange = {})
                     Content {
                         if (visible) {
@@ -189,7 +189,7 @@ class FormInstrumentedTest {
         var names by mutableStateOf(listOf("First", "Second"))
         composeRule.setContent {
             MaterialTheme {
-                Form("Save", {}, "Cancel", {}) {
+                Form("Save", {}, cancel = Cancel("Cancel", {})) {
                     Content {
                         Row {
                             names.forEach { name ->
@@ -228,7 +228,7 @@ class FormInstrumentedTest {
         var selections by mutableStateOf(emptyList<String>())
         composeRule.setContent {
             MaterialTheme {
-                Form("Save", {}, "Cancel", {}) {
+                Form("Save", {}, cancel = Cancel("Cancel", {})) {
                     Content {
                         Column {
                             DateItem("Date", date, onValueChange = { date = it })
@@ -269,8 +269,7 @@ class FormInstrumentedTest {
                 Form(
                     submitText = "Save",
                     onSubmit = { submissions++ },
-                    cancelText = "Cancel",
-                    onCancel = {},
+                    cancel = Cancel("Cancel", {}),
                 ) {
                     Item(field = "Name", value = value, onValueChange = { value = it })
                 }
@@ -294,8 +293,7 @@ class FormInstrumentedTest {
                 Form(
                     submitText = "Save",
                     onSubmit = {},
-                    cancelText = "Cancel",
-                    onCancel = {},
+                    cancel = Cancel("Cancel", {}),
                 ) {
                     Item(
                         field = "Amount",
@@ -319,8 +317,7 @@ class FormInstrumentedTest {
                 Form(
                     submitText = "Save",
                     onSubmit = {},
-                    cancelText = "Cancel",
-                    onCancel = { cancellations++ },
+                    cancel = Cancel("Cancel", { cancellations++ }),
                 ) {
                     Item(field = "Required", value = "", onValueChange = {})
                 }
