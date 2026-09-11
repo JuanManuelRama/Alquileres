@@ -8,6 +8,7 @@ import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -15,11 +16,13 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,6 +30,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -47,6 +52,8 @@ fun <T> EntityPicker(
     supportingText: String? = null
 ) {
     var mode by remember { mutableStateOf(EntityPickerMode.SELECT) }
+    var creatorFocusRequest by remember { mutableStateOf(0) }
+    val creatorFocusRequester = remember { FocusRequester() }
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val focusManager = LocalFocusManager.current
     val coroutineScope = rememberCoroutineScope()
@@ -71,6 +78,7 @@ fun <T> EntityPicker(
             onCreateNew = {
                 onItemSelected(null)
                 mode = EntityPickerMode.CREATE
+                creatorFocusRequest++
             },
             itemLabel = itemLabel,
             itemSearchText = itemSearchText,
@@ -84,6 +92,12 @@ fun <T> EntityPicker(
         )
 
         if (mode == EntityPickerMode.CREATE) {
+            LaunchedEffect(creatorFocusRequest) {
+                // Wait until the creator's input is attached before moving focus.
+                withFrameNanos { }
+                creatorFocusRequester.requestFocus()
+            }
+
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -92,7 +106,9 @@ fun <T> EntityPicker(
                 tonalElevation = 2.dp,
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .focusRequester(creatorFocusRequester)
                 ) {
                     createContent(
                         {
@@ -117,7 +133,7 @@ private enum class EntityPickerMode {
 private fun <T> EntitySelection(
     items: List<T>,
     selectedItem: T?,
-    onItemSelected: (T) -> Unit,
+    onItemSelected: (T?) -> Unit,
     onCreateNew: () -> Unit,
     itemLabel: (T) -> String,
     itemSearchText: (T) -> String,
@@ -127,8 +143,10 @@ private fun <T> EntitySelection(
     isError: Boolean,
     supportingText: String?
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    var query by remember { mutableStateOf("") }
+    var expanded by remember(selectedItem) { mutableStateOf(false) }
+    var query by remember(selectedItem) { mutableStateOf("") }
+    val hasSelection = selectedItem != null
+    val focusManager = LocalFocusManager.current
 
     val filteredItems = remember(query, items) {
         items.filter {
@@ -147,22 +165,25 @@ private fun <T> EntitySelection(
         )
 
         ExposedDropdownMenuBox(
-            expanded = expanded,
+            expanded = expanded && !hasSelection,
             onExpandedChange = {
-                expanded = !expanded
+                expanded = it && !hasSelection
             }
         ) {
             OutlinedTextField(
                 value = selectedItem?.let(itemLabel) ?: query,
                 onValueChange = {
-                    query = it
-                    expanded = true
+                    if (!hasSelection) {
+                        query = it
+                        expanded = true
+                    }
                 },
+                readOnly = hasSelection,
                 modifier = Modifier
                     .fillMaxWidth()
                     .menuAnchor(
                         type = ExposedDropdownMenuAnchorType.PrimaryEditable,
-                        enabled = true
+                        enabled = !hasSelection
                     ),
                 placeholder = {
                     Text(placeholder)
@@ -171,14 +192,28 @@ private fun <T> EntitySelection(
                 isError = isError,
                 supportingText = supportingText?.let { { Text(it) } },
                 trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(
-                        expanded = expanded
-                    )
+                    if (hasSelection) {
+                        IconButton(onClick = {
+                            query = ""
+                            expanded = false
+                            focusManager.clearFocus()
+                            onItemSelected(null)
+                        }) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Clear $label selection"
+                            )
+                        }
+                    } else {
+                        ExposedDropdownMenuDefaults.TrailingIcon(
+                            expanded = expanded
+                        )
+                    }
                 }
             )
 
             ExposedDropdownMenu(
-                expanded = expanded,
+                expanded = expanded && !hasSelection,
                 onDismissRequest = {
                     expanded = false
                 }
@@ -192,6 +227,7 @@ private fun <T> EntitySelection(
                             onItemSelected(item)
                             query = ""
                             expanded = false
+                            focusManager.clearFocus()
                         }
                     )
                 }
