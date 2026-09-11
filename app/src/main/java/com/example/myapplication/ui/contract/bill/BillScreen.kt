@@ -68,7 +68,7 @@ fun BillScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
-            TopAppBar(title = { Text("Bill") }, navigationIcon = {
+            TopAppBar(title = { Text("Bills") }, navigationIcon = {
                 IconButton(onClick = onBack, enabled = !state.isSaving) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                 }

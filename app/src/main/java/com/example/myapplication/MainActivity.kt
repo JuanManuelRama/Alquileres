@@ -6,8 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import com.example.myapplication.data.repository.BillRepository
 import com.example.myapplication.data.repository.ContractRepository
@@ -39,14 +37,12 @@ class MainActivity : ComponentActivity() {
             val contractViewModel: ContractViewModel by viewModels { factory }
 
             MyApplicationTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    AppNavigation(
-                        createContractViewModel = createContractViewModel,
-                        contractViewModel = contractViewModel,
-                        viewModelFactory = factory,
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                AppNavigation(
+                    createContractViewModel = createContractViewModel,
+                    contractViewModel = contractViewModel,
+                    viewModelFactory = factory,
+                    modifier = Modifier.fillMaxSize()
+                )
             }
         }
     }
