@@ -18,8 +18,8 @@ data class Contract(
         generateSequence(startingMonth) { it.plusMonths(1) }
             .takeWhile { it <= finishingMonth }
             .map { month ->
-                Bill(0, id, month, valueAtMonth(month).toPlainString(),
-                    services.map { BillItem(it.name) }, updatedAt)
+                Bill(0, id, month, valueAtMonth(month),
+                    services.map { BillItem(it.name, null) }, updatedAt)
             }.toList()
 
     fun currentValue(): BigDecimal = valueAtMonth(YearMonth.now())

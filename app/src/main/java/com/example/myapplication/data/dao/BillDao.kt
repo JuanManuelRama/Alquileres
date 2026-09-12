@@ -12,6 +12,7 @@ import com.example.myapplication.data.entity.toEntity
 import com.example.myapplication.model.Bill
 import com.example.myapplication.model.Contract
 import kotlinx.coroutines.flow.Flow
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -50,18 +51,20 @@ interface BillDao {
     @Insert
     suspend fun insertItems(items: List<BillItemEntity>)
 
-    @Query("UPDATE Bill SET rentInput = :rent, updatedAt = :updatedAt WHERE id = :id AND paidAt IS NULL")
-    suspend fun updateUnpaidBill(id: Long, rent: String, updatedAt: Long): Int
+    @Query("UPDATE Bill SET updatedAt = :updatedAt WHERE id = :id AND paidAt IS NULL")
+    suspend fun updateUnpaidBill(id: Long, updatedAt: Long): Int
 
-    @Query("UPDATE Bill SET paidAt = :date WHERE id = :id AND paidAt IS NULL")
-    suspend fun setPaidDate(id: Long, date: LocalDate): Int
+    @Query("UPDATE Bill SET rent = :rent, paidAt = :date WHERE id = :id AND paidAt IS NULL")
+    suspend fun setPaidDate(id: Long, date: LocalDate, rent: BigDecimal): Int
 
     @Transaction
     suspend fun markPaid(bill: Bill, date: LocalDate): BillWithItems {
-        require(bill.isValid && !bill.isPaid) { "Complete all amounts before confirming payment" }
+        require(!bill.isPaid) { "Complete all amounts before confirming payment" }
         require(!date.isAfter(LocalDate.now())) { "Payment date cannot be in the future" }
         save(bill.toEntity(), bill.itemEntities())
-        check(setPaidDate(bill.id, date) == 1) { "Bill is already paid" }
+        val current = checkNotNull(find(bill.contractId, bill.month)).toDomain()
+        require(current.isValid) { "Complete all amounts before confirming payment" }
+        check(setPaidDate(bill.id, date, current.rent) == 1) { "Bill is already paid" }
         return checkNotNull(find(bill.contractId, bill.month))
     }
 
@@ -73,7 +76,7 @@ interface BillDao {
         require(bill.paidAt == null) { "Paid bills cannot be edited" }
         val stored = checkNotNull(find(bill.contractId, bill.billingMonth)) { "Bill no longer exists" }
         check(stored.bill.id == bill.id) { "Bill identity does not match" }
-        check(updateUnpaidBill(bill.id, bill.rentInput, bill.updatedAt) == 1) { "Paid bills cannot be edited" }
+        check(updateUnpaidBill(bill.id, bill.updatedAt) == 1) { "Paid bills cannot be edited" }
         deleteItems(bill.id)
         insertItems(items)
     }

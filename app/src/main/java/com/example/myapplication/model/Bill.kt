@@ -6,23 +6,23 @@ import java.time.YearMonth
 
 data class BillItem(
     val description: String,
-    val amount: String = ""
+    val amount: BigDecimal?
 )
 
 data class Bill(
     val id: Long,
     val contractId: Long,
     val month: YearMonth,
-    val rentInput: String,
+    val rent: BigDecimal,
     val items: List<BillItem>,
     val updatedAt: Long,
     val paidAt: LocalDate? = null
 ) {
     val isPaid: Boolean get() = paidAt != null
 
-    val isValid: Boolean get() = rentInput.toBigDecimalOrNull()?.let { it > BigDecimal.ZERO } == true &&
-        items.all { it.amount.toBigDecimalOrNull() != null }
+    val isValid: Boolean get() =
+        items.all { it.amount != null }
 
     val total: BigDecimal get() =
-        rentInput.toBigDecimal() + items.sumOf { it.amount.toBigDecimalOrNull() ?: BigDecimal.ZERO }
+        rent + items.sumOf { it.amount ?: BigDecimal.ZERO }
 }

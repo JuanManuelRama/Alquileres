@@ -30,6 +30,7 @@ import com.example.myapplication.ui.components.form.check
 import com.example.myapplication.ui.components.form.isBigDecimal
 import com.example.myapplication.ui.components.form.isLong
 import com.example.myapplication.ui.components.form.isPositive
+import com.example.myapplication.ui.components.form.limitDecimals
 import com.example.myapplication.ui.property.PropertyCreator
 import com.example.myapplication.ui.service.ServiceCreator
 import java.math.BigDecimal
@@ -128,7 +129,7 @@ fun ContractCreator(
             field = "Rent",
             value = rent,
             keyboardOptions = KeyboardOptions(keyboardType =  KeyboardType.Decimal),
-            validate = { Validate(it).isBigDecimal().isPositive() },
+            validate = { Validate(it).isBigDecimal().isPositive().limitDecimals(2) },
             onValueChange = { rent = it }
         )
         MultiPickerItem(
@@ -194,7 +195,8 @@ fun ContractCreator(
                     value = fixedHike,
                     mandatory = false,
                     keyboardOptions = KeyboardOptions(keyboardType =  KeyboardType.Decimal),
-                    validate = { Validate(it).isBigDecimal().check("can't have hikes without adjustment time") { adjustmentTime.isNotBlank() } },
+                    validate = { Validate(it).isBigDecimal().limitDecimals(4)
+                        .check("can't have hikes without adjustment time") { adjustmentTime.isNotBlank() } },
                     onValueChange = { fixedHike = it },
                     modifier = Modifier.weight(1f)
                 )

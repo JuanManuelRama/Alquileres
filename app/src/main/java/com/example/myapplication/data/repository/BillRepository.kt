@@ -33,6 +33,6 @@ class BillRepository(
     override suspend fun save(bill: Bill): Bill {
         val saved = bill.copy(updatedAt = System.currentTimeMillis())
         dao.save(saved.toEntity(), saved.itemEntities())
-        return saved
+        return checkNotNull(dao.find(saved.contractId, saved.month)).toDomain()
     }
 }

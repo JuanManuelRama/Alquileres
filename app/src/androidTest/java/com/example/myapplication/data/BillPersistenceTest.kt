@@ -21,7 +21,7 @@ class BillPersistenceTest {
     private val context: Context = ApplicationProvider.getApplicationContext()
     private val month = YearMonth.of(2026, 12)
 
-    @Test fun snapshotsSurviveReopeningAndRemainUnpaid() = runTest {
+    @Test fun unpaidRentRecalculatesWhileServiceInputsSurviveReopening() = runTest {
         val db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
             .setQueryCoroutineContext(Dispatchers.IO.limitedParallelism(1))
             .build()
@@ -44,24 +44,25 @@ class BillPersistenceTest {
             val contracts = ContractRepository(db.contractDao(), db.billDao())
             val created = contracts.insert(contracts.observeById(id).first()!!.copy(id = 0))
             assertEquals(24, db.billDao().list(created.id).size)
-            assertEquals(0, BigDecimal("1100").compareTo(first.rentInput.toBigDecimal()))
+            assertEquals(0, BigDecimal("1100").compareTo(first.rent))
             assertEquals("Water", first.items.single().description)
             assertFalse(first.isValid)
-            repository.save(first.copy(items = first.items.map { it.copy(amount = "-") }))
+            repository.save(first.copy(items = first.items.map { it.copy(amount = null) }))
             db.contractDao().updateAdjustmentAmount(id, month, BigDecimal("0.50"))
             val extraService = db.serviceDao().insert(ServiceEntity(name = "Power"))
             db.contractDao().insertContractServiceCrossRefs(listOf(ContractServiceCrossRef(id, extraService)))
 
             val reopened = repository.open(id, month)
             assertEquals(first.id, reopened.id)
-            assertEquals(first.rentInput, reopened.rentInput)
-            assertEquals("-", reopened.items.single().amount)
+            assertEquals(0, BigDecimal("1500").compareTo(reopened.rent))
+            assertNull(db.billDao().find(id, month)!!.bill.rent)
+            assertEquals(BigDecimal.ZERO, reopened.items.single().amount)
             assertTrue(db.billDao().observePaidMonths(id).first().isEmpty())
             assertTrue(db.contractDao().observeWithStatus(month).first().first { it.details.contract.id == id }.paymentDue)
 
             val next = repository.open(id, month.plusMonths(1))
             assertNotEquals(first.id, next.id)
-            assertEquals(0, BigDecimal("1100").compareTo(next.rentInput.toBigDecimal()))
+            assertEquals(0, BigDecimal("1500").compareTo(next.rent))
             assertEquals(1, next.items.size)
             val otherId = contracts.insert(contracts.observeById(id).first()!!.copy(id = 0)).id
             assertEquals(otherId, repository.open(otherId, month).contractId)
@@ -84,7 +85,7 @@ class BillPersistenceTest {
             val bill = repository.open(id, month)
             var failed = false
             try {
-                db.billDao().save(bill.copy(rentInput = "9999").toEntity(), bill.itemEntities() + bill.itemEntities())
+                db.billDao().save(bill.copy(rent = 9999.toBigDecimal()).toEntity(), bill.itemEntities() + bill.itemEntities())
             } catch (_: Exception) { failed = true }
             assertTrue(failed)
             assertEquals(bill, repository.open(id, month))
@@ -110,7 +111,7 @@ class BillPersistenceTest {
             assertTrue(db.contractDao().observeWithStatus(billingMonth.plusMonths(1))
                 .first().single().paymentDue)
             assertEquals(listOf(billingMonth), db.billDao().observePaidMonths(id).first())
-            try { repo.save(original.copy(rentInput = "999")); fail("Paid bill accepted a stale edit") }
+            try { repo.save(original.copy(rent = 999.toBigDecimal())); fail("Paid bill accepted a stale edit") }
             catch (_: IllegalStateException) { }
             try { repo.markPaid(original, paymentDate); fail("Duplicate payment accepted") }
             catch (_: IllegalStateException) { }
@@ -132,9 +133,9 @@ class BillPersistenceTest {
             val repo = BillRepository(db.billDao())
             val original = repo.open(id, YearMonth.of(2026, 1))
             val items = listOf(
-                com.example.myapplication.model.BillItem("Special charge", "10"),
-                com.example.myapplication.model.BillItem("Special charge", "20"),
-                com.example.myapplication.model.BillItem("Adjustment", "-5")
+                com.example.myapplication.model.BillItem("Special charge", 10.toBigDecimal()),
+                com.example.myapplication.model.BillItem("Special charge", 20.toBigDecimal()),
+                com.example.myapplication.model.BillItem("Adjustment", (-5).toBigDecimal())
             )
             repo.save(original.copy(items = items))
             assertEquals(items, repo.open(id, original.month).items)
@@ -143,6 +144,38 @@ class BillPersistenceTest {
             val paid = repo.markPaid(repo.open(id, original.month), LocalDate.of(2026, 2, 1))
             assertTrue(paid.isPaid)
             assertEquals(items.reversed(), repo.open(id, original.month).items)
+        } finally { db.close() }
+    }
+
+    @Test fun paymentRecalculatesRentAndLocksAllAffectingAdjustments() = runTest {
+        val db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
+            .setQueryCoroutineContext(Dispatchers.IO.limitedParallelism(1)).build()
+        try {
+            val owner = db.ownerDao().insert(OwnerEntity(name = "Owner"))
+            val property = db.propertyDao().insertProperty(PropertyEntity(address = Address("Main", "1", null), ownerId = owner))
+            val january = YearMonth.of(2026, 1)
+            val july = YearMonth.of(2026, 7)
+            val id = db.contractDao().saveContract(contract(property), emptyList(), listOf(
+                AdjustmentEntity(0, january, null), AdjustmentEntity(0, july, null)
+            ))
+            db.billDao().createAll(db.contractDao().observeById(id).first()!!.toDomain().createBills())
+            val repo = BillRepository(db.billDao())
+            val stale = repo.open(id, january.plusMonths(1))
+            assertNull(db.billDao().find(id, stale.month)!!.bill.rent)
+            db.contractDao().updateAdjustmentAmount(id, january, BigDecimal("0.20"))
+            // Payment must use database adjustments, not the stale display or caller-supplied rent.
+            val paid = repo.markPaid(stale.copy(rent = 9999.toBigDecimal()), LocalDate.of(2026, 2, 5))
+            assertEquals(0, BigDecimal("1200").compareTo(paid.rent))
+            assertEquals(0, BigDecimal("1200").compareTo(db.billDao().find(id, stale.month)!!.bill.rent))
+            db.contractDao().updateAdjustmentAmount(id, january, BigDecimal("0.50"))
+            assertEquals(BigDecimal("0.20"), db.contractDao().observeById(id).first()!!.adjustments.single { it.time == january }.amount)
+            db.contractDao().updateAdjustmentAmount(id, july, BigDecimal("0.10"))
+            assertEquals(0, BigDecimal("1320").compareTo(repo.open(id, july).rent))
+            assertEquals(paid, repo.open(id, paid.month))
+            assertNull(db.billDao().find(id, july)!!.bill.rent)
+            repo.save(repo.open(id, july).copy(rent = 8888.toBigDecimal()))
+            assertNull(db.billDao().find(id, july)!!.bill.rent)
+            assertEquals(0, BigDecimal("1320").compareTo(repo.open(id, july).rent))
         } finally { db.close() }
     }
 

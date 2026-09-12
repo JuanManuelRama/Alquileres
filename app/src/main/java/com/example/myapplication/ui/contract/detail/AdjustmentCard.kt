@@ -32,6 +32,7 @@ import com.example.myapplication.ui.components.form.Form
 import com.example.myapplication.ui.components.form.Validate
 import com.example.myapplication.ui.components.form.isBigDecimal
 import com.example.myapplication.ui.components.form.isPositive
+import com.example.myapplication.ui.components.form.limitDecimals
 import java.math.BigDecimal
 import java.time.format.DateTimeFormatter
 
@@ -58,14 +59,17 @@ fun AdjustmentCard(
                 style = MaterialTheme.typography.bodyMedium
             )
 
-            if (adjustment.amount != null) {
+            if (adjustment.amount != null || editable) {
                 Row(
                     modifier = Modifier.weight(1f),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.Top
                 ) {
                     Text(
-                        text = "${adjustment.amount.multiply(100.toBigDecimal()).stripTrailingZeros().toPlainString()}%",
+                        text = adjustment.amount?.let { "${it.multiply(100.toBigDecimal())
+                            .setScale(4)
+                            .stripTrailingZeros()
+                            .toPlainString()}%" } ?: "Not set",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     if (editable) {
@@ -93,11 +97,12 @@ fun AdjustmentCard(
         }
     }
 
-    if (showEditor) {
+    if (showEditor && editable) {
         var percentage by remember(adjustment) {
             mutableStateOf(
                 adjustment.amount
                     ?.multiply(BigDecimal(100))
+                    ?.setScale(4)
                     ?.stripTrailingZeros()
                     ?.toPlainString()
                     .orEmpty()
@@ -117,13 +122,13 @@ fun AdjustmentCard(
                             onAmountChange(percentage.toBigDecimal().divide(BigDecimal(100)))
                             showEditor = false
                         },
-                        cancel = Cancel(text = "Cancel", onClick = { showEditor = false })
+                        cancel = Cancel(text = "Cancel", onClick = { showEditor = false } )
                     ) {
                         Item(
                             field = "Hike (%)",
                             value = percentage,
                             keyboardOptions = KeyboardOptions(keyboardType =  KeyboardType.Decimal),
-                            validate = { Validate(it).isBigDecimal().isPositive() },
+                            validate = { Validate(it).isBigDecimal().isPositive().limitDecimals(4) },
                             onValueChange = { percentage = it }
                         )
                     }

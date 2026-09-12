@@ -55,8 +55,8 @@ class FormInstrumentedTest {
                 Form("Save", {}, cancel = Cancel("Cancel", {})) {
                     Content {
                         Row {
-                            Item("Number", "12", modifier = Modifier.weight(1f))
-                            Item("Unit", "A", modifier = Modifier.weight(1f))
+                            Item("Number", "12", modifier = Modifier.weight(1f), onValueChange = {})
+                            Item("Unit", "A", modifier = Modifier.weight(1f), onValueChange = {})
                         }
                     }
                     if (multiple) {
@@ -66,7 +66,7 @@ class FormInstrumentedTest {
                             placeholder = "Find service",
                             onItemsChanged = { selections = it }, onItemCreated = {}
                         )
-                        Item("Later", "")
+                        Item("Later", "", onValueChange = {})
                     } else {
                         PickerItem(
                             label = "Owner", items = listOf("Ada"), selectedItem = querySelection,

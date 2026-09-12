@@ -28,7 +28,7 @@ import com.example.myapplication.data.entity.ServiceEntity
         BillEntity::class,
         BillItemEntity::class
     ],
-    version = 16,
+    version = 17,
     exportSchema = false
 )
 @ColumnTypeConverters(Converters::class)

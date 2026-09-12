@@ -51,6 +51,8 @@ import com.example.myapplication.ui.components.form.Form
 import com.example.myapplication.ui.components.form.Validate
 import com.example.myapplication.ui.components.form.check
 import com.example.myapplication.ui.components.form.isBigDecimal
+import com.example.myapplication.ui.components.form.limitDecimals
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -101,19 +103,24 @@ fun BillScreen(
 }
 
 @Composable
-private fun BillCompletionForm(
+internal fun BillCompletionForm(
     bill: Bill, isSaving: Boolean,
     onSubmit: (Bill) -> Unit,
     onMarkPaid: (Bill, LocalDate) -> Unit
 ) {
-    var input by remember(bill) { mutableStateOf(bill) }
+    var amounts by remember(bill) { mutableStateOf(bill.items.map { it.amount?.toPlainString().orEmpty() }) }
+    val amountsValid = amounts.all { Validate(it).isBigDecimal().limitDecimals(2).isValid }
+    val total = bill.rent + amounts.sumOf { it.toBigDecimalOrNull() ?: BigDecimal.ZERO }
+    fun completedBill() = bill.copy(items = bill.items.mapIndexed { index, item ->
+        item.copy(amount = amounts[index].toBigDecimal())
+    })
     var confirmingPayment by remember(bill.id) { mutableStateOf(false) }
-    if (confirmingPayment && !bill.isPaid) {
+    if (confirmingPayment && !bill.isPaid && amountsValid) {
         PaymentConfirmation(
-            bill = input,
+            bill = completedBill(),
             onConfirm = { date ->
                 confirmingPayment = false
-                onMarkPaid(input, date)
+                onMarkPaid(completedBill(), date)
             },
             onDismiss = { confirmingPayment = false }
         )
@@ -122,25 +129,36 @@ private fun BillCompletionForm(
         showActions = !bill.isPaid,
         enabled = !isSaving,
         submitText = if (isSaving) "Saving..." else "Save bill",
-        onSubmit = { if (!isSaving && !bill.isPaid) onSubmit(input) },
+        onSubmit = { if (!isSaving && !bill.isPaid && amountsValid) onSubmit(completedBill()) },
     ) {
         Content {
             if (bill.isPaid) {
-                Text("Paid on " + bill.paidAt!!.format(DateTimeFormatter.ofPattern("dd MMM yyyy")),
-                    style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-                Text("This bill is locked.", style = MaterialTheme.typography.bodySmall)
+                Text(
+                    text = "Paid on " + bill.paidAt!!.format(DateTimeFormatter.ofPattern("dd MMM yyyy")),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(text ="This bill is locked.", style = MaterialTheme.typography.bodySmall)
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text("Item", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("Amount", Modifier.weight(1f), textAlign = TextAlign.End,
+                Text(
+                    text = "Item", Modifier.weight(1f),
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "Amount",
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.End,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
             HorizontalDivider()
             BillAmountRow("Rent") {
                 Item(
-                    field = "Rent", value = input.rentInput,
+                    field = "Rent",
+                    value = bill.rent.setScale(2).toPlainString(),
                     prefix = { Text("$") },
                     textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.End),
                     showLabel = false,
@@ -149,24 +167,24 @@ private fun BillCompletionForm(
                 )
             }
         }
-        input.items.forEachIndexed { position, item ->
+        bill.items.forEachIndexed { position, item ->
             key(position) {
                 Content {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                     BillAmountRow(item.description) {
                         Item(
                             field = item.description,
-                            value = item.amount,
+                            value = amounts[position],
                             modifiable = !bill.isPaid && !isSaving,
                             prefix = { Text("$") },
                             textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.End),
                             showLabel = false,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.DecimalSigned),
-                            validate = { Validate(it).isBigDecimal() },
+                            validate = { Validate(it).isBigDecimal().limitDecimals(2) },
                             onValueChange = { amount ->
-                                if (!isSaving && !bill.isPaid) input = input.copy(items = input.items.mapIndexed { index, current ->
-                                    if (index == position) current.copy(amount = amount) else current
-                                })
+                                if (!isSaving && !bill.isPaid) amounts = amounts.mapIndexed { index, current ->
+                                    if (index == position) amount else current
+                                }
                             }
                         )
                     }
@@ -178,7 +196,7 @@ private fun BillCompletionForm(
             BillAmountRow("Total", total = true) {
                 Item(
                     field = "Total",
-                    value = input.rentInput.toBigDecimalOrNull()?.let { input.total.toPlainString() } ?: "",
+                    value = total.setScale(2).toPlainString().orEmpty(),
                     modifiable = false,
                     mandatory = false,
                     showLabel = false,
@@ -192,7 +210,7 @@ private fun BillCompletionForm(
             Content {
                 Button(
                     onClick = { confirmingPayment = true },
-                    enabled = input.isValid && !isSaving,
+                    enabled = amountsValid && !isSaving,
                     modifier = Modifier.fillMaxWidth()
                 ) { Text("Mark as paid") }
             }

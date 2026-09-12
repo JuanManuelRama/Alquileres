@@ -8,6 +8,7 @@ import androidx.room3.PrimaryKey
 import androidx.room3.Relation
 import com.example.myapplication.model.Bill
 import com.example.myapplication.model.BillItem
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -30,7 +31,7 @@ data class BillEntity(
     val id: Long = 0,
     val contractId: Long,
     val billingMonth: YearMonth,
-    val rentInput: String,
+    val rent: BigDecimal? = null,
     val updatedAt: Long,
     val paidAt: LocalDate? = null
 )
@@ -55,14 +56,16 @@ data class BillItemEntity(
 data class BillWithItems(
     @Embedded val bill: BillEntity,
     @Relation(parentColumns = ["id"], entityColumns = ["billId"])
-    val items: List<BillItemEntity>
+    val items: List<BillItemEntity>,
+    @Relation(entity = ContractEntity::class, parentColumns = ["contractId"], entityColumns = ["id"])
+    val contract: ContractWithRelations
 ) {
     fun toDomain(): Bill = Bill(
         id = bill.id,
         contractId = bill.contractId,
         month = bill.billingMonth,
-        rentInput = bill.rentInput,
-        items = items.sortedBy { it.position }.map { BillItem(it.description, it.amount) },
+        rent = contract.toDomain().valueAtMonth(bill.billingMonth),
+        items = items.sortedBy { it.position }.map { BillItem(it.description, it.amount.toBigDecimalOrNull()) },
         updatedAt = bill.updatedAt,
         paidAt = bill.paidAt
 
@@ -73,10 +76,10 @@ fun Bill.toEntity() = BillEntity(
     id = id,
     contractId = contractId,
     billingMonth = month,
-    rentInput = rentInput,
+    rent = if (isPaid) rent else null,
     updatedAt = updatedAt,
     paidAt = paidAt
 )
 fun Bill.itemEntities() = items.mapIndexed { index, item ->
-    BillItemEntity(id, item.description, index, item.amount)
+    BillItemEntity(id, item.description, index, item.amount?.toPlainString() ?: "")
 }

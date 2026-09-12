@@ -91,12 +91,12 @@ fun ContractDetailScreen(
                 Text(text = "Adjustment Schedule", style = MaterialTheme.typography.titleSmall)
                 Column {
                     contract.adjustments.forEach { adjustment ->
-                        val hasPaidBillForMonth = adjustment.time in state.paidMonths
+                        val hasAffectedPaidBill = state.paidMonths.any { it >= adjustment.time }
                         AdjustmentCard(
                             adjustment = adjustment,
                             contract = contract,
                             modifier = cardModifier,
-                            editable = !hasPaidBillForMonth,
+                            editable = !hasAffectedPaidBill,
                             onAmountChange = { amount ->
                                 viewModel.updateAdjustmentAmount(adjustment.time, amount)
                             }

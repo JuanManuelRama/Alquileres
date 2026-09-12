@@ -66,6 +66,11 @@ fun Validation<Long>.isPositive(
     message: String = "must be positive"
 ): Validation<Long> = check(message) { it > 0.toLong() }
 
+fun Validation<BigDecimal>.limitDecimals(
+    decimals: Int,
+    message: String = "mustn't have more than $decimals decimal places"
+): Validation<BigDecimal> = check(message) { it.scale() <= decimals }
+
 
 fun <T> Validation<T>.doesntExist(
     elements: Set<T>,

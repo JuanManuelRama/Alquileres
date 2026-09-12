@@ -56,7 +56,7 @@ interface ContractDao {
     @Insert
     suspend fun insertAdjustments(adjustments: List<AdjustmentEntity>)
 
-    @Query("UPDATE Adjustment SET amount = :amount WHERE contractId = :contractId AND time = :time")
+    @Query("UPDATE Adjustment SET amount = :amount WHERE contractId = :contractId AND time = :time AND NOT EXISTS (SELECT 1 FROM Bill WHERE contractId = :contractId AND billingMonth >= :time AND paidAt IS NOT NULL)")
     suspend fun updateAdjustmentAmount(contractId: Long, time: YearMonth, amount: BigDecimal?)
 
     @Transaction

@@ -12,6 +12,19 @@
 ## Deleting unused stuff
 
 - UI should provide an easy way to delete stuff created by accident or that's no longer of any use
+- Put properties in unavailable if they cannot be used for contracts rn
+
+## Properties for contract
+
+- Only properties without a current active contract should be shown in the create contract list
+- Unavailable properties also don't show
+
+## End of Contract
+
+- Renew contract after registering the last bill
+- Start registering lease extention monthly after the last bill
+- Cancel contract earlier, deleating any future bills and leaving the old ones as unpaid
+- Put old contracts in a separate, archived list
 
 ## ViewModel
 
