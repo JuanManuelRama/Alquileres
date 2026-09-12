@@ -2,6 +2,7 @@ package com.example.myapplication.model
 
 import java.math.BigDecimal
 import java.time.YearMonth
+import java.time.temporal.ChronoUnit
 
 data class Contract(
     val property: Property,
@@ -13,25 +14,40 @@ data class Contract(
     val services: List<Service>,
     val id: Long = 0L
 ) {
-    // Match the inclusive month boundaries used by payment status.
+    val valueMonths: List<BigDecimal> by lazy {
+        val totalMonths = ChronoUnit.MONTHS.between(startingMonth, finishingMonth).toInt() + 1
+        var currentMonth = startingMonth
+        var currentRent = rent
+        List(totalMonths) { _ ->
+            adjustments.find { it.time == currentMonth }?.amount?.let {
+                currentRent = currentRent.add(currentRent.multiply(it))
+            }
+            currentMonth = currentMonth.plusMonths(1.toLong())
+            currentRent
+        }
+    }
+
     fun createBills(updatedAt: Long = System.currentTimeMillis()): List<Bill> =
         generateSequence(startingMonth) { it.plusMonths(1) }
             .takeWhile { it <= finishingMonth }
-            .map { month ->
-                Bill(0, id, month, valueAtMonth(month),
-                    services.map { BillItem(it.name, null) }, updatedAt)
+            .mapIndexed { i, month ->
+                Bill(
+                    id = 0,
+                    contract = this,
+                    month = month,
+                    rent = valueAtIndex(i),
+                    items = services.map { BillItem(it.name, null) },
+                    updatedAt = updatedAt
+                )
             }.toList()
 
     fun currentValue(): BigDecimal = valueAtMonth(YearMonth.now())
 
-    fun valueAtMonth(month: YearMonth): BigDecimal {
-        return adjustments.filter { it.time <= month }
-            .fold(rent) { currentRent, adjustment ->
-                adjustment.amount?.let { hike ->
-                    currentRent.add(currentRent.multiply(hike))
-                } ?: currentRent
-        }
-    }
+    fun valueAtMonth(month: YearMonth): BigDecimal =
+        valueMonths[ChronoUnit.MONTHS.between(startingMonth, month).toInt()]
+
+    fun valueAtIndex(index: Int): BigDecimal = valueMonths[index]
+
 
     companion object {
         fun generateAdjustments(

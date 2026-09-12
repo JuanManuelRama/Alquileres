@@ -8,6 +8,7 @@ import androidx.room3.PrimaryKey
 import androidx.room3.Relation
 import com.example.myapplication.model.Bill
 import com.example.myapplication.model.BillItem
+import com.example.myapplication.model.Contract
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
@@ -60,21 +61,20 @@ data class BillWithItems(
     @Relation(entity = ContractEntity::class, parentColumns = ["contractId"], entityColumns = ["id"])
     val contract: ContractWithRelations
 ) {
-    fun toDomain(): Bill = Bill(
+    fun toDomain(contract: Contract = this.contract.toDomain()): Bill = Bill(
         id = bill.id,
-        contractId = bill.contractId,
+        contract = contract,
         month = bill.billingMonth,
-        rent = contract.toDomain().valueAtMonth(bill.billingMonth),
+        rent = bill.rent ?: contract.valueAtMonth(bill.billingMonth),
         items = items.sortedBy { it.position }.map { BillItem(it.description, it.amount.toBigDecimalOrNull()) },
         updatedAt = bill.updatedAt,
         paidAt = bill.paidAt
-
     )
 }
 
 fun Bill.toEntity() = BillEntity(
     id = id,
-    contractId = contractId,
+    contractId = contract.id,
     billingMonth = month,
     rent = if (isPaid) rent else null,
     updatedAt = updatedAt,

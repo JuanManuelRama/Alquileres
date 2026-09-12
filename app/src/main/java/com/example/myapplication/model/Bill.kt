@@ -11,7 +11,7 @@ data class BillItem(
 
 data class Bill(
     val id: Long,
-    val contractId: Long,
+    val contract: Contract,
     val month: YearMonth,
     val rent: BigDecimal,
     val items: List<BillItem>,

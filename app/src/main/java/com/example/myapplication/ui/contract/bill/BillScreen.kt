@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import java.math.RoundingMode
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
@@ -158,7 +159,7 @@ internal fun BillCompletionForm(
             BillAmountRow("Rent") {
                 Item(
                     field = "Rent",
-                    value = bill.rent.setScale(2).toPlainString(),
+                    value = bill.rent.setScale(2, RoundingMode.HALF_UP).toPlainString(),
                     prefix = { Text("$") },
                     textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.End),
                     showLabel = false,
@@ -196,7 +197,7 @@ internal fun BillCompletionForm(
             BillAmountRow("Total", total = true) {
                 Item(
                     field = "Total",
-                    value = total.setScale(2).toPlainString().orEmpty(),
+                    value = total.setScale(2, RoundingMode.HALF_UP).toPlainString(),
                     modifiable = false,
                     mandatory = false,
                     showLabel = false,

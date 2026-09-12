@@ -4,6 +4,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.repository.BillStore
 import com.example.myapplication.model.Bill
 import com.example.myapplication.model.BillItem
+import com.example.myapplication.model.Address
+import com.example.myapplication.model.Contract
+import com.example.myapplication.model.Owner
+import com.example.myapplication.model.Property
+import com.example.myapplication.model.Tenant
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -18,6 +23,7 @@ import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import java.math.BigDecimal
 import java.time.YearMonth
 import java.time.LocalDate
 import kotlin.time.Duration.Companion.milliseconds
@@ -38,24 +44,26 @@ class BillViewModelTest {
     @Test fun formEditsAndNavigationNeverWriteUntilSubmitted() = runTest {
         val vm = model()
         runCurrent()
-        val input = vm.uiState.value.bill!!.copy(rentInput = "1234",
-            items = listOf(BillItem("Water", "0")))
+        val input = vm.uiState.value.bill!!.copy(
+            rent = 1234.toBigDecimal(),
+            items = listOf(BillItem("Water", BigDecimal.ZERO))
+        )
         advanceTimeBy(5000.milliseconds)
         vm.selectMonth(month.plusMonths(1))
         vm.selectMonth(month)
         runCurrent()
         assertTrue(store.writes.isEmpty())
-        assertEquals("1000", vm.uiState.value.bill!!.rentInput)
+        assertEquals(BigDecimal("1000"), vm.uiState.value.bill!!.rent)
         vm.save(input)
         runCurrent()
-        assertEquals(input.rentInput, store.writes.single().rentInput)
+        assertEquals(input.rent, store.writes.single().rent)
         assertTrue(vm.uiState.value.saved)
         vm.selectMonth(month.plusMonths(1))
         vm.selectMonth(month)
-        assertEquals("1234", vm.uiState.value.bill!!.rentInput)
+        assertEquals(BigDecimal("1234"), vm.uiState.value.bill!!.rent)
         val reopened = model()
         runCurrent()
-        assertEquals("1234", reopened.uiState.value.bill!!.rentInput)
+        assertEquals(BigDecimal("1234"), reopened.uiState.value.bill!!.rent)
     }
 
     @Test fun invalidOrDifferentBillCannotBeSubmitted() = runTest {
@@ -63,8 +71,7 @@ class BillViewModelTest {
         runCurrent()
         val bill = vm.uiState.value.bill!!
         vm.save(bill)
-        vm.save(bill.copy(rentInput = "0", items = emptyList()))
-        vm.save(bill.copy(items = listOf(BillItem("Water", "-"))))
+        vm.save(bill.copy(items = listOf(BillItem("Water", null))))
         vm.save(bill.copy(id = 999, items = emptyList()))
         runCurrent()
         assertTrue(store.writes.isEmpty())
@@ -73,21 +80,21 @@ class BillViewModelTest {
     @Test fun failedSubmissionLeavesSavedBillUntouchedAndCanBeResubmitted() = runTest {
         val vm = model()
         runCurrent()
-        val input = vm.uiState.value.bill!!.copy(rentInput = "1500",
-            items = listOf(BillItem("Water", "25")))
+        val input = vm.uiState.value.bill!!.copy(rent = BigDecimal("1500"),
+            items = listOf(BillItem("Water", BigDecimal("25"))))
         store.failSave = true
         vm.save(input)
         runCurrent()
         assertFalse(vm.uiState.value.isSaving)
         assertFalse(vm.uiState.value.saved)
         assertNotNull(vm.uiState.value.error)
-        assertEquals("1000", vm.uiState.value.bill!!.rentInput)
+        assertEquals(BigDecimal("1000"), vm.uiState.value.bill!!.rent)
         store.failSave = false
         vm.save(input)
         runCurrent()
         assertTrue(vm.uiState.value.saved)
         assertNull(vm.uiState.value.error)
-        assertEquals("1500", vm.uiState.value.bill!!.rentInput)
+        assertEquals(BigDecimal("1500"), vm.uiState.value.bill!!.rent)
     }
 
     @Test fun duplicateSubmitsAndNavigationAreBlockedDuringSave() = runTest {
@@ -135,13 +142,13 @@ class BillViewModelTest {
     @Test fun confirmationFreezesBillAndPreventsDuplicatePayments() = runTest {
         val vm = model()
         runCurrent()
-        val input = vm.uiState.value.bill!!.copy(items = listOf(BillItem("Water", "25")))
+        val input = vm.uiState.value.bill!!.copy(items = listOf(BillItem("Water", BigDecimal("25"))))
         val date = LocalDate.now()
         vm.markPaid(input, date)
         vm.markPaid(input, date)
         runCurrent()
         assertEquals(date, vm.uiState.value.bill!!.paidAt)
-        vm.save(input.copy(rentInput = "999"))
+        vm.save(input.copy(rent = BigDecimal("999")))
         vm.markPaid(input, date)
         runCurrent()
         assertEquals(1, store.writes.size)
@@ -155,7 +162,7 @@ class BillViewModelTest {
         runCurrent()
         val original = vm.uiState.value.bill!!
         vm.markPaid(original, LocalDate.now())
-        val input = original.copy(items = listOf(BillItem("Water", "0")))
+        val input = original.copy(items = listOf(BillItem("Water", BigDecimal.ZERO)))
         vm.markPaid(input, LocalDate.now().plusDays(1))
         runCurrent()
         assertTrue(store.writes.isEmpty())
@@ -184,8 +191,14 @@ class BillViewModelTest {
         override suspend fun open(contractId: Long, month: YearMonth): Bill {
             check(!failLoad)
             return records.getOrPut(contractId to month) {
-                Bill(records.size.toLong() + 1, contractId, month, "1000",
-                    if (withServices) listOf(BillItem("Water")) else emptyList(), 1)
+                val contract = Contract(
+                    property = Property(Address("Street", "12", null), Owner("Owner", 1), 1),
+                    tenant = Tenant("Tenant", "123"), rent = BigDecimal("1000"),
+                    startingMonth = YearMonth.of(2026, 12), finishingMonth = YearMonth.of(2027, 2),
+                    adjustments = emptyList(), services = emptyList(), id = contractId
+                )
+                Bill(records.size.toLong() + 1, contract, month, BigDecimal("1000"),
+                    if (withServices) listOf(BillItem("Water", null)) else emptyList(), 1)
             }
         }
         override suspend fun markPaid(bill: Bill, date: LocalDate): Bill =
@@ -195,7 +208,7 @@ class BillViewModelTest {
             gate?.await()
             check(!failSave)
             writes.add(bill)
-            return bill.copy(updatedAt = bill.updatedAt + 1).also { records[bill.contractId to bill.month] = it }
+            return bill.copy(updatedAt = bill.updatedAt + 1).also { records[bill.contract.id to bill.month] = it }
         }
     }
 }

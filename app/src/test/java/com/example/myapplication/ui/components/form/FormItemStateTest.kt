@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.components.form
 
+import androidx.compose.foundation.text.KeyboardOptions
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -14,8 +15,12 @@ class FormItemStateTest {
         validate: (Any?) -> Validation<*>
     ): List<FormItemState> = listOf(
         TextFormItemState(
-            field = "Field", value = if (empty) "  " else "value",
-            mandatory = mandatory, validate = validate, onValueChange = {}
+            field = "Field",
+            value = if (empty) "  " else "value",
+            mandatory = mandatory,
+            validate = validate,
+            onValueChange = {},
+            keyboardOptions = KeyboardOptions.Default
         ),
         PickerFormItemState(
             label = "Field", items = listOf("value"),
@@ -79,7 +84,13 @@ class FormItemStateTest {
 
     @Test
     fun copiedFieldsUseTheirCurrentValues() {
-        val original = TextFormItemState(field = "Name", value = "", mandatory = true, onValueChange = {})
+        val original = TextFormItemState(
+            field = "Name",
+            value = "",
+            mandatory = true,
+            onValueChange = {},
+            keyboardOptions = KeyboardOptions.Default,
+        )
         assertEquals(Error.Simple, original.error())
         assertEquals(Error.None, original.copy(value = "Ada").error())
     }

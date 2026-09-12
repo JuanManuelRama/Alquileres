@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import java.math.RoundingMode
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.example.myapplication.model.Adjustment
@@ -67,7 +68,7 @@ fun AdjustmentCard(
                 ) {
                     Text(
                         text = adjustment.amount?.let { "${it.multiply(100.toBigDecimal())
-                            .setScale(4)
+                            .setScale(4, RoundingMode.HALF_UP)
                             .stripTrailingZeros()
                             .toPlainString()}%" } ?: "Not set",
                         style = MaterialTheme.typography.bodyMedium
@@ -102,7 +103,7 @@ fun AdjustmentCard(
             mutableStateOf(
                 adjustment.amount
                     ?.multiply(BigDecimal(100))
-                    ?.setScale(4)
+                    ?.setScale(4, RoundingMode.HALF_UP)
                     ?.stripTrailingZeros()
                     ?.toPlainString()
                     .orEmpty()

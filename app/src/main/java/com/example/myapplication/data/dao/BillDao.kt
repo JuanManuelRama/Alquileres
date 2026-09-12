@@ -62,10 +62,10 @@ interface BillDao {
         require(!bill.isPaid) { "Complete all amounts before confirming payment" }
         require(!date.isAfter(LocalDate.now())) { "Payment date cannot be in the future" }
         save(bill.toEntity(), bill.itemEntities())
-        val current = checkNotNull(find(bill.contractId, bill.month)).toDomain()
+        val current = checkNotNull(find(bill.contract.id, bill.month)).toDomain(bill.contract)
         require(current.isValid) { "Complete all amounts before confirming payment" }
         check(setPaidDate(bill.id, date, current.rent) == 1) { "Bill is already paid" }
-        return checkNotNull(find(bill.contractId, bill.month))
+        return checkNotNull(find(bill.contract.id, bill.month))
     }
 
     @Query("DELETE FROM BillItem WHERE billId = :id")

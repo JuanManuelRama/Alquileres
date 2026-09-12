@@ -87,7 +87,4 @@ fun Adjustment.toEntity(): AdjustmentEntity = AdjustmentEntity(
     amount = amount
 )
 
-fun AdjustmentEntity.toDomain(): Adjustment = Adjustment(
-    time = time,
-    amount = amount
-)
+fun AdjustmentEntity.toDomain(): Adjustment = Adjustment(time = time, amount = amount)

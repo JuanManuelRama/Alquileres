@@ -71,7 +71,7 @@ class BillViewModel(
         val state = _uiState.value
         val original = state.bill ?: return
         if (state.isLoading || state.isSaving || original.isPaid || bill.isPaid || !bill.isValid ||
-            bill.id != original.id || bill.contractId != contractId || bill.month != state.month) return
+            bill.id != original.id || bill.contract.id != contractId || bill.month != state.month) return
         _uiState.value = state.copy(isSaving = true, saved = false, error = null)
         viewModelScope.launch {
             try {

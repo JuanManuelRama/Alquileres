@@ -1,5 +1,6 @@
 package com.example.myapplication.data.entity
 
+import androidx.room3.Ignore
 import androidx.room3.Embedded
 import androidx.room3.Junction
 import androidx.room3.Relation
@@ -29,14 +30,19 @@ data class ContractWithRelations(
     )
     val adjustments: List<AdjustmentEntity>
 ) {
-    fun toDomain(): Contract = Contract(
-        property = property.toDomain(),
-        tenant = contract.tenant,
-        rent = contract.rent,
-        startingMonth = contract.startingMonth,
-        finishingMonth = contract.finishingMonth,
-        adjustments = adjustments.map { it.toDomain() },
-        services = services.map { it.toDomain() },
-        id = contract.id
-    )
+    @delegate:Ignore
+    private val domain: Contract by lazy {
+        Contract(
+            property = property.toDomain(),
+            tenant = contract.tenant,
+            rent = contract.rent,
+            startingMonth = contract.startingMonth,
+            finishingMonth = contract.finishingMonth,
+            adjustments = adjustments.map { it.toDomain() },
+            services = services.map { it.toDomain() },
+            id = contract.id
+        )
+    }
+
+    fun toDomain(): Contract = domain
 }

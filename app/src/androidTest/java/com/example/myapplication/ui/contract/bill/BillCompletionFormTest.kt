@@ -5,6 +5,11 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import com.example.myapplication.model.Bill
 import com.example.myapplication.model.BillItem
+import com.example.myapplication.model.Contract
+import com.example.myapplication.model.Property
+import com.example.myapplication.model.Address
+import com.example.myapplication.model.Owner
+import com.example.myapplication.model.Tenant
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -15,7 +20,13 @@ class BillCompletionFormTest {
     @get:Rule val composeRule = createComposeRule()
 
     @Test fun amountKeepsIntermediateTextAndConvertsOnlyOnSubmission() {
-        val bill = Bill(1, 1, YearMonth.of(2026, 9), BigDecimal("1000"),
+        val contract = Contract(
+            property = Property(Address("Street", "12", null), Owner("Owner", 1), 1),
+            tenant = Tenant("Tenant", "123"), rent = BigDecimal("1000"),
+            startingMonth = YearMonth.of(2026, 9), finishingMonth = YearMonth.of(2026, 12),
+            adjustments = emptyList(), services = emptyList(), id = 1
+        )
+        val bill = Bill(1, contract, YearMonth.of(2026, 9), BigDecimal("1000"),
             listOf(BillItem("Water", BigDecimal("12"))), 0)
         var saved: Bill? = null
         composeRule.setContent {

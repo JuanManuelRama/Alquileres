@@ -28,11 +28,11 @@ class BillRepository(
         dao.list(contractId).map { it.toDomain() }
 
     override suspend fun markPaid(bill: Bill, date: LocalDate): Bill =
-        dao.markPaid(bill.copy(updatedAt = System.currentTimeMillis()), date).toDomain()
+        dao.markPaid(bill.copy(updatedAt = System.currentTimeMillis()), date).toDomain(bill.contract)
 
     override suspend fun save(bill: Bill): Bill {
         val saved = bill.copy(updatedAt = System.currentTimeMillis())
         dao.save(saved.toEntity(), saved.itemEntities())
-        return checkNotNull(dao.find(saved.contractId, saved.month)).toDomain()
+        return checkNotNull(dao.find(saved.contract.id, saved.month)).toDomain(bill.contract)
     }
 }

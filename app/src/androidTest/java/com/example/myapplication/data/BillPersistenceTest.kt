@@ -56,7 +56,7 @@ class BillPersistenceTest {
             assertEquals(first.id, reopened.id)
             assertEquals(0, BigDecimal("1500").compareTo(reopened.rent))
             assertNull(db.billDao().find(id, month)!!.bill.rent)
-            assertEquals(BigDecimal.ZERO, reopened.items.single().amount)
+            assertNull(reopened.items.single().amount)
             assertTrue(db.billDao().observePaidMonths(id).first().isEmpty())
             assertTrue(db.contractDao().observeWithStatus(month).first().first { it.details.contract.id == id }.paymentDue)
 
@@ -65,7 +65,7 @@ class BillPersistenceTest {
             assertEquals(0, BigDecimal("1500").compareTo(next.rent))
             assertEquals(1, next.items.size)
             val otherId = contracts.insert(contracts.observeById(id).first()!!.copy(id = 0)).id
-            assertEquals(otherId, repository.open(otherId, month).contractId)
+            assertEquals(otherId, repository.open(otherId, month).contract.id)
         } finally { db.close() }
     }
 

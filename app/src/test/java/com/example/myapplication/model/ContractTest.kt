@@ -62,9 +62,9 @@ class ContractTest {
         assertEquals(YearMonth.of(2025, 1), bills.first().month)
         assertEquals(YearMonth.of(2026, 1), bills.last().month)
         assertEquals(bills.size, bills.map { it.month }.distinct().size)
-        assertEquals(42L, bills.last().contractId)
-        assertMoney("1000", bills[2].rentInput.toBigDecimal())
-        assertMoney("1100", bills[3].rentInput.toBigDecimal())
+        assertEquals(42L, bills.last().contract.id)
+        assertMoney("1000", bills[2].rent)
+        assertMoney("1100", bills[3].rent)
     }
 
     @Test
