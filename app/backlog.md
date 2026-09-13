@@ -4,7 +4,7 @@
 
 - It should be allowed for multiple tenants to share an appartment
 
-## Inputing numbers
+## Inputting numbers
 
 - KeyboardType.DecimalSigned doesn't work on Samsung, what in the actuall fuck.
 - Something should be done so the number parser takes both . and , as decimal separators
@@ -19,18 +19,22 @@
 - Only properties without a current active contract should be shown in the create contract list
 - Unavailable properties also don't show
 
+## View
+
+- The x icon on Bill item is slightly unaligned
+
 ## End of Contract
 
 - Renew contract after registering the last bill
-- Start registering lease extention monthly after the last bill
-- Cancel contract earlier, deleating any future bills and leaving the old ones as unpaid
+- Start registering lease extension monthly after the last bill
+- Cancel contract earlier, deleting any future bills and leaving the old ones as unpaid
 - Put old contracts in a separate, archived list
 
 ## ViewModel
 
 - I still don't fully get the view model thing, and the current implementation is doing a lot of stuff and should probably be reworked
 
-## Changable language
+## Changeable language
 
 Language should be able to be changed, I've never done it before, but it probably involves every string beign parameriticized and whatnot. God that sounds like a drag.
 
@@ -43,7 +47,7 @@ Language should be able to be changed, I've never done it before, but it probabl
 
   2. Medium — Screens close before saves succeed, and write failures are unhandled.
      /C:/Users/user/Desktop/MyApplication/app/src/main/java/com/example/myapplication/ui/contract/create/CreateContractScreen.kt:107 starts saving and
-     immediately navigates back. Payment creation follows the same pattern. The ViewModel coroutines provide no error handling or success state. A database
+     immediately navigates back. Payment creation follows  the same pattern. The ViewModel coroutines provide no error handling or success state. A database
      exception can terminate the app after the draft has disappeared. Expose saving/success/error state, prevent duplicate submissions, and navigate only
      after successful persistence.
 

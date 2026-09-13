@@ -3,11 +3,15 @@ package com.example.myapplication.ui.contract.bill
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
@@ -15,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -138,18 +143,29 @@ internal fun BillCompletionForm(
                     BillAmountRow(
                         label = item.description,
                         labelContent = if (item.isExtra && !bill.isPaid) ({
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
                                 IconButton(
                                     onClick = { if (!isSaving) items.remove(item) },
-                                    enabled = !isSaving
+                                    enabled = !isSaving,
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .semantics { contentDescription = "Remove extra item" }
                                 ) {
-                                    Text("−", modifier = Modifier.semantics {
-                                        contentDescription = "Remove extra item"
-                                    })
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                        modifier = Modifier.size(16.dp)
+                                    )
                                 }
                                 Item(
                                     field = "Item name",
                                     value = item.description,
+                                    showLabel = false,
                                     modifiable = !isSaving,
                                     modifier = Modifier.weight(1f),
                                     onValueChange = { if (!isSaving) item.description = it }
@@ -182,11 +198,18 @@ internal fun BillCompletionForm(
 
         if (!bill.isPaid) {
             Content {
-                IconButton(
+                TextButton(
                     onClick = { if (!isSaving) items.add(BillItemInput("", "", true)) },
-                    enabled = !isSaving
+                    enabled = !isSaving,
+                    modifier = Modifier.semantics { contentDescription = "Add bill item" }
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Add bill item")
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Add extra item")
                 }
             }
         }
@@ -269,7 +292,7 @@ private fun BillAmountRow(
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalAlignment = Alignment.Top
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
