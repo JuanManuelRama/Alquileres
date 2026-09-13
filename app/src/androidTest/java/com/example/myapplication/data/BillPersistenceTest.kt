@@ -133,9 +133,9 @@ class BillPersistenceTest {
             val repo = BillRepository(db.billDao())
             val original = repo.open(id, YearMonth.of(2026, 1))
             val items = listOf(
-                com.example.myapplication.model.BillItem("Special charge", 10.toBigDecimal()),
+                com.example.myapplication.model.BillItem("Special charge", 10.toBigDecimal(), isExtra = true),
                 com.example.myapplication.model.BillItem("Special charge", 20.toBigDecimal()),
-                com.example.myapplication.model.BillItem("Adjustment", (-5).toBigDecimal())
+                com.example.myapplication.model.BillItem("Adjustment", (-5).toBigDecimal(), isExtra = true)
             )
             repo.save(original.copy(items = items))
             assertEquals(items, repo.open(id, original.month).items)

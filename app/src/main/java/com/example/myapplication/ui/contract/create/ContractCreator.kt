@@ -8,10 +8,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.semantics.semantics
@@ -35,7 +31,6 @@ import com.example.myapplication.ui.property.PropertyCreator
 import com.example.myapplication.ui.service.ServiceCreator
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.time.YearMonth
 
 @Composable
 fun ContractCreator(
@@ -43,38 +38,29 @@ fun ContractCreator(
     owners: List<Owner>,
     services: List<Service>,
     onCreated: (Contract) -> Unit,
+    inputs: ContractInputs,
     cancel: Cancel? = null,
     modifier: Modifier = Modifier,
 ) {
-    var tenantName by remember { mutableStateOf("") }
-    var tenantPhone by remember { mutableStateOf("") }
-    var selectedProperty by remember { mutableStateOf<Property?>(null) }
-    var rent by remember { mutableStateOf("") }
-    var fixedHike by remember { mutableStateOf("") }
-    var selectedServices by remember { mutableStateOf<List<Service>>(emptyList()) }
-    var startMonth by remember { mutableStateOf<YearMonth?>(null) }
-    var endMonth by remember { mutableStateOf<YearMonth?>(null) }
-    var adjustmentTime by remember { mutableStateOf("") }
-
     Form(
         submitText = "Create Contract",
         onSubmit = {
-            val property = checkNotNull(selectedProperty)
-            val startingMonth = checkNotNull(startMonth)
-            val finishingMonth = checkNotNull(endMonth)
+            val property = checkNotNull(inputs.selectedProperty)
+            val startingMonth = checkNotNull(inputs.startMonth)
+            val finishingMonth = checkNotNull(inputs.endMonth)
             val contract = Contract(
                 property = property,
-                tenant = Tenant(name = tenantName, phone = tenantPhone),
-                rent = rent.toBigDecimal(),
+                tenant = Tenant(name = inputs.tenantName, phone = inputs.tenantPhone),
+                rent = inputs.rent.toBigDecimal(),
                 startingMonth = startingMonth,
                 finishingMonth = finishingMonth,
                 adjustments = Contract.generateAdjustments(
                     startingMonth,
                     finishingMonth,
-                    adjustmentTime.toLongOrNull(),
-                    fixedHike.toBigDecimalOrNull()?.divide(BigDecimal("100"), 4, RoundingMode.HALF_UP)
+                    inputs.adjustmentTime.toLongOrNull(),
+                    inputs.fixedHike.toBigDecimalOrNull()?.divide(BigDecimal("100"), 4, RoundingMode.HALF_UP)
                 ),
-                services = selectedServices
+                services = inputs.selectedServices
             )
             onCreated(contract)
         },
@@ -84,7 +70,7 @@ fun ContractCreator(
         PickerItem(
             label = "Property",
             items = properties,
-            selectedItem = selectedProperty,
+            selectedItem = inputs.selectedProperty,
             itemLabel = { it.toString() },
             createContent = { onCreated, onCanceled ->
                 PropertyCreator(
@@ -93,9 +79,9 @@ fun ContractCreator(
                     cancel = Cancel(text = "Cancel", onClick = onCanceled)
                 )
             },
-            onItemSelected = { selectedProperty = it },
+            onItemSelected = { inputs.selectedProperty = it },
             onItemCreated = {
-                selectedProperty = it
+                inputs.selectedProperty = it
             }
         )
         Content {
@@ -107,44 +93,44 @@ fun ContractCreator(
                 ) {
                     Item(
                         field = "Full Name",
-                        value = tenantName,
+                        value = inputs.tenantName,
                         modifier = Modifier.weight(1f).semantics { ContentType.PersonFullName },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Text,
                             capitalization = KeyboardCapitalization.Words
                         ),
-                        onValueChange = { tenantName = it }
+                        onValueChange = { inputs.tenantName = it }
                     )
                     Item(
                         field = "Phone",
-                        value = tenantPhone,
+                        value = inputs.tenantPhone,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                         modifier = Modifier.weight(1f).semantics { ContentType.PhoneNumber },
-                        onValueChange = { tenantPhone = it }
+                        onValueChange = { inputs.tenantPhone = it }
                     )
                 }
             }
         }
         Item(
             field = "Rent",
-            value = rent,
+            value = inputs.rent,
             keyboardOptions = KeyboardOptions(keyboardType =  KeyboardType.Decimal),
             validate = { Validate(it).isBigDecimal().isPositive().limitDecimals(2) },
-            onValueChange = { rent = it }
+            onValueChange = { inputs.rent = it }
         )
         MultiPickerItem(
             label = "Services",
             items = services,
-            selectedItems = selectedServices,
+            selectedItems = inputs.selectedServices,
             itemLabel = { it.name },
             createContent = { onCreated, onCanceled ->
                 ServiceCreator(
-                    services = services + selectedServices,
+                    services = services + inputs.selectedServices,
                     onCreated = onCreated,
                     cancel = Cancel(text = "Cancel", onClick = onCanceled)
                 )
             },
-            onItemsChanged = { selectedServices = it },
+            onItemsChanged = { inputs.selectedServices = it },
             onItemCreated = { }
         )
 
@@ -156,20 +142,20 @@ fun ContractCreator(
             ) {
                 MonthItem(
                     label = "Starting month",
-                    value = startMonth,
-                    onValueChange = { startMonth = it },
+                    value = inputs.startMonth,
+                    onValueChange = { inputs.startMonth = it },
                     modifier = Modifier.weight(1f)
                 )
                 MonthItem(
                     label = "Finishing month",
-                    value = endMonth,
+                    value = inputs.endMonth,
                     validate = {
                         Validate(it).check("must be on or after starting month") { date ->
-                            val start = startMonth
+                            val start = inputs.startMonth
                             start == null || date != null && date >= start
                         }
                     },
-                    onValueChange = { endMonth = it },
+                    onValueChange = { inputs.endMonth = it },
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -183,21 +169,21 @@ fun ContractCreator(
             ) {
                 Item(
                     field = "Adjustment Time",
-                    value = adjustmentTime,
+                    value = inputs.adjustmentTime,
                     mandatory = false,
                     keyboardOptions = KeyboardOptions(keyboardType =  KeyboardType.Number),
                     validate = { Validate(it).isLong().isPositive() },
-                    onValueChange = { adjustmentTime = it },
+                    onValueChange = { inputs.adjustmentTime = it },
                     modifier = Modifier.weight(1f)
                 )
                 Item(
                     field = "Fixed Hike (%)",
-                    value = fixedHike,
+                    value = inputs.fixedHike,
                     mandatory = false,
                     keyboardOptions = KeyboardOptions(keyboardType =  KeyboardType.Decimal),
                     validate = { Validate(it).isBigDecimal().limitDecimals(4)
-                        .check("can't have hikes without adjustment time") { adjustmentTime.isNotBlank() } },
-                    onValueChange = { fixedHike = it },
+                        .check("can't have hikes without adjustment time") { inputs.adjustmentTime.isNotBlank() } },
+                    onValueChange = { inputs.fixedHike = it },
                     modifier = Modifier.weight(1f)
                 )
             }

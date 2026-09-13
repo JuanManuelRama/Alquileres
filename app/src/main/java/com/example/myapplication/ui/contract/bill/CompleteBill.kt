@@ -6,9 +6,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,13 +20,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.model.Bill
+import com.example.myapplication.model.BillItem
 import com.example.myapplication.ui.components.form.Cancel
 import com.example.myapplication.ui.components.form.Form
 import com.example.myapplication.ui.components.form.Validate
@@ -31,7 +40,6 @@ import com.example.myapplication.ui.components.form.isBigDecimal
 import com.example.myapplication.ui.components.form.limitDecimals
 import java.math.BigDecimal
 import java.time.LocalDate
-import kotlin.text.toBigDecimal
 
 @Composable
 internal fun BillCompletionForm(
@@ -40,20 +48,19 @@ internal fun BillCompletionForm(
     onSubmit: (Bill) -> Unit,
     onMarkPaid: (Bill, LocalDate) -> Unit
 ) {
-    var amounts by remember(bill) {
-        mutableStateOf(bill.items.map { it.amount?.toPlainString().orEmpty() })
+    val items = rememberSaveable(bill, saver = BillItemsSaver) {
+        bill.items.map { BillItemInput(it.description, it.amount?.toPlainString().orEmpty(), it.isExtra) }.toMutableStateList()
     }
-
-    val amountsValid = amounts.all { Validate(it).isBigDecimal().limitDecimals(2).isValid }
-    val total = bill.rent + amounts.sumOf { it.toBigDecimalOrNull() ?: BigDecimal.ZERO }
+    var confirmingPayment by remember(bill.id) { mutableStateOf(false) }
+    val amountsValid = items.all { it.description.isNotBlank() && Validate(it.amount).isBigDecimal().limitDecimals(2).isValid }
+    val total = bill.rent + items.sumOf { it.amount.toBigDecimalOrNull() ?: BigDecimal.ZERO }
 
     fun completedBill() = bill.copy(
-        items = bill.items.mapIndexed { index, item ->
-            item.copy(amount = amounts[index].toBigDecimal())
+        items = items.map { item ->
+            BillItem(item.description.trim(), item.amount.toBigDecimal(), item.isExtra)
         }
     )
 
-    var confirmingPayment by remember(bill.id) { mutableStateOf(false) }
 
     if (confirmingPayment && !bill.isPaid && amountsValid) {
         PaymentConfirmation(
@@ -124,14 +131,38 @@ internal fun BillCompletionForm(
             }
         }
 
-        bill.items.forEachIndexed { position, item ->
-            key(position) {
+        items.forEach { item ->
+            key(item.key) {
                 Content {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                    BillAmountRow(item.description) {
+                    BillAmountRow(
+                        label = item.description,
+                        labelContent = if (item.isExtra && !bill.isPaid) ({
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                IconButton(
+                                    onClick = { if (!isSaving) items.remove(item) },
+                                    enabled = !isSaving
+                                ) {
+                                    Text("−", modifier = Modifier.semantics {
+                                        contentDescription = "Remove extra item"
+                                    })
+                                }
+                                Item(
+                                    field = "Item name",
+                                    value = item.description,
+                                    modifiable = !isSaving,
+                                    modifier = Modifier.weight(1f),
+                                    onValueChange = { if (!isSaving) item.description = it }
+                                )
+                            }
+                        }) else null
+                    ) {
                         Item(
-                            field = item.description,
-                            value = amounts[position],
+                            field = if (item.isExtra) "Extra amount" else item.description,
+                            modifier = Modifier.semantics {
+                                contentDescription = if (item.isExtra) "Extra amount" else item.description
+                            },
+                            value = item.amount,
                             modifiable = !bill.isPaid && !isSaving,
                             prefix = { Text("$") },
                             textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.End),
@@ -140,13 +171,22 @@ internal fun BillCompletionForm(
                             validate = { Validate(it).isBigDecimal().limitDecimals(2) },
                             onValueChange = { amount ->
                                 if (!isSaving && !bill.isPaid) {
-                                    amounts = amounts.mapIndexed { index, current ->
-                                        if (index == position) amount else current
-                                    }
+                                    item.amount = amount
                                 }
                             }
                         )
                     }
+                }
+            }
+        }
+
+        if (!bill.isPaid) {
+            Content {
+                IconButton(
+                    onClick = { if (!isSaving) items.add(BillItemInput("", "", true)) },
+                    enabled = !isSaving
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Add bill item")
                 }
             }
         }
@@ -188,7 +228,6 @@ private fun PaymentConfirmation(
     onDismiss: () -> Unit
 ) {
     var paymentDate by remember { mutableStateOf<LocalDate?>(LocalDate.now()) }
-
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Confirm payment?") },
@@ -224,6 +263,7 @@ private fun PaymentConfirmation(
 private fun BillAmountRow(
     label: String,
     total: Boolean = false,
+    labelContent: (@Composable () -> Unit)? = null,
     amount: @Composable () -> Unit
 ) {
     Row(
@@ -237,7 +277,7 @@ private fun BillAmountRow(
                 .heightIn(min = 56.dp),
             contentAlignment = Alignment.CenterStart
         ) {
-            Text(
+            if (labelContent != null) labelContent() else Text(
                 text = label,
                 style = if (total) MaterialTheme.typography.titleMedium else MaterialTheme.typography.bodyLarge
             )

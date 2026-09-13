@@ -1,6 +1,10 @@
 package com.example.myapplication.ui.contract.bill
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import com.example.myapplication.model.Bill
@@ -18,6 +22,49 @@ import java.time.YearMonth
 
 class BillCompletionFormTest {
     @get:Rule val composeRule = createComposeRule()
+
+    @Test fun extraRowsAreDraftsUntilSaveOrPaymentAndCanBeRemoved() {
+        val month = YearMonth.of(2026, 9)
+        val contract = Contract(
+            property = Property(Address("Street", "12", null), Owner("Owner", 1), 1),
+            tenant = Tenant("Tenant", "123"), rent = BigDecimal("1000"),
+            startingMonth = month, finishingMonth = month.plusMonths(3),
+            adjustments = emptyList(), services = emptyList(), id = 1
+        )
+        val bill = Bill(1, contract, month, BigDecimal("1000"), emptyList(), 0)
+        var saved: Bill? = null
+        var paid: Bill? = null
+        composeRule.setContent {
+            MaterialTheme {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    BillCompletionForm(bill, false, { saved = it }, { value, _ -> paid = value })
+                }
+            }
+        }
+        composeRule.onNodeWithContentDescription("Add bill item").performScrollTo().performClick()
+        composeRule.onNodeWithText("Save bill").assertIsNotEnabled()
+        composeRule.onNodeWithText("Mark as paid").assertIsNotEnabled()
+        composeRule.onNodeWithText("Item name", substring = true).performTextReplacement("Repairs")
+        composeRule.onNodeWithContentDescription("Extra amount").performTextReplacement("25.50")
+        composeRule.onNodeWithContentDescription("Add bill item").performScrollTo().performClick()
+        composeRule.onAllNodesWithText("Item name", substring = true)[1].performTextReplacement("Refund")
+        composeRule.onAllNodesWithContentDescription("Extra amount")[1].performTextReplacement("-10.25")
+        composeRule.onAllNodesWithContentDescription("Remove extra item")[0].performScrollTo().performClick()
+        composeRule.onNodeWithText("Refund").assertExists()
+        composeRule.onNodeWithText("989.75").assertExists()
+        composeRule.runOnIdle {
+            assertEquals(null, saved)
+            assertEquals(null, paid)
+            assertEquals(emptyList<BillItem>(), bill.items)
+        }
+        composeRule.onNodeWithText("Save bill").performScrollTo().performClick()
+        composeRule.runOnIdle {
+            assertEquals(listOf(BillItem("Refund", BigDecimal("-10.25"), true)), saved!!.items)
+        }
+        composeRule.onNodeWithText("Mark as paid").performScrollTo().performClick()
+        composeRule.onNodeWithText("Confirm payment").performClick()
+        composeRule.runOnIdle { assertEquals(saved!!.items, paid!!.items) }
+    }
 
     @Test fun amountKeepsIntermediateTextAndConvertsOnlyOnSubmission() {
         val contract = Contract(

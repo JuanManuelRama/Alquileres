@@ -6,7 +6,8 @@ import java.time.YearMonth
 
 data class BillItem(
     val description: String,
-    val amount: BigDecimal?
+    val amount: BigDecimal?,
+    val isExtra: Boolean = false
 )
 
 data class Bill(
@@ -21,7 +22,7 @@ data class Bill(
     val isPaid: Boolean get() = paidAt != null
 
     val isValid: Boolean get() =
-        items.all { it.amount != null }
+        items.all { it.amount != null && it.description.isNotBlank() }
 
     val total: BigDecimal get() =
         rent + items.sumOf { it.amount ?: BigDecimal.ZERO }

@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,6 +30,7 @@ fun CreateContractScreen(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val inputs = rememberSaveable(saver = ContractInputs.Saver) { ContractInputs() }
     val properties by viewModel.properties.collectAsStateWithLifecycle()
     val owners by viewModel.owners.collectAsStateWithLifecycle()
     val services by viewModel.services.collectAsStateWithLifecycle()
@@ -56,6 +58,7 @@ fun CreateContractScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             ContractCreator(
+                inputs = inputs,
                 properties = properties,
                 owners = owners,
                 services = services,

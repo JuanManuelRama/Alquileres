@@ -1,7 +1,7 @@
 package com.example.myapplication.data.entity
 
-import androidx.room3.Ignore
 import androidx.room3.Embedded
+import androidx.room3.Ignore
 import androidx.room3.Junction
 import androidx.room3.Relation
 import com.example.myapplication.model.Contract

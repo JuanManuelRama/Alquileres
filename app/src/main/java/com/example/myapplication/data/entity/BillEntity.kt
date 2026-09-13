@@ -1,5 +1,6 @@
 package com.example.myapplication.data.entity
 
+import androidx.room3.ColumnInfo
 import androidx.room3.Embedded
 import androidx.room3.Entity
 import androidx.room3.ForeignKey
@@ -51,7 +52,8 @@ data class BillItemEntity(
     val billId: Long,
     val description: String,
     val position: Int,
-    val amount: String
+    val amount: String,
+    @ColumnInfo(defaultValue = "0") val isExtra: Boolean = false
 )
 
 data class BillWithItems(
@@ -66,7 +68,7 @@ data class BillWithItems(
         contract = contract,
         month = bill.billingMonth,
         rent = bill.rent ?: contract.valueAtMonth(bill.billingMonth),
-        items = items.sortedBy { it.position }.map { BillItem(it.description, it.amount.toBigDecimalOrNull()) },
+        items = items.sortedBy { it.position }.map { BillItem(it.description, it.amount.toBigDecimalOrNull(), it.isExtra) },
         updatedAt = bill.updatedAt,
         paidAt = bill.paidAt
     )
@@ -81,5 +83,5 @@ fun Bill.toEntity() = BillEntity(
     paidAt = paidAt
 )
 fun Bill.itemEntities() = items.mapIndexed { index, item ->
-    BillItemEntity(id, item.description, index, item.amount?.toPlainString() ?: "")
+    BillItemEntity(id, item.description, index, item.amount?.toPlainString() ?: "", item.isExtra)
 }
