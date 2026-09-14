@@ -51,8 +51,10 @@ internal fun BillCompletionForm(
     bill: Bill,
     isSaving: Boolean,
     onSubmit: (Bill) -> Unit,
-    onMarkPaid: (Bill, LocalDate) -> Unit
+    onMarkPaid: (Bill, LocalDate) -> Unit,
+    isInactive: Boolean = false
 ) {
+    val isFrozen = isInactive || bill.isPaid
     val items = rememberSaveable(bill, saver = BillItemsSaver) {
         bill.items.map { BillItemInput(it.description, it.amount?.toPlainString().orEmpty(), it.isExtra) }.toMutableStateList()
     }
@@ -67,7 +69,7 @@ internal fun BillCompletionForm(
     )
 
 
-    if (confirmingPayment && !bill.isPaid && amountsValid) {
+    if (confirmingPayment && !isFrozen && amountsValid) {
         PaymentConfirmation(
             bill = completedBill(),
             onConfirm = { date ->
@@ -79,16 +81,23 @@ internal fun BillCompletionForm(
     }
 
     Form(
-        showActions = !bill.isPaid,
+        showActions = !isFrozen,
         enabled = !isSaving,
         submitText = if (isSaving) "Saving..." else "Save bill",
         onSubmit = {
-            if (!isSaving && !bill.isPaid && amountsValid) {
+            if (!isSaving && !isFrozen && amountsValid) {
                 onSubmit(completedBill())
             }
         }
     ) {
         Content {
+            if (isInactive && !bill.isPaid) {
+                Text(
+                    text = "Never paid. This bill is frozen because the contract is inactive.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             if (bill.isPaid) {
                 val formattedDate = bill.paidAt!!.format(BillDateFormatter)
                 Text(
@@ -142,7 +151,7 @@ internal fun BillCompletionForm(
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
                     BillAmountRow(
                         label = item.description,
-                        labelContent = if (item.isExtra && !bill.isPaid) ({
+                        labelContent = if (item.isExtra && !isFrozen) ({
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically,
@@ -179,14 +188,14 @@ internal fun BillCompletionForm(
                                 contentDescription = if (item.isExtra) "Extra amount" else item.description
                             },
                             value = item.amount,
-                            modifiable = !bill.isPaid && !isSaving,
+                            modifiable = !isFrozen && !isSaving,
                             prefix = { Text("$") },
                             textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.End),
                             showLabel = false,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.DecimalSigned),
                             validate = { Validate(it).isBigDecimal().limitDecimals(2) },
                             onValueChange = { amount ->
-                                if (!isSaving && !bill.isPaid) {
+                                if (!isSaving && !isFrozen) {
                                     item.amount = amount
                                 }
                             }
@@ -196,7 +205,7 @@ internal fun BillCompletionForm(
             }
         }
 
-        if (!bill.isPaid) {
+        if (!isFrozen) {
             Content {
                 TextButton(
                     onClick = { if (!isSaving) items.add(BillItemInput("", "", true)) },
@@ -230,7 +239,7 @@ internal fun BillCompletionForm(
             }
         }
 
-        if (!bill.isPaid) {
+        if (!isFrozen) {
             Content {
                 Button(
                     onClick = { confirmingPayment = true },

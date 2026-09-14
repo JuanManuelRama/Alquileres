@@ -41,7 +41,7 @@ data class Contract(
                 )
             }.toList()
 
-    fun currentValue(): BigDecimal = valueAtMonth(YearMonth.now())
+    fun currentValue(): BigDecimal = valueAtMonth(YearMonth.now().coerceIn(startingMonth, finishingMonth))
 
     fun valueAtMonth(month: YearMonth): BigDecimal =
         valueMonths[ChronoUnit.MONTHS.between(startingMonth, month).toInt()]

@@ -51,10 +51,10 @@ interface BillDao {
     @Insert
     suspend fun insertItems(items: List<BillItemEntity>)
 
-    @Query("UPDATE Bill SET updatedAt = :updatedAt WHERE id = :id AND paidAt IS NULL")
+    @Query("UPDATE Bill SET updatedAt = :updatedAt WHERE id = :id AND paidAt IS NULL AND EXISTS (SELECT 1 FROM Contract c WHERE c.id = Bill.contractId AND c.isFinished = 0)")
     suspend fun updateUnpaidBill(id: Long, updatedAt: Long): Int
 
-    @Query("UPDATE Bill SET rent = :rent, paidAt = :date WHERE id = :id AND paidAt IS NULL")
+    @Query("UPDATE Bill SET rent = :rent, paidAt = :date WHERE id = :id AND paidAt IS NULL AND EXISTS (SELECT 1 FROM Contract c WHERE c.id = Bill.contractId AND c.isFinished = 0)")
     suspend fun setPaidDate(id: Long, date: LocalDate, rent: BigDecimal): Int
 
     @Transaction

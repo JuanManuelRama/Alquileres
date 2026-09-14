@@ -59,6 +59,7 @@ internal fun ContractListFilters(
     hikeThisMonth: Boolean,
     onHikeThisMonthChange: (Boolean) -> Unit,
     onClear: () -> Unit,
+    showStatusFilters: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     var ownersExpanded by remember { mutableStateOf(false) }
@@ -97,45 +98,46 @@ internal fun ContractListFilters(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            FilterChip(
-                selected = paymentDue,
-                onClick = { onPaymentDueChange(!paymentDue) },
-                label = { Text("Payment due") },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Warning,
-                        contentDescription = null,
-                        modifier = Modifier.size(FilterChipDefaults.IconSize)
-                    )
-                }
-            )
+            if (showStatusFilters) {
+                FilterChip(
+                    selected = paymentDue,
+                    onClick = { onPaymentDueChange(!paymentDue) },
+                    label = { Text("Payment due") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = null,
+                            modifier = Modifier.size(FilterChipDefaults.IconSize)
+                        )
+                    }
+                )
 
-            FilterChip(
-                selected = expiresSoon,
-                onClick = { onExpiresSoonChange(!expiresSoon) },
-                label = { Text("Expires soon") },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.DateRange,
-                        contentDescription = null,
-                        modifier = Modifier.size(FilterChipDefaults.IconSize)
-                    )
-                }
-            )
+                FilterChip(
+                    selected = expiresSoon,
+                    onClick = { onExpiresSoonChange(!expiresSoon) },
+                    label = { Text("Expires soon") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = null,
+                            modifier = Modifier.size(FilterChipDefaults.IconSize)
+                        )
+                    }
+                )
 
-            FilterChip(
-                selected = hikeThisMonth,
-                onClick = { onHikeThisMonthChange(!hikeThisMonth) },
-                label = { Text("Hike this month") },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowUp,
-                        contentDescription = null,
-                        modifier = Modifier.size(FilterChipDefaults.IconSize)
-                    )
-                }
-            )
-
+                FilterChip(
+                    selected = hikeThisMonth,
+                    onClick = { onHikeThisMonthChange(!hikeThisMonth) },
+                    label = { Text("Hike this month") },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowUp,
+                            contentDescription = null,
+                            modifier = Modifier.size(FilterChipDefaults.IconSize)
+                        )
+                    }
+                )
+            }
             Box {
                 FilterChip(
                     selected = ownerId != null,

@@ -51,4 +51,7 @@ class ContractViewModel(
             initialValue = emptyList()
         )
 
+    val inactiveContracts: StateFlow<List<Contract>?> = contractRepository.observeInactive()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
 }

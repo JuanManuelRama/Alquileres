@@ -9,10 +9,10 @@ sealed interface Route : NavKey
 data object ContractList : Route
 
 @Serializable
-data class ContractDetail(val contractId: Long) : Route
+data class ContractDetail(val contractId: Long, val isInactive: Boolean = false) : Route
 
 @Serializable
 data object AddPropiedad : Route
 
 @Serializable
-data class PrepareBill(val contractId: Long) : Route
+data class PrepareBill(val contractId: Long, val isInactive: Boolean = false) : Route

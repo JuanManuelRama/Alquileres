@@ -1,5 +1,6 @@
 package com.example.myapplication.data.entity
 
+import androidx.room3.ColumnInfo
 import androidx.room3.Embedded
 import androidx.room3.Entity
 import androidx.room3.ForeignKey
@@ -30,6 +31,7 @@ data class ContractEntity(
     val rent: BigDecimal,
     val startingMonth: YearMonth,
     val finishingMonth: YearMonth,
+    @ColumnInfo(defaultValue = "0") val isFinished: Boolean = false,
 )
 
 fun Contract.toEntity(): ContractEntity = ContractEntity(

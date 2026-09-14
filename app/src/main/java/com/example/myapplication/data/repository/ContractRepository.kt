@@ -13,6 +13,10 @@ class ContractRepository(private val dao: ContractDao, private val bills: BillDa
     fun observeWithStatus(month: YearMonth): Flow<List<ContractWithStatus>> =
         dao.observeWithStatus(month)
 
+    fun observeInactive(): Flow<List<Contract>> = dao.observeInactive().map { contracts ->
+        contracts.map { it.toDomain() }
+    }
+
     fun observeById(contractId: Long): Flow<Contract?> =
         dao.observeById(contractId).map { it?.toDomain() }
 
@@ -29,5 +33,11 @@ class ContractRepository(private val dao: ContractDao, private val bills: BillDa
 
     suspend fun updateAdjustmentAmount(contractId: Long, time: YearMonth, amount: BigDecimal?) {
         dao.updateAdjustmentAmount(contractId, time, amount)
+    }
+
+    suspend fun finish(contractId: Long, requireAllPaid: Boolean) {
+        check(dao.finish(contractId, requireAllPaid) == 1) {
+            "Could not finish this contract. Check that all bills are paid and try again."
+        }
     }
 }

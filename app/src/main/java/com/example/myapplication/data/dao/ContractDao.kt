@@ -5,6 +5,7 @@ import androidx.room3.Insert
 import androidx.room3.Query
 import androidx.room3.Transaction
 import com.example.myapplication.data.entity.AdjustmentEntity
+import com.example.myapplication.data.entity.BasicContract
 import com.example.myapplication.data.entity.ContractEntity
 import com.example.myapplication.data.entity.ContractServiceCrossRef
 import com.example.myapplication.data.entity.ContractWithRelations
@@ -36,8 +37,23 @@ interface ContractDao {
         FROM Contract c
         INNER JOIN Property p ON p.id = c.propertyId
         INNER JOIN Owner o ON o.id = p.ownerId
+        WHERE c.isFinished = 0
     """)
     fun observeWithStatus(month: YearMonth): Flow<List<ContractWithStatus>>
+
+    @Query("""
+        SELECT c.*,
+            p.id AS property_id, p.ownerId AS property_ownerId,
+            p.addr_street AS property_addr_street,
+            p.addr_number AS property_addr_number,
+            p.addr_unit AS property_addr_unit,
+            o.id AS owner_id, o.name AS owner_name
+        FROM Contract c
+        INNER JOIN Property p ON p.id = c.propertyId
+        INNER JOIN Owner o ON o.id = p.ownerId
+        WHERE c.isFinished = 1
+    """)
+    fun observeInactive(): Flow<List<BasicContract>>
 
     @Transaction
     @Query("SELECT * FROM Contract")
@@ -56,7 +72,16 @@ interface ContractDao {
     @Insert
     suspend fun insertAdjustments(adjustments: List<AdjustmentEntity>)
 
-    @Query("UPDATE Adjustment SET amount = :amount WHERE contractId = :contractId AND time = :time AND NOT EXISTS (SELECT 1 FROM Bill WHERE contractId = :contractId AND billingMonth >= :time AND paidAt IS NOT NULL)")
+    @Query("""
+        UPDATE Contract SET isFinished = 1 WHERE id = :contractId AND isFinished = 0
+        AND (:requireAllPaid = 0 OR (
+            EXISTS (SELECT 1 FROM Bill WHERE contractId = :contractId)
+            AND NOT EXISTS (SELECT 1 FROM Bill WHERE contractId = :contractId AND paidAt IS NULL)
+        ))
+    """)
+    suspend fun finish(contractId: Long, requireAllPaid: Boolean): Int
+
+    @Query("UPDATE Adjustment SET amount = :amount WHERE contractId = :contractId AND time = :time AND EXISTS (SELECT 1 FROM Contract WHERE id = :contractId AND isFinished = 0) AND NOT EXISTS (SELECT 1 FROM Bill WHERE contractId = :contractId AND billingMonth >= :time AND paidAt IS NOT NULL)")
     suspend fun updateAdjustmentAmount(contractId: Long, time: YearMonth, amount: BigDecimal?)
 
     @Transaction

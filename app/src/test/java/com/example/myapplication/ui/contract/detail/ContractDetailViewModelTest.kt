@@ -116,7 +116,43 @@ class ContractDetailViewModelTest {
         )
     }
 
+    @Test fun finishNeedsEveryMonthPaidWhileCancellationDoesNot() = runTest {
+        var finished = false
+        contracts.results[1L] = MutableStateFlow(contract(1L))
+        val model = viewModel(1L)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { model.uiState.collect {} }
+        runCurrent()
+        model.finishContract(requireAllPaid = true) { finished = true }
+        runCurrent()
+        assertFalse(finished)
+        val activeContract = (model.uiState.value as ContractDetailUiState.Ready).contract
+        bills.results.getValue(1L).value = generateSequence(activeContract.startingMonth) { it.plusMonths(1) }
+            .takeWhile { it <= activeContract.finishingMonth }.toList()
+        runCurrent()
+        assertTrue((model.uiState.value as ContractDetailUiState.Ready).allBillsPaid)
+        model.finishContract(requireAllPaid = true) { finished = true }
+        runCurrent()
+        assertTrue(finished)
+
+        contracts.results[2L] = MutableStateFlow(contract(2L))
+        val other = viewModel(2L)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { other.uiState.collect {} }
+        runCurrent()
+        var cancelled = false
+        other.finishContract(requireAllPaid = false) { cancelled = true }
+        runCurrent()
+        assertTrue(cancelled)
+        assertTrue((other.uiState.value as ContractDetailUiState.Ready).paidMonths.isEmpty())
+    }
+
     private class TestContractDao : ContractDao {
+        override suspend fun finish(contractId: Long, requireAllPaid: Boolean): Int {
+            val state = results.getValue(contractId)
+            val current = state.value ?: return 0
+            state.value = current.copy(contract = current.contract.copy(isFinished = true))
+            return 1
+        }
+        override fun observeInactive(): Flow<List<BasicContract>> = error("Unused")
         override fun observeWithStatus(month: YearMonth): Flow<List<ContractWithStatus>> = error("Unused")
         val results = mutableMapOf<Long, MutableStateFlow<ContractWithRelations?>>()
         override fun observeById(contractId: Long): Flow<ContractWithRelations?> =

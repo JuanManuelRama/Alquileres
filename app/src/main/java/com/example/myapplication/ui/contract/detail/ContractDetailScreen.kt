@@ -1,6 +1,5 @@
 package com.example.myapplication.ui.contract.detail
 
-import android.graphics.Color
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,6 +40,8 @@ fun ContractDetailScreen(
     viewModel: ContractDetailViewModel,
     onPrepareBillClick: (Contract) -> Unit,
     onBackClick: () -> Unit,
+    isInactive: Boolean,
+    onFinished: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -49,24 +50,27 @@ fun ContractDetailScreen(
     var showMenu by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showFinishDialog by remember { mutableStateOf(false) }
+    var requireAllPaid by remember { mutableStateOf(false) }
 
     val state = uiState as? ContractDetailUiState.Ready
 
-    if (showFinishDialog && state != null) {
+    if (showFinishDialog && state != null && !isInactive) {
         AlertDialog(
             onDismissRequest = { showFinishDialog = false },
-            title = { Text("Finish Contract?") },
+            title = { Text(if (requireAllPaid) "Finish Contract?" else "Cancel Contract?") },
             text = {
-                Text("Are you sure you want to finish this contract early? This action cannot be undone.")
+                Text("This contract will move to Inactive. All its bills will be frozen, including unpaid ones.")
             },
             confirmButton = {
                 TextButton(
+                    enabled = !state.isFinishing,
                     onClick = {
+                        viewModel.finishContract(requireAllPaid, onFinished)
                         showFinishDialog = false
                     }
                 ) {
                     Text(
-                        text = "Finish Contract",
+                        text = if (requireAllPaid) "Finish Contract" else "Cancel Contract",
                         color = MaterialTheme.colorScheme.error
                     )
                 }
@@ -130,8 +134,10 @@ fun ContractDetailScreen(
                         ) {
                             DropdownMenuItem(
                                 text = { Text("Cancel Contract") },
+                                enabled = state != null && !isInactive && !state.isFinishing,
                                 onClick = {
                                     showMenu = false
+                                    requireAllPaid = false
                                     showFinishDialog = true
                                 }
                             )
@@ -161,6 +167,26 @@ fun ContractDetailScreen(
                 return@Column
             }
             val contract = state.contract
+            if (isInactive) {
+                Text("Inactive contract", style = MaterialTheme.typography.titleMedium)
+            }
+            state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            if (!isInactive && state.allBillsPaid) {
+                Text("Every bill is paid. This contract is ready to finish.")
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        enabled = !state.isFinishing,
+                        onClick = {
+                            requireAllPaid = true
+                            showFinishDialog = true
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) { Text(if (state.isFinishing) "Finishing..." else "Finish Contract") }
+                    Button(onClick = {}, enabled = false, modifier = Modifier.weight(1f)) {
+                        Text("Renew Contract")
+                    }
+                }
+            }
             PropertyCard(
                 property = contract.property,
                 modifier = cardModifier
@@ -194,7 +220,7 @@ fun ContractDetailScreen(
                             adjustment = adjustment,
                             contract = contract,
                             modifier = cardModifier,
-                            editable = !hasAffectedPaidBill,
+                            editable = !isInactive && !state.isFinishing && !hasAffectedPaidBill,
                             onAmountChange = { amount ->
                                 viewModel.updateAdjustmentAmount(adjustment.time, amount)
                             }
@@ -209,6 +235,7 @@ fun ContractDetailScreen(
             ) {
                 Button(
                     onClick = { onPrepareBillClick(contract) },
+                    enabled = !state.isFinishing,
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(text = "View bills")

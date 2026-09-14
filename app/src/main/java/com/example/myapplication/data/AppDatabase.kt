@@ -3,6 +3,9 @@ package com.example.myapplication.data
 import androidx.room3.ColumnTypeConverters
 import androidx.room3.Database
 import androidx.room3.RoomDatabase
+import androidx.room3.migration.Migration
+import androidx.sqlite.SQLiteConnection
+import androidx.sqlite.execSQL
 import com.example.myapplication.data.dao.BillDao
 import com.example.myapplication.data.dao.ContractDao
 import com.example.myapplication.data.dao.OwnerDao
@@ -28,11 +31,19 @@ import com.example.myapplication.data.entity.ServiceEntity
         BillEntity::class,
         BillItemEntity::class
     ],
-    version = 18,
+    version = 19,
     exportSchema = false
 )
 @ColumnTypeConverters(Converters::class)
 abstract class AppDatabase: RoomDatabase() {
+    companion object {
+        val MIGRATION_18_19 = object : Migration(18, 19) {
+            override suspend fun migrate(connection: SQLiteConnection) {
+                connection.execSQL("ALTER TABLE Contract ADD COLUMN isFinished INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+    }
+
     abstract fun billDao(): BillDao
     abstract fun propertyDao(): PropertyDao
     abstract fun ownerDao(): OwnerDao

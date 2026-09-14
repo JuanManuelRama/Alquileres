@@ -30,6 +30,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 fun BillScreen(
     viewModel: BillViewModel,
     onBackClick: () -> Unit,
+    isInactive: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -88,6 +89,7 @@ fun BillScreen(
                 ) {
                     BillCompletionForm(
                         bill = bill,
+                        isInactive = isInactive,
                         isSaving = state.isSaving,
                         onSubmit = viewModel::save,
                         onMarkPaid = viewModel::markPaid
