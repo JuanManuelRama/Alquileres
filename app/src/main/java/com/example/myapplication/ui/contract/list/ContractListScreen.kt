@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
 import com.example.myapplication.model.Contract
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContractListScreen(
     state: ContractListUiState,
@@ -41,47 +42,13 @@ fun ContractListScreen(
     modifier: Modifier = Modifier,
     onTabSelected: (Boolean) -> Unit = {},
 ) {
-    val items = (state as? ContractListUiState.Loaded)?.contracts
-    ContractListContent(
-        contracts = items?.map { it.contract },
-        statuses = items.orEmpty().associateBy { it.contract.id },
-        isInactive = false,
-        onContractClick = onContractClick,
-        addContractClick = addContractClick,
-        onTabSelected = onTabSelected,
-        modifier = modifier
-    )
-}
-
-@Composable
-fun InactiveContractListScreen(
-    contracts: List<Contract>?,
-    onContractClick: (Contract) -> Unit,
-    onTabSelected: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    ContractListContent(
-        contracts = contracts,
-        statuses = emptyMap(),
-        isInactive = true,
-        onContractClick = onContractClick,
-        addContractClick = {},
-        onTabSelected = onTabSelected,
-        modifier = modifier
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ContractListContent(
-    contracts: List<Contract>?,
-    statuses: Map<Long, ContractListItem>,
-    isInactive: Boolean,
-    onContractClick: (Contract) -> Unit,
-    addContractClick: () -> Unit,
-    onTabSelected: (Boolean) -> Unit,
-    modifier: Modifier,
-) {
+    val isInactive = state.isInactive
+    val contracts = when (state) {
+        is ContractListUiState.Loading -> null
+        is ContractListUiState.Active -> state.contracts.map { it.contract }
+        is ContractListUiState.Inactive -> state.contracts
+    }
+    val statuses = (state as? ContractListUiState.Active)?.contracts.orEmpty().associateBy { it.contract.id }
     val filters = rememberSaveable(isInactive, saver = ContractListFilterState.Saver) {
         ContractListFilterState()
     }

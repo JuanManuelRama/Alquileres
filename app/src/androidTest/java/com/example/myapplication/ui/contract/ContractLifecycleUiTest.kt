@@ -5,7 +5,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
-import com.example.myapplication.ui.contract.list.InactiveContractListScreen
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import com.example.myapplication.model.*
@@ -34,14 +33,9 @@ class ContractLifecycleUiTest {
         composeRule.setContent {
             MaterialTheme {
                 var isInactive by remember { mutableStateOf(false) }
-                if (isInactive) {
-                    InactiveContractListScreen(listOf(inactive), {}, { isInactive = it })
-                } else {
-                    ContractListScreen(
-                        ContractListUiState.Loaded(listOf(ContractListItem(active, false, false, false))),
-                        {}, {}, onTabSelected = { isInactive = it }
-                    )
-                }
+                val state = if (isInactive) ContractListUiState.Inactive(listOf(inactive))
+                    else ContractListUiState.Active(listOf(ContractListItem(active, false, false, false)))
+                ContractListScreen(state, {}, {}, onTabSelected = { isInactive = it })
             }
         }
         composeRule.onNodeWithText("Tenant: Tenant 1").assertExists()

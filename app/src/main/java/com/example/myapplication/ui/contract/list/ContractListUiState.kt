@@ -1,6 +1,17 @@
 package com.example.myapplication.ui.contract.list
 
+import com.example.myapplication.model.Contract
+
 sealed interface ContractListUiState {
-    data object Loading : ContractListUiState
-    data class Loaded(val contracts: List<ContractListItem>) : ContractListUiState
+    val isInactive: Boolean
+
+    data class Loading(override val isInactive: Boolean = false) : ContractListUiState
+
+    data class Active(val contracts: List<ContractListItem>) : ContractListUiState {
+        override val isInactive: Boolean get() = false
+    }
+
+    data class Inactive(val contracts: List<Contract>) : ContractListUiState {
+        override val isInactive: Boolean get() = true
+    }
 }

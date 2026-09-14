@@ -5,6 +5,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import com.example.myapplication.model.Address
@@ -22,8 +24,24 @@ class ContractListScreenTest {
     val composeRule = createComposeRule()
 
     @Test
+    fun inactiveLoadingAndEmptyStatesKeepTheInactiveTabAndHideCreation() {
+        var state by mutableStateOf<ContractListUiState>(ContractListUiState.Loading(isInactive = true))
+        composeRule.setContent {
+            MaterialTheme { ContractListScreen(state, {}, {}) }
+        }
+        composeRule.onNodeWithText("Inactive contracts").assertIsDisplayed()
+        composeRule.onNodeWithText("Inactive").assertIsSelected()
+        composeRule.onNodeWithText("Loading contracts...").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("Create new contract").assertDoesNotExist()
+        composeRule.runOnIdle { state = ContractListUiState.Inactive(emptyList()) }
+        composeRule.onNodeWithText("No inactive contracts yet.").assertIsDisplayed()
+        composeRule.onNodeWithText("Inactive").assertIsSelected()
+        composeRule.onNodeWithText("A fresh start, on paper").assertDoesNotExist()
+    }
+
+    @Test
     fun loadingDoesNotShowEmptyFallbackAndLoadedResultsChooseTheCorrectContent() {
-        var state by mutableStateOf<ContractListUiState>(ContractListUiState.Loading)
+        var state by mutableStateOf<ContractListUiState>(ContractListUiState.Loading())
         composeRule.setContent {
             MaterialTheme {
                 ContractListScreen(state = state, onContractClick = {}, addContractClick = {})
@@ -39,13 +57,13 @@ class ContractListScreenTest {
             adjustments = emptyList(), services = emptyList(), id = 1L
         )
         composeRule.runOnIdle {
-            state = ContractListUiState.Loaded(listOf(ContractListItem(contract, false, false, false)))
+            state = ContractListUiState.Active(listOf(ContractListItem(contract, false, false, false)))
         }
         composeRule.onNodeWithText("Tenant: Ada").assertIsDisplayed()
         composeRule.onNodeWithText("Loading contracts...").assertDoesNotExist()
         composeRule.onNodeWithText("A fresh start, on paper").assertDoesNotExist()
 
-        composeRule.runOnIdle { state = ContractListUiState.Loaded(emptyList()) }
+        composeRule.runOnIdle { state = ContractListUiState.Active(emptyList()) }
         composeRule.onNodeWithText("A fresh start, on paper").assertIsDisplayed()
         composeRule.onNodeWithText("Loading contracts...").assertDoesNotExist()
     }

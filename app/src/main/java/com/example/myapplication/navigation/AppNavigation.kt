@@ -11,7 +11,6 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.example.myapplication.model.Contract
 import com.example.myapplication.ui.AppViewModelFactory
 import com.example.myapplication.ui.contract.ContractViewModel
 import com.example.myapplication.ui.contract.bill.BillScreen
@@ -19,7 +18,6 @@ import com.example.myapplication.ui.contract.create.CreateContractScreen
 import com.example.myapplication.ui.contract.create.CreateContractViewModel
 import com.example.myapplication.ui.contract.detail.ContractDetailScreen
 import com.example.myapplication.ui.contract.list.ContractListScreen
-import com.example.myapplication.ui.contract.list.InactiveContractListScreen
 
 @Composable
 fun AppNavigation(
@@ -41,31 +39,21 @@ fun AppNavigation(
         entryProvider = { key ->
             when (val route = key as Route) {
                 is ContractList -> NavEntry(route) {
-                    val onContractClick: (Contract) -> Unit = {
-                        backStack.add(ContractDetail(it.id, route.isInactive))
-                    }
-                    val onTabSelected: (Boolean) -> Unit = { isInactive ->
-                        if (isInactive != route.isInactive) {
-                            val index = backStack.indexOf(route)
-                            if (index >= 0) backStack[index] = ContractList(isInactive)
+                    val flow = if (route.isInactive) contractViewModel.inactiveListState
+                              else contractViewModel.activeListState
+                    val listState by flow.collectAsStateWithLifecycle()
+
+                    ContractListScreen(
+                        state = listState,
+                        onContractClick = { backStack.add(ContractDetail(it.id, route.isInactive)) },
+                        addContractClick = { backStack.add(AddPropiedad) },
+                        onTabSelected = { inactiveState ->
+                            if (inactiveState != route.isInactive) {
+                                val index = backStack.indexOf(route)
+                                if (index >= 0) backStack[index] = ContractList(inactiveState)
+                            }
                         }
-                    }
-                    if (route.isInactive) {
-                        val contracts by contractViewModel.inactiveContracts.collectAsStateWithLifecycle()
-                        InactiveContractListScreen(
-                            contracts = contracts,
-                            onContractClick = onContractClick,
-                            onTabSelected = onTabSelected
-                        )
-                    } else {
-                        val listState by contractViewModel.listState.collectAsStateWithLifecycle()
-                        ContractListScreen(
-                            state = listState,
-                            onContractClick = onContractClick,
-                            addContractClick = { backStack.add(AddPropiedad) },
-                            onTabSelected = onTabSelected
-                        )
-                    }
+                    )
                 }
                 is AddPropiedad -> NavEntry(route) {
                     CreateContractScreen(
