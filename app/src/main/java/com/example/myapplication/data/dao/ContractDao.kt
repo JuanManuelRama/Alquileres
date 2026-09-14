@@ -73,13 +73,34 @@ interface ContractDao {
     suspend fun insertAdjustments(adjustments: List<AdjustmentEntity>)
 
     @Query("""
-        UPDATE Contract SET isFinished = 1 WHERE id = :contractId AND isFinished = 0
+        UPDATE Contract SET isFinished = 1,
+            finishingMonth = CASE
+                WHEN :requireAllPaid = 0 AND :cancellationMonth < finishingMonth THEN :cancellationMonth
+                ELSE finishingMonth
+            END
+        WHERE id = :contractId AND isFinished = 0
         AND (:requireAllPaid = 0 OR (
             EXISTS (SELECT 1 FROM Bill WHERE contractId = :contractId)
             AND NOT EXISTS (SELECT 1 FROM Bill WHERE contractId = :contractId AND paidAt IS NULL)
         ))
     """)
-    suspend fun finish(contractId: Long, requireAllPaid: Boolean): Int
+    suspend fun updateContractFinished(contractId: Long, requireAllPaid: Boolean, cancellationMonth: YearMonth): Int
+
+    @Query("DELETE FROM Bill WHERE contractId = :contractId AND billingMonth > :cancellationMonth")
+    suspend fun deleteFutureBills(contractId: Long, cancellationMonth: YearMonth): Int
+
+    @Query("DELETE FROM Adjustment WHERE contractId = :contractId AND time > :cancellationMonth")
+    suspend fun deleteFutureAdjustments(contractId: Long, cancellationMonth: YearMonth): Int
+
+    @Transaction
+    suspend fun finish(contractId: Long, requireAllPaid: Boolean, cancellationMonth: YearMonth = YearMonth.now()): Int {
+        val updated = updateContractFinished(contractId, requireAllPaid, cancellationMonth)
+        if (updated > 0 && !requireAllPaid) {
+            deleteFutureBills(contractId, cancellationMonth)
+            deleteFutureAdjustments(contractId, cancellationMonth)
+        }
+        return updated
+    }
 
     @Query("DELETE FROM Contract WHERE id = :contractId")
     suspend fun deleteContract(contractId: Long): Int

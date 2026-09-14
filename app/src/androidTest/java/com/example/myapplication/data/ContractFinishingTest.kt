@@ -110,4 +110,31 @@ class ContractFinishingTest {
             assertTrue(db.billDao().list(id).isEmpty())
         } finally { db.close() }
     }
+
+    @Test fun earlyCancellationDeletesFutureBillsAndUpdatesEndMonth() = runTest {
+        val db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
+        try {
+            val owner = db.ownerDao().insert(OwnerEntity(name = "Owner"))
+            val property = db.propertyDao().insertProperty(PropertyEntity(address = Address("Main", "1", null), ownerId = owner))
+            val startMonth = YearMonth.of(2026, 1)
+            val finishMonth = YearMonth.of(2026, 12)
+            val id = db.contractDao().saveContract(
+                ContractEntity(propertyId = property, tenant = Tenant("Tenant", "123"), rent = BigDecimal("1000"),
+                    startingMonth = startMonth, finishingMonth = finishMonth),
+                emptyList(), emptyList()
+            )
+            val contractDomain = db.contractDao().observeById(id).first()!!.toDomain()
+            db.billDao().createAll(contractDomain.createBills())
+            assertEquals(12, db.billDao().list(id).size)
+
+            val cancelMonth = YearMonth.of(2026, 3)
+            assertEquals(1, db.contractDao().finish(id, requireAllPaid = false, cancellationMonth = cancelMonth))
+
+            val cancelled = db.contractDao().observeById(id).first()!!.toDomain()
+            assertEquals(cancelMonth, cancelled.finishingMonth)
+            val remainingBills = db.billDao().list(id)
+            assertEquals(3, remainingBills.size)
+            assertEquals(listOf(YearMonth.of(2026, 1), YearMonth.of(2026, 2), YearMonth.of(2026, 3)), remainingBills.map { it.bill.billingMonth })
+        } finally { db.close() }
+    }
 }

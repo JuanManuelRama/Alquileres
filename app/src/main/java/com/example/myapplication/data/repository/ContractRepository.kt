@@ -35,8 +35,8 @@ class ContractRepository(private val dao: ContractDao, private val bills: BillDa
         dao.updateAdjustmentAmount(contractId, time, amount)
     }
 
-    suspend fun finish(contractId: Long, requireAllPaid: Boolean) {
-        check(dao.finish(contractId, requireAllPaid) == 1) {
+    suspend fun finish(contractId: Long, requireAllPaid: Boolean, cancellationMonth: YearMonth = YearMonth.now()) {
+        check(dao.finish(contractId, requireAllPaid, cancellationMonth) == 1) {
             "Could not finish this contract. Check that all bills are paid and try again."
         }
     }

@@ -56,13 +56,13 @@ class ContractDetailViewModel(
         }
     }
 
-    fun finishContract(requireAllPaid: Boolean, onFinished: () -> Unit) {
+    fun finishContract(requireAllPaid: Boolean, onFinished: () -> Unit, cancellationMonth: YearMonth = YearMonth.now()) {
         val state = uiState.value as? ContractDetailUiState.Ready ?: return
         if (finishState.value.saving || (requireAllPaid && !state.allBillsPaid)) return
         finishState.value = FinishState(saving = true)
         viewModelScope.launch {
             try {
-                contractRepository.finish(contractId, requireAllPaid)
+                contractRepository.finish(contractId, requireAllPaid, cancellationMonth)
                 onFinished()
                 finishState.value = FinishState()
             } catch (error: CancellationException) {
