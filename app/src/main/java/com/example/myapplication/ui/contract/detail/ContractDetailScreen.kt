@@ -67,6 +67,7 @@ fun ContractDetailScreen(
                     onClick = {
                         viewModel.finishContract(requireAllPaid, onFinished)
                         showFinishDialog = false
+                        onBackClick()
                     }
                 ) {
                     Text(

@@ -93,9 +93,9 @@ internal fun BillCompletionForm(
         Content {
             if (isInactive && !bill.isPaid) {
                 Text(
-                    text = "Never paid. This bill is frozen because the contract is inactive.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    text = "Unpaid",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
             if (bill.isPaid) {
@@ -104,10 +104,6 @@ internal fun BillCompletionForm(
                     text = "Paid on $formattedDate",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = "This bill is locked.",
-                    style = MaterialTheme.typography.bodySmall
                 )
             }
 
