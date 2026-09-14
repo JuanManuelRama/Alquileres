@@ -24,18 +24,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
 import com.example.myapplication.model.Contract
-import java.time.YearMonth
 
 @Composable
 fun ContractListScreen(
@@ -86,28 +82,13 @@ private fun ContractListContent(
     onTabSelected: (Boolean) -> Unit,
     modifier: Modifier,
 ) {
-    var query by rememberSaveable(isInactive) { mutableStateOf("") }
-    var ownerId by rememberSaveable(isInactive) { mutableStateOf<Long?>(null) }
-    var startingMonth by rememberSaveable(isInactive) { mutableStateOf<YearMonth?>(null) }
-    var finishingMonth by rememberSaveable(isInactive) { mutableStateOf<YearMonth?>(null) }
-    var paymentDue by rememberSaveable(isInactive) { mutableStateOf(false) }
-    var expiresSoon by rememberSaveable(isInactive) { mutableStateOf(false) }
-    var hikeThisMonth by rememberSaveable(isInactive) { mutableStateOf(false) }
+    val filters = rememberSaveable(isInactive, saver = ContractListFilterState.Saver) {
+        ContractListFilterState()
+    }
     val owners = remember(contracts) {
         contracts.orEmpty().map { it.property.owner }.distinctBy { it.id }.sortedBy { it.name.lowercase() }
     }
-    val filteredContracts = remember(contracts, statuses, query, ownerId, startingMonth, finishingMonth, paymentDue, expiresSoon, hikeThisMonth) {
-        contracts.orEmpty().filter { contract ->
-            val status = statuses[contract.id]
-            contract.property.toString().contains(query.trim(), ignoreCase = true) &&
-                (ownerId == null || contract.property.owner.id == ownerId) &&
-                (startingMonth == null || contract.finishingMonth >= startingMonth) &&
-                (finishingMonth == null || contract.startingMonth <= finishingMonth) &&
-                (!paymentDue || status?.paymentDue == true) &&
-                (!expiresSoon || status?.expiresSoon == true) &&
-                (!hikeThisMonth || status?.hikeThisMonth == true)
-        }
-    }
+    val filteredContracts = contracts.orEmpty().filter { filters.matches(it, statuses[it.id]) }
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -165,22 +146,8 @@ private fun ContractListContent(
                         ContractListFilters(
                             showStatusFilters = !isInactive,
                             showDateFilters = isInactive,
-                            query = query, onQueryChange = { query = it },
-                            owners = owners, ownerId = ownerId, onOwnerChange = { ownerId = it },
-                            startingMonth = startingMonth, onStartingMonthChange = { startingMonth = it },
-                            finishingMonth = finishingMonth, onFinishingMonthChange = { finishingMonth = it },
-                            paymentDue = paymentDue, onPaymentDueChange = { paymentDue = it },
-                            expiresSoon = expiresSoon, onExpiresSoonChange = { expiresSoon = it },
-                            hikeThisMonth = hikeThisMonth, onHikeThisMonthChange = { hikeThisMonth = it },
-                            onClear = {
-                                query = ""
-                                ownerId = null
-                                startingMonth = null
-                                finishingMonth = null
-                                paymentDue = false
-                                expiresSoon = false
-                                hikeThisMonth = false
-                            },
+                            state = filters,
+                            owners = owners,
                             modifier = Modifier.padding(16.dp).fillMaxWidth()
                         )
                     }

@@ -6,6 +6,9 @@ import com.example.myapplication.model.Owner
 import com.example.myapplication.model.Property
 import com.example.myapplication.model.Tenant
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import androidx.compose.runtime.saveable.SaverScope
 import org.junit.Test
 import java.math.BigDecimal
 import java.time.YearMonth
@@ -26,18 +29,46 @@ class ContractListFiltersTest {
         item(3, 10, "Pine", false, false, true)
     )
 
+    private fun filtered(state: ContractListFilterState) = all.filter { state.matches(it.contract, it) }
+
     @Test
     fun searchIsTrimmedAndCaseInsensitiveAndOwnersUseIds() {
-        assertEquals(listOf(all[0], all[1]), all.filtered("  oAK  ", null, false, false, false))
-        assertEquals(listOf(all[1]), all.filtered("Oak", 20, false, false, false))
-        assertEquals(all, all.filtered("123 B", null, false, false, false))
+        assertEquals(listOf(all[0], all[1]), filtered(ContractListFilterState(query = "  oAK  ")))
+        assertEquals(listOf(all[1]), filtered(ContractListFilterState(query = "Oak", ownerId = 20)))
+        assertEquals(all, filtered(ContractListFilterState(query = "123 B")))
     }
 
     @Test
     fun flagsIntersectAndClearingRestoresEverything() {
-        assertEquals(listOf(all[0], all[1]), all.filtered("", null, true, true, false))
-        assertEquals(listOf(all[0]), all.filtered("", null, true, true, true))
-        assertEquals(emptyList<ContractListItem>(), all.filtered("Pine", null, true, false, false))
-        assertEquals(all, all.filtered("", null, false, false, false))
+        assertEquals(listOf(all[0], all[1]), filtered(ContractListFilterState(paymentDue = true, expiresSoon = true)))
+        assertEquals(listOf(all[0]), filtered(ContractListFilterState(paymentDue = true, expiresSoon = true, hikeThisMonth = true)))
+        assertEquals(emptyList<ContractListItem>(), filtered(ContractListFilterState(query = "Pine", paymentDue = true)))
+        assertEquals(all, filtered(ContractListFilterState()))
+    }
+
+    @Test fun inactiveDateFiltersIncludeOverlappingMonthsWithoutStatusObjects() {
+        val state = ContractListFilterState(startingMonth = YearMonth.of(2027, 1))
+        assertTrue(state.matches(all[0].contract))
+        state.startingMonth = YearMonth.of(2027, 2)
+        assertFalse(state.matches(all[0].contract))
+        state.startingMonth = null
+        state.finishingMonth = YearMonth.of(2025, 12)
+        assertFalse(state.matches(all[0].contract))
+        state.clear()
+        assertFalse(state.hasActiveFilters)
+        assertTrue(state.matches(all[0].contract))
+    }
+
+    @Test fun savedFiltersRestoreDatesAndClearAllFields() {
+        val state = ContractListFilterState("Oak", 10, YearMonth.of(2026, 3), YearMonth.of(2026, 8), true, true, true)
+        val saved = with(ContractListFilterState.Saver) { SaverScope { it is String }.save(state)!! }
+        val restored = ContractListFilterState.Saver.restore(saved)!!
+        assertEquals(filtered(state), filtered(restored))
+        assertEquals(state.startingMonth, restored.startingMonth)
+        assertEquals(state.finishingMonth, restored.finishingMonth)
+        restored.clear()
+        assertFalse(restored.hasActiveFilters)
+        assertEquals(all, filtered(restored))
+        assertTrue(state.hasActiveFilters)
     }
 }

@@ -47,42 +47,10 @@ import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 
-internal fun List<ContractListItem>.filtered(
-    query: String,
-    ownerId: Long?,
-    paymentDue: Boolean,
-    expiresSoon: Boolean,
-    hikeThisMonth: Boolean,
-    startingMonth: YearMonth? = null,
-    finishingMonth: YearMonth? = null,
-): List<ContractListItem> = filter { item ->
-    item.contract.property.toString().contains(query.trim(), ignoreCase = true) &&
-        (ownerId == null || item.contract.property.owner.id == ownerId) &&
-        (!paymentDue || item.paymentDue) &&
-        (!expiresSoon || item.expiresSoon) &&
-        (!hikeThisMonth || item.hikeThisMonth) &&
-        (startingMonth == null || item.contract.finishingMonth >= startingMonth) &&
-        (finishingMonth == null || item.contract.startingMonth <= finishingMonth)
-}
-
 @Composable
 internal fun ContractListFilters(
-    query: String,
-    onQueryChange: (String) -> Unit,
+    state: ContractListFilterState,
     owners: List<Owner>,
-    ownerId: Long?,
-    onOwnerChange: (Long?) -> Unit,
-    startingMonth: YearMonth? = null,
-    onStartingMonthChange: ((YearMonth?) -> Unit)? = null,
-    finishingMonth: YearMonth? = null,
-    onFinishingMonthChange: ((YearMonth?) -> Unit)? = null,
-    paymentDue: Boolean = false,
-    onPaymentDueChange: (Boolean) -> Unit = {},
-    expiresSoon: Boolean = false,
-    onExpiresSoonChange: (Boolean) -> Unit = {},
-    hikeThisMonth: Boolean = false,
-    onHikeThisMonthChange: (Boolean) -> Unit = {},
-    onClear: () -> Unit,
     showStatusFilters: Boolean = true,
     showDateFilters: Boolean = false,
     modifier: Modifier = Modifier
@@ -91,27 +59,24 @@ internal fun ContractListFilters(
     var showStartPicker by remember { mutableStateOf(false) }
     var showFinishPicker by remember { mutableStateOf(false) }
 
-    val hasActiveFilters = query.isNotBlank() || ownerId != null || paymentDue ||
-        expiresSoon || hikeThisMonth || startingMonth != null || finishingMonth != null
-
-    if (showStartPicker && onStartingMonthChange != null) {
+    if (showStartPicker && showDateFilters) {
         MonthPickerDialog(
             title = "Filter by start date",
-            initialMonth = startingMonth,
+            initialMonth = state.startingMonth,
             onMonthSelected = {
-                onStartingMonthChange(it)
+                state.startingMonth = it
                 showStartPicker = false
             },
             onDismiss = { showStartPicker = false }
         )
     }
 
-    if (showFinishPicker && onFinishingMonthChange != null) {
+    if (showFinishPicker && showDateFilters) {
         MonthPickerDialog(
             title = "Filter by end date",
-            initialMonth = finishingMonth,
+            initialMonth = state.finishingMonth,
             onMonthSelected = {
-                onFinishingMonthChange(it)
+                state.finishingMonth = it
                 showFinishPicker = false
             },
             onDismiss = { showFinishPicker = false }
@@ -123,8 +88,8 @@ internal fun ContractListFilters(
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         OutlinedTextField(
-            value = query,
-            onValueChange = onQueryChange,
+            value = state.query,
+            onValueChange = { state.query = it },
             placeholder = { Text("Search by address, unit...") },
             singleLine = true,
             shape = RoundedCornerShape(16.dp),
@@ -135,8 +100,8 @@ internal fun ContractListFilters(
                 )
             },
             trailingIcon = {
-                if (query.isNotEmpty()) {
-                    IconButton(onClick = { onQueryChange("") }) {
+                if (state.query.isNotEmpty()) {
+                    IconButton(onClick = { state.query = "" }) {
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Clear search"
@@ -153,8 +118,8 @@ internal fun ContractListFilters(
         ) {
             if (showStatusFilters) {
                 FilterChip(
-                    selected = paymentDue,
-                    onClick = { onPaymentDueChange(!paymentDue) },
+                    selected = state.paymentDue,
+                    onClick = { state.paymentDue = !state.paymentDue },
                     label = { Text("Payment due") },
                     leadingIcon = {
                         Icon(
@@ -166,8 +131,8 @@ internal fun ContractListFilters(
                 )
 
                 FilterChip(
-                    selected = expiresSoon,
-                    onClick = { onExpiresSoonChange(!expiresSoon) },
+                    selected = state.expiresSoon,
+                    onClick = { state.expiresSoon = !state.expiresSoon },
                     label = { Text("Expires soon") },
                     leadingIcon = {
                         Icon(
@@ -179,8 +144,8 @@ internal fun ContractListFilters(
                 )
 
                 FilterChip(
-                    selected = hikeThisMonth,
-                    onClick = { onHikeThisMonthChange(!hikeThisMonth) },
+                    selected = state.hikeThisMonth,
+                    onClick = { state.hikeThisMonth = !state.hikeThisMonth },
                     label = { Text("Hike this month") },
                     leadingIcon = {
                         Icon(
@@ -192,13 +157,13 @@ internal fun ContractListFilters(
                 )
             }
 
-            if (showDateFilters && onStartingMonthChange != null) {
+            if (showDateFilters) {
                 FilterChip(
-                    selected = startingMonth != null,
+                    selected = state.startingMonth != null,
                     onClick = { showStartPicker = true },
                     label = {
                         Text(
-                            startingMonth?.let { "From " + it.format(DateTimeFormatter.ofPattern("MMM yyyy")) } ?: "From date"
+                            state.startingMonth?.let { "From " + it.format(DateTimeFormatter.ofPattern("MMM yyyy")) } ?: "From date"
                         )
                     },
                     leadingIcon = {
@@ -209,9 +174,9 @@ internal fun ContractListFilters(
                         )
                     },
                     trailingIcon = {
-                        if (startingMonth != null) {
+                        if (state.startingMonth != null) {
                             IconButton(
-                                onClick = { onStartingMonthChange(null) },
+                                onClick = { state.startingMonth = null },
                                 modifier = Modifier.size(16.dp)
                             ) {
                                 Icon(
@@ -225,13 +190,13 @@ internal fun ContractListFilters(
                 )
             }
 
-            if (showDateFilters && onFinishingMonthChange != null) {
+            if (showDateFilters) {
                 FilterChip(
-                    selected = finishingMonth != null,
+                    selected = state.finishingMonth != null,
                     onClick = { showFinishPicker = true },
                     label = {
                         Text(
-                            finishingMonth?.let { "To " + it.format(DateTimeFormatter.ofPattern("MMM yyyy")) } ?: "To date"
+                            state.finishingMonth?.let { "To " + it.format(DateTimeFormatter.ofPattern("MMM yyyy")) } ?: "To date"
                         )
                     },
                     leadingIcon = {
@@ -242,9 +207,9 @@ internal fun ContractListFilters(
                         )
                     },
                     trailingIcon = {
-                        if (finishingMonth != null) {
+                        if (state.finishingMonth != null) {
                             IconButton(
-                                onClick = { onFinishingMonthChange(null) },
+                                onClick = { state.finishingMonth = null },
                                 modifier = Modifier.size(16.dp)
                             ) {
                                 Icon(
@@ -260,12 +225,12 @@ internal fun ContractListFilters(
 
             Box {
                 FilterChip(
-                    selected = ownerId != null,
+                    selected = state.ownerId != null,
                     onClick = { ownersExpanded = true },
                     label = {
                         Text(
-                            if (ownerId == null) "All owners"
-                            else owners.firstOrNull { it.id == ownerId }?.name ?: "Owner"
+                            if (state.ownerId == null) "All owners"
+                            else owners.firstOrNull { it.id == state.ownerId }?.name ?: "Owner"
                         )
                     },
                     leadingIcon = {
@@ -290,7 +255,7 @@ internal fun ContractListFilters(
                     DropdownMenuItem(
                         text = { Text("All owners") },
                         onClick = {
-                            onOwnerChange(null)
+                            state.ownerId = null
                             ownersExpanded = false
                         }
                     )
@@ -298,7 +263,7 @@ internal fun ContractListFilters(
                         DropdownMenuItem(
                             text = { Text(owner.name) },
                             onClick = {
-                                onOwnerChange(owner.id)
+                                state.ownerId = owner.id
                                 ownersExpanded = false
                             }
                         )
@@ -306,9 +271,9 @@ internal fun ContractListFilters(
                 }
             }
 
-            if (hasActiveFilters) {
+            if (state.hasActiveFilters) {
                 TextButton(
-                    onClick = onClear,
+                    onClick = state::clear,
                     modifier = Modifier.align(Alignment.CenterVertically)
                 ) {
                     Icon(
