@@ -72,4 +72,21 @@ class ContractDetailViewModel(
             }
         }
     }
+
+    fun deleteContract(onDeleted: () -> Unit) {
+        if (uiState.value !is ContractDetailUiState.Ready) return
+        if (finishState.value.saving) return
+        finishState.value = FinishState(saving = true)
+        viewModelScope.launch {
+            try {
+                contractRepository.delete(contractId)
+                onDeleted()
+                finishState.value = FinishState()
+            } catch (error: CancellationException) {
+                throw error
+            } catch (_: Exception) {
+                finishState.value = FinishState(error = "Could not delete the contract. Please try again.")
+            }
+        }
+    }
 }

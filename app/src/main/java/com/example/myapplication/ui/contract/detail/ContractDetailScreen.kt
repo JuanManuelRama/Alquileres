@@ -92,8 +92,12 @@ fun ContractDetailScreen(
             },
             confirmButton = {
                 TextButton(
+                    enabled = !state.isFinishing,
                     onClick = {
-                        showDeleteDialog = false
+                        viewModel.deleteContract {
+                            showDeleteDialog = false
+                            onBackClick()
+                        }
                     }
                 ) {
                     Text(
@@ -103,7 +107,7 @@ fun ContractDetailScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false } ) {
+                TextButton(onClick = { showDeleteDialog = false }) {
                     Text("Cancel")
                 }
             }

@@ -31,7 +31,7 @@ import com.example.myapplication.data.entity.ServiceEntity
         BillEntity::class,
         BillItemEntity::class
     ],
-    version = 19,
+    version = 20,
     exportSchema = false
 )
 @ColumnTypeConverters(Converters::class)

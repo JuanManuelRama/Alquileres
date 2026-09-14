@@ -90,4 +90,24 @@ class ContractFinishingTest {
             assertTrue(repo.list(id).all { it.paidAt == date })
         } finally { db.close() }
     }
+
+    @Test fun deletingContractCascadesToBillsItemsAdjustmentsAndCrossRefs() = runTest {
+        val db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
+        try {
+            val owner = db.ownerDao().insert(OwnerEntity(name = "Owner"))
+            val property = db.propertyDao().insertProperty(PropertyEntity(address = Address("Main", "1", null), ownerId = owner))
+            val service = db.serviceDao().insert(ServiceEntity(name = "Water"))
+            val month = YearMonth.of(2026, 1)
+            val id = db.contractDao().saveContract(
+                ContractEntity(propertyId = property, tenant = Tenant("Tenant", "123"), rent = BigDecimal("1000"),
+                    startingMonth = month, finishingMonth = month.plusMonths(1)),
+                listOf(service), listOf(AdjustmentEntity(0, month, BigDecimal.ZERO))
+            )
+            db.billDao().createAll(db.contractDao().observeById(id).first()!!.toDomain().createBills())
+
+            assertEquals(1, db.contractDao().deleteContract(id))
+            assertNull(db.contractDao().observeById(id).first())
+            assertTrue(db.billDao().list(id).isEmpty())
+        } finally { db.close() }
+    }
 }

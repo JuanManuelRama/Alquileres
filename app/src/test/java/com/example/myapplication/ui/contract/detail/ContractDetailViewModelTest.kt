@@ -145,7 +145,25 @@ class ContractDetailViewModelTest {
         assertTrue((other.uiState.value as ContractDetailUiState.Ready).paidMonths.isEmpty())
     }
 
+    @Test fun deleteContractDeletesDataAndInvokesCallback() = runTest {
+        var deleted = false
+        contracts.results[1L] = MutableStateFlow(contract(1L))
+        val model = viewModel(1L)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { model.uiState.collect {} }
+        runCurrent()
+        assertTrue(model.uiState.value is ContractDetailUiState.Ready)
+        model.deleteContract { deleted = true }
+        runCurrent()
+        assertTrue(deleted)
+        assertEquals(ContractDetailUiState.NotFound, model.uiState.value)
+    }
+
     private class TestContractDao : ContractDao {
+        override suspend fun deleteContract(contractId: Long): Int {
+            val state = results[contractId] ?: return 0
+            state.value = null
+            return 1
+        }
         override suspend fun finish(contractId: Long, requireAllPaid: Boolean): Int {
             val state = results.getValue(contractId)
             val current = state.value ?: return 0

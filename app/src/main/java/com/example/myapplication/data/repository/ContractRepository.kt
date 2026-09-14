@@ -40,4 +40,10 @@ class ContractRepository(private val dao: ContractDao, private val bills: BillDa
             "Could not finish this contract. Check that all bills are paid and try again."
         }
     }
+
+    suspend fun delete(contractId: Long) {
+        check(dao.deleteContract(contractId) == 1) {
+            "Could not delete this contract."
+        }
+    }
 }

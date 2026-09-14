@@ -81,6 +81,9 @@ interface ContractDao {
     """)
     suspend fun finish(contractId: Long, requireAllPaid: Boolean): Int
 
+    @Query("DELETE FROM Contract WHERE id = :contractId")
+    suspend fun deleteContract(contractId: Long): Int
+
     @Query("UPDATE Adjustment SET amount = :amount WHERE contractId = :contractId AND time = :time AND EXISTS (SELECT 1 FROM Contract WHERE id = :contractId AND isFinished = 0) AND NOT EXISTS (SELECT 1 FROM Bill WHERE contractId = :contractId AND billingMonth >= :time AND paidAt IS NOT NULL)")
     suspend fun updateAdjustmentAmount(contractId: Long, time: YearMonth, amount: BigDecimal?)
 

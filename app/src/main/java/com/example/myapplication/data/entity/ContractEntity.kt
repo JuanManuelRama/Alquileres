@@ -50,7 +50,8 @@ fun Contract.toEntity(): ContractEntity = ContractEntity(
         ForeignKey(
             entity = ContractEntity::class,
             parentColumns = ["id"],
-            childColumns = ["contractId"]
+            childColumns = ["contractId"],
+            onDelete = ForeignKey.CASCADE
         ),
         ForeignKey(
             entity = ServiceEntity::class,
