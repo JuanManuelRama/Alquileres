@@ -12,7 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -72,7 +72,7 @@ fun ContractListScreen(
                 NavigationBarItem(
                     selected = isInactive,
                     onClick = { onTabSelected(true) },
-                    icon = { Icon(Icons.Default.CheckCircle, contentDescription = null) },
+                    icon = { Icon(Icons.Default.Archive, contentDescription = null) },
                     label = { Text("Inactive") }
                 )
             }

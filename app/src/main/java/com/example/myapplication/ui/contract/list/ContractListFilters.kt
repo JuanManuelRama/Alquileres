@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
@@ -120,7 +121,7 @@ internal fun ContractListFilters(
                 FilterChip(
                     selected = state.paymentDue,
                     onClick = { state.paymentDue = !state.paymentDue },
-                    label = { Text("Payment due") },
+                    label = { Text("Due") },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Warning,
@@ -133,10 +134,10 @@ internal fun ContractListFilters(
                 FilterChip(
                     selected = state.expiresSoon,
                     onClick = { state.expiresSoon = !state.expiresSoon },
-                    label = { Text("Expires soon") },
+                    label = { Text("Expiring") },
                     leadingIcon = {
                         Icon(
-                            imageVector = Icons.Default.DateRange,
+                            imageVector = Icons.Default.HourglassEmpty,
                             contentDescription = null,
                             modifier = Modifier.size(FilterChipDefaults.IconSize)
                         )
@@ -146,7 +147,7 @@ internal fun ContractListFilters(
                 FilterChip(
                     selected = state.hikeThisMonth,
                     onClick = { state.hikeThisMonth = !state.hikeThisMonth },
-                    label = { Text("Hike this month") },
+                    label = { Text("Hike") },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.KeyboardArrowUp,
@@ -163,7 +164,7 @@ internal fun ContractListFilters(
                     onClick = { showStartPicker = true },
                     label = {
                         Text(
-                            state.startingMonth?.let { "From " + it.format(DateTimeFormatter.ofPattern("MMM yyyy")) } ?: "From date"
+                            state.startingMonth?.let { "From " + it.format(DateTimeFormatter.ofPattern("MMM yyyy")) } ?: "From"
                         )
                     },
                     leadingIcon = {
@@ -196,7 +197,7 @@ internal fun ContractListFilters(
                     onClick = { showFinishPicker = true },
                     label = {
                         Text(
-                            state.finishingMonth?.let { "To " + it.format(DateTimeFormatter.ofPattern("MMM yyyy")) } ?: "To date"
+                            state.finishingMonth?.let { "To " + it.format(DateTimeFormatter.ofPattern("MMM yyyy")) } ?: "To"
                         )
                     },
                     leadingIcon = {
@@ -229,7 +230,7 @@ internal fun ContractListFilters(
                     onClick = { ownersExpanded = true },
                     label = {
                         Text(
-                            if (state.ownerId == null) "All owners"
+                            if (state.ownerId == null) "Owners"
                             else owners.firstOrNull { it.id == state.ownerId }?.name ?: "Owner"
                         )
                     },

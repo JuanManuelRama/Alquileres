@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.CardDefaults
@@ -106,7 +106,7 @@ fun ContractListCard(
                     }
                     if (item.expiresSoon) {
                         ContractStatusBadge(
-                            icon = Icons.Default.DateRange,
+                            icon = Icons.Default.HourglassEmpty,
                             label = "Expires soon",
                             containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                             contentColor = MaterialTheme.colorScheme.onTertiaryContainer
