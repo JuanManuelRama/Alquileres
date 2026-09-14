@@ -122,7 +122,7 @@ class ContractDetailViewModelTest {
         val model = viewModel(1L)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { model.uiState.collect {} }
         runCurrent()
-        model.finishContract(requireAllPaid = true) { finished = true }
+        model.finishContract(requireAllPaid = true, onFinished = { finished = true })
         runCurrent()
         assertFalse(finished)
         val activeContract = (model.uiState.value as ContractDetailUiState.Ready).contract
@@ -130,7 +130,7 @@ class ContractDetailViewModelTest {
             .takeWhile { it <= activeContract.finishingMonth }.toList()
         runCurrent()
         assertTrue((model.uiState.value as ContractDetailUiState.Ready).allBillsPaid)
-        model.finishContract(requireAllPaid = true) { finished = true }
+        model.finishContract(requireAllPaid = true, onFinished = { finished = true })
         runCurrent()
         assertTrue(finished)
 
@@ -139,7 +139,7 @@ class ContractDetailViewModelTest {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { other.uiState.collect {} }
         runCurrent()
         var cancelled = false
-        other.finishContract(requireAllPaid = false) { cancelled = true }
+        other.finishContract(requireAllPaid = false, onFinished = { cancelled = true })
         runCurrent()
         assertTrue(cancelled)
         assertTrue((other.uiState.value as ContractDetailUiState.Ready).paidMonths.isEmpty())
@@ -164,10 +164,15 @@ class ContractDetailViewModelTest {
             state.value = null
             return 1
         }
-        override suspend fun finish(contractId: Long, requireAllPaid: Boolean): Int {
+        override suspend fun updateContractFinished(contractId: Long, requireAllPaid: Boolean, cancellationMonth: YearMonth): Int = error("Unused")
+        override suspend fun deleteFutureBills(contractId: Long, cancellationMonth: YearMonth): Int = 0
+        override suspend fun deleteFutureAdjustments(contractId: Long, cancellationMonth: YearMonth): Int = 0
+
+        override suspend fun finish(contractId: Long, requireAllPaid: Boolean, cancellationMonth: YearMonth): Int {
             val state = results.getValue(contractId)
             val current = state.value ?: return 0
-            state.value = current.copy(contract = current.contract.copy(isFinished = true))
+            val newFinishingMonth = if (!requireAllPaid && cancellationMonth < current.contract.finishingMonth) cancellationMonth else current.contract.finishingMonth
+            state.value = current.copy(contract = current.contract.copy(isFinished = true, finishingMonth = newFinishingMonth))
             return 1
         }
         override fun observeInactive(): Flow<List<BasicContract>> = error("Unused")

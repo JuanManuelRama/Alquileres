@@ -35,7 +35,22 @@
       </SelectionState>
       <SelectionState runConfigName="Tests in 'com.example.myapplication'">
         <option name="selectionMode" value="DROPDOWN" />
-        <DialogSelection />
+        <DropdownSelection timestamp="2026-09-14T13:36:01.726133900Z">
+          <Target type="DEFAULT_BOOT">
+            <handle>
+              <DeviceId pluginId="Wireless" identifier="serviceName=adb-R5CY410K0AV-uNufEU" />
+            </handle>
+          </Target>
+        </DropdownSelection>
+        <DialogSelection>
+          <targets>
+            <Target type="DEFAULT_BOOT">
+              <handle>
+                <DeviceId pluginId="Wireless" identifier="serviceName=adb-R5CY410K0AV-uNufEU" />
+              </handle>
+            </Target>
+          </targets>
+        </DialogSelection>
       </SelectionState>
       <SelectionState runConfigName="paymentRecalculatesRentAndLocksAllAffectingAdjustments()">
         <option name="selectionMode" value="DROPDOWN" />
