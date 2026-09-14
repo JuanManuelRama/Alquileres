@@ -2,10 +2,7 @@ package com.example.myapplication.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -30,7 +27,7 @@ fun AppNavigation(
     viewModelFactory: AppViewModelFactory,
     modifier: Modifier = Modifier
 ) {
-    val backStack = rememberNavBackStack(ContractList)
+    val backStack = rememberNavBackStack(ContractList(isInactive = false))
 
     NavDisplay(
         backStack = backStack,
@@ -43,13 +40,17 @@ fun AppNavigation(
         entryProvider = { key ->
             when (val route = key as Route) {
                 is ContractList -> NavEntry(route) {
-                    var isInactive by rememberSaveable { mutableStateOf(false) }
-                    if (isInactive) {
+                    if (route.isInactive) {
                         val contracts by contractViewModel.inactiveContracts.collectAsStateWithLifecycle()
                         InactiveContractListScreen(
                             contracts = contracts,
                             onContractClick = { backStack.add(ContractDetail(it.id, isInactive = true)) },
-                            onTabSelected = { isInactive = it }
+                            onTabSelected = { isInactive ->
+                                if (!isInactive) {
+                                    val index = backStack.indexOf(route)
+                                    if (index >= 0) backStack[index] = ContractList(isInactive = false)
+                                }
+                            }
                         )
                     } else {
                         val listState by contractViewModel.listState.collectAsStateWithLifecycle()
@@ -57,7 +58,12 @@ fun AppNavigation(
                             state = listState,
                             onContractClick = { backStack.add(ContractDetail(it.id, isInactive = false)) },
                             addContractClick = { backStack.add(AddPropiedad) },
-                            onTabSelected = { isInactive = it }
+                            onTabSelected = { isInactive ->
+                                if (isInactive) {
+                                    val index = backStack.indexOf(route)
+                                    if (index >= 0) backStack[index] = ContractList(isInactive = true)
+                                }
+                            }
                         )
                     }
                 }

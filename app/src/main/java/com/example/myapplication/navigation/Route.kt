@@ -6,10 +6,10 @@ import kotlinx.serialization.Serializable
 sealed interface Route : NavKey
 
 @Serializable
-data object ContractList : Route
+data class ContractList(val isInactive: Boolean) : Route
 
 @Serializable
-data class ContractDetail(val contractId: Long, val isInactive: Boolean = false) : Route
+data class ContractDetail(val contractId: Long, val isInactive: Boolean) : Route
 
 @Serializable
 data object AddPropiedad : Route
