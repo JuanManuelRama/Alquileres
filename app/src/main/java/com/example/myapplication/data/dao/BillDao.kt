@@ -10,7 +10,6 @@ import com.example.myapplication.data.entity.BillWithItems
 import com.example.myapplication.data.entity.itemEntities
 import com.example.myapplication.data.entity.toEntity
 import com.example.myapplication.model.Bill
-import com.example.myapplication.model.Contract
 import kotlinx.coroutines.flow.Flow
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -26,19 +25,11 @@ interface BillDao {
     suspend fun list(contractId: Long): List<BillWithItems>
 
     @Transaction
-    suspend fun createAll(bills: List<Bill>) {
-        bills.forEach { bill ->
-            val id = insertBill(bill.toEntity())
-            insertItems(bill.itemEntities().map { it.copy(billId = id) })
+    suspend fun createAll(billsWithItems: Map<BillEntity, List<BillItemEntity>>) {
+        billsWithItems.forEach { (bill, items) ->
+            val id = insertBill(bill)
+            insertItems(items.map { it.copy(billId = id) })
         }
-    }
-
-    @Transaction
-    suspend fun createContract(contract: Contract, contracts: ContractDao): Long {
-        val id = contracts.saveContract(contract.toEntity(), contract.services.map { it.id },
-            contract.adjustments.map { it.toEntity() })
-        createAll(contract.copy(id = id).createBills())
-        return id
     }
 
     @Transaction
@@ -59,12 +50,12 @@ interface BillDao {
 
     @Transaction
     suspend fun markPaid(bill: Bill, date: LocalDate): BillWithItems {
-        require(!bill.isPaid) { "Complete all amounts before confirming payment" }
-        require(!date.isAfter(LocalDate.now())) { "Payment date cannot be in the future" }
+        // The repository validates input; stored state and rent are resolved in this transaction.
         save(bill.toEntity(), bill.itemEntities())
-        val current = checkNotNull(find(bill.contract.id, bill.month)).toDomain(bill.contract)
-        require(current.isValid) { "Complete all amounts before confirming payment" }
-        check(setPaidDate(bill.id, date, current.rent) == 1) { "Bill is already paid" }
+        val current = checkNotNull(find(bill.contract.id, bill.month)).toDomain()
+        check(setPaidDate(bill.id, date, current.rent) == 1) {
+            "Bill no longer exists, is already paid, or its contract is finished"
+        }
         return checkNotNull(find(bill.contract.id, bill.month))
     }
 
@@ -73,10 +64,11 @@ interface BillDao {
 
     @Transaction
     suspend fun save(bill: BillEntity, items: List<BillItemEntity>) {
-        require(bill.paidAt == null) { "Paid bills cannot be edited" }
         val stored = checkNotNull(find(bill.contractId, bill.billingMonth)) { "Bill no longer exists" }
         check(stored.bill.id == bill.id) { "Bill identity does not match" }
-        check(updateUnpaidBill(bill.id, bill.updatedAt) == 1) { "Paid bills cannot be edited" }
+        check(updateUnpaidBill(bill.id, bill.updatedAt) == 1) {
+            "Bill no longer exists, is already paid, or its contract is finished"
+        }
         deleteItems(bill.id)
         insertItems(items)
     }

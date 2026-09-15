@@ -3,13 +3,15 @@ package com.example.myapplication.data.repository
 import com.example.myapplication.data.dao.BillDao
 import com.example.myapplication.data.dao.ContractDao
 import com.example.myapplication.data.entity.ContractWithStatus
+import com.example.myapplication.data.entity.itemEntities
+import com.example.myapplication.data.entity.toEntity
 import com.example.myapplication.model.Contract
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.math.BigDecimal
 import java.time.YearMonth
 
-class ContractRepository(private val dao: ContractDao, private val bills: BillDao) {
+class ContractRepository(private val dao: ContractDao, private val billDao: BillDao) {
     fun observeWithStatus(month: YearMonth): Flow<List<ContractWithStatus>> =
         dao.observeWithStatus(month)
 
@@ -27,12 +29,20 @@ class ContractRepository(private val dao: ContractDao, private val bills: BillDa
     }
 
     suspend fun insert(contract: Contract): Contract {
-        val id = bills.createContract(contract, dao)
+        val id = dao.saveContract(
+            contract = contract.toEntity(),
+            serviceIds = contract.services.map { it.id },
+            adjustments = contract.adjustments.map { it.toEntity() },
+            bills = contract.createBills().associate { bill -> bill.toEntity() to bill.itemEntities() },
+            billDao = billDao
+        )
         return contract.copy(id = id)
     }
 
     suspend fun updateAdjustmentAmount(contractId: Long, time: YearMonth, amount: BigDecimal?) {
-        dao.updateAdjustmentAmount(contractId, time, amount)
+        check(dao.updateAdjustmentAmount(contractId, time, amount) == 1) {
+            "Adjustment no longer exists, its contract is finished, or an affected bill is already paid"
+        }
     }
 
     suspend fun finish(contractId: Long, requireAllPaid: Boolean, cancellationMonth: YearMonth = YearMonth.now()) {

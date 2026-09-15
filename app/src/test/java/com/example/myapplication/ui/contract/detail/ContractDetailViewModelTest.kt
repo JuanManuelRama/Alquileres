@@ -180,15 +180,16 @@ class ContractDetailViewModelTest {
         val results = mutableMapOf<Long, MutableStateFlow<ContractWithRelations?>>()
         override fun observeById(contractId: Long): Flow<ContractWithRelations?> =
             results.getOrPut(contractId) { MutableStateFlow(null) }
-        override suspend fun updateAdjustmentAmount(contractId: Long, time: YearMonth, amount: BigDecimal?) {
+        override suspend fun updateAdjustmentAmount(contractId: Long, time: YearMonth, amount: BigDecimal?): Int {
             val state = results.getValue(contractId)
             state.value = state.value?.let { contract ->
                 contract.copy(adjustments = contract.adjustments.map { if (it.time == time) it.copy(amount = amount) else it })
             }
+            return state.value?.adjustments?.count { it.time == time } ?: 0
         }
         override fun getAllContracts(): Flow<List<ContractWithRelations>> = error("Detail must query by ID")
         override suspend fun insertContract(contract: ContractEntity): Long = error("Unused")
-        override suspend fun insertContractServiceCrossRefs(crossRefs: List<ContractServiceCrossRef>): Unit = error("Unused")
+        override suspend fun insertContractService(contractRefService: List<ContractServiceCrossRef>): Unit = error("Unused")
         override suspend fun insertAdjustments(adjustments: List<AdjustmentEntity>): Unit = error("Unused")
     }
 

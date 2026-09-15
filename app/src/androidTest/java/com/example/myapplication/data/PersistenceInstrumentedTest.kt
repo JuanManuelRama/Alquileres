@@ -3,6 +3,8 @@ package com.example.myapplication.data
 import androidx.room3.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.example.myapplication.data.entity.itemEntities
+import com.example.myapplication.data.entity.toEntity
 import com.example.myapplication.data.entity.AdjustmentEntity
 import com.example.myapplication.data.entity.ContractEntity
 import com.example.myapplication.data.entity.OwnerEntity
@@ -91,7 +93,7 @@ class PersistenceInstrumentedTest {
             rent = BigDecimal("1000"), startingMonth = date.minusMonths(6), finishingMonth = date.plusMonths(6)
         )
         val firstId = database.contractDao().saveContract(
-            contract, emptyList(), listOf(AdjustmentEntity(contractId = 0, time = date, amount = null))
+            contract, emptyList(), listOf(AdjustmentEntity(contractId = 0, time = date, amount = null)), bills = emptyMap(), billDao = database.billDao()
         )
         val secondId = database.contractDao().insertContract(contract)
         assertNull(database.contractDao().observeById(-1L).first())
@@ -103,7 +105,7 @@ class PersistenceInstrumentedTest {
         assertEquals("Owner", updated.property.owner.name)
         assertTrue(database.contractDao().observeById(secondId).first()!!.adjustments.isEmpty())
 
-        database.billDao().createAll(updated.toDomain().createBills())
+        database.billDao().createAll(updated.toDomain().createBills().associate { it.toEntity() to it.itemEntities() })
         val bill = database.billDao().find(firstId, date)!!.toDomain()
         database.billDao().markPaid(bill, date.atDay(1))
         assertEquals(listOf(date), database.billDao().observePaidMonths(firstId).first())
@@ -161,6 +163,8 @@ class PersistenceInstrumentedTest {
             adjustments = listOf(
                 AdjustmentEntity(contractId = 0, time = adjustmentDate, amount = BigDecimal("0.10")),
             ),
+            bills = emptyMap(),
+            billDao = database.billDao(),
         )
 
         val result = database.contractDao().getAllContracts().first().single()

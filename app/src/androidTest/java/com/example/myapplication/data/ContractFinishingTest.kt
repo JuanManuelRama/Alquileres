@@ -25,17 +25,33 @@ class ContractFinishingTest {
         try {
             val original = Room.databaseBuilder(context, AppDatabase::class.java, name).build()
             val id = try { seed(original) } finally { original.close() }
-            // Reconstruct the version-18 shape; only the new flag differs from version 19.
+            // Reconstruct version 18: no finished flag and no service-link delete cascade.
             SQLiteDatabase.openDatabase(context.getDatabasePath(name).path, null, SQLiteDatabase.OPEN_READWRITE).use {
                 it.execSQL("ALTER TABLE Contract DROP COLUMN isFinished")
+                it.execSQL("DROP TABLE ContractServiceCrossRef")
+                it.execSQL("""
+                    CREATE TABLE ContractServiceCrossRef (
+                        contractId INTEGER NOT NULL, serviceId INTEGER NOT NULL,
+                        PRIMARY KEY(contractId, serviceId),
+                        FOREIGN KEY(contractId) REFERENCES Contract(id) ON DELETE NO ACTION,
+                        FOREIGN KEY(serviceId) REFERENCES Service(id) ON DELETE NO ACTION
+                    )
+                """.trimIndent())
+                it.execSQL("CREATE INDEX index_ContractServiceCrossRef_serviceId ON ContractServiceCrossRef(serviceId)")
+                it.execSQL("INSERT INTO Service (id, name) VALUES (1, 'Water')")
+                it.execSQL("INSERT INTO ContractServiceCrossRef (contractId, serviceId) VALUES ($id, 1)")
                 it.version = 18
             }
             val migrated = Room.databaseBuilder(context, AppDatabase::class.java, name)
-                .addMigrations(AppDatabase.MIGRATION_18_19).build()
+                .addMigrations(AppDatabase.MIGRATION_18_19, AppDatabase.MIGRATION_19_20).build()
             try {
                 assertEquals(id, migrated.contractDao().observeWithStatus(YearMonth.of(2026, 1)).first().single().details.contract.id)
                 assertEquals(2, migrated.billDao().list(id).size)
                 assertTrue(migrated.contractDao().observeInactive().first().isEmpty())
+                assertEquals("Water", migrated.contractDao().observeById(id).first()!!.services.single().name)
+                assertEquals(1, migrated.contractDao().deleteContract(id))
+                assertTrue(migrated.billDao().list(id).isEmpty())
+                assertEquals("Water", migrated.serviceDao().getAll().first().single().name)
             } finally { migrated.close() }
         } finally { context.deleteDatabase(name) }
     }
@@ -47,9 +63,9 @@ class ContractFinishingTest {
         val id = db.contractDao().saveContract(
             ContractEntity(propertyId = property, tenant = Tenant("Tenant", "123"), rent = BigDecimal("1000"),
                 startingMonth = month, finishingMonth = month.plusMonths(1)),
-            emptyList(), listOf(AdjustmentEntity(0, month, BigDecimal.ZERO))
+            emptyList(), listOf(AdjustmentEntity(0, month, BigDecimal.ZERO)), bills = emptyMap(), billDao = db.billDao()
         )
-        db.billDao().createAll(db.contractDao().observeById(id).first()!!.toDomain().createBills())
+        db.billDao().createAll(db.contractDao().observeById(id).first()!!.toDomain().createBills().associate { it.toEntity() to it.itemEntities() })
         return id
     }
 
@@ -101,9 +117,9 @@ class ContractFinishingTest {
             val id = db.contractDao().saveContract(
                 ContractEntity(propertyId = property, tenant = Tenant("Tenant", "123"), rent = BigDecimal("1000"),
                     startingMonth = month, finishingMonth = month.plusMonths(1)),
-                listOf(service), listOf(AdjustmentEntity(0, month, BigDecimal.ZERO))
+                listOf(service), listOf(AdjustmentEntity(0, month, BigDecimal.ZERO)), bills = emptyMap(), billDao = db.billDao()
             )
-            db.billDao().createAll(db.contractDao().observeById(id).first()!!.toDomain().createBills())
+            db.billDao().createAll(db.contractDao().observeById(id).first()!!.toDomain().createBills().associate { it.toEntity() to it.itemEntities() })
 
             assertEquals(1, db.contractDao().deleteContract(id))
             assertNull(db.contractDao().observeById(id).first())
@@ -121,10 +137,10 @@ class ContractFinishingTest {
             val id = db.contractDao().saveContract(
                 ContractEntity(propertyId = property, tenant = Tenant("Tenant", "123"), rent = BigDecimal("1000"),
                     startingMonth = startMonth, finishingMonth = finishMonth),
-                emptyList(), emptyList()
+                emptyList(), emptyList(), bills = emptyMap(), billDao = db.billDao()
             )
             val contractDomain = db.contractDao().observeById(id).first()!!.toDomain()
-            db.billDao().createAll(contractDomain.createBills())
+            db.billDao().createAll(contractDomain.createBills().associate { it.toEntity() to it.itemEntities() })
             assertEquals(12, db.billDao().list(id).size)
 
             val cancelMonth = YearMonth.of(2026, 3)

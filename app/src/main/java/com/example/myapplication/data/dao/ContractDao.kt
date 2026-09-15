@@ -6,6 +6,8 @@ import androidx.room3.Query
 import androidx.room3.Transaction
 import com.example.myapplication.data.entity.AdjustmentEntity
 import com.example.myapplication.data.entity.BasicContract
+import com.example.myapplication.data.entity.BillEntity
+import com.example.myapplication.data.entity.BillItemEntity
 import com.example.myapplication.data.entity.ContractEntity
 import com.example.myapplication.data.entity.ContractServiceCrossRef
 import com.example.myapplication.data.entity.ContractWithRelations
@@ -67,7 +69,7 @@ interface ContractDao {
     suspend fun insertContract(contract: ContractEntity): Long
 
     @Insert
-    suspend fun insertContractServiceCrossRefs(crossRefs: List<ContractServiceCrossRef>)
+    suspend fun insertContractService(contractRefService: List<ContractServiceCrossRef>)
 
     @Insert
     suspend fun insertAdjustments(adjustments: List<AdjustmentEntity>)
@@ -105,15 +107,31 @@ interface ContractDao {
     @Query("DELETE FROM Contract WHERE id = :contractId")
     suspend fun deleteContract(contractId: Long): Int
 
-    @Query("UPDATE Adjustment SET amount = :amount WHERE contractId = :contractId AND time = :time AND EXISTS (SELECT 1 FROM Contract WHERE id = :contractId AND isFinished = 0) AND NOT EXISTS (SELECT 1 FROM Bill WHERE contractId = :contractId AND billingMonth >= :time AND paidAt IS NOT NULL)")
-    suspend fun updateAdjustmentAmount(contractId: Long, time: YearMonth, amount: BigDecimal?)
+    @Query("""
+        UPDATE Adjustment
+        SET amount = :amount
+        WHERE contractId = :contractId
+            AND time = :time
+            AND EXISTS (
+                SELECT 1 FROM Contract WHERE id = :contractId AND isFinished = 0)
+            AND NOT EXISTS (
+                SELECT 1 FROM Bill WHERE contractId = :contractId AND billingMonth >= :time AND paidAt IS NOT NULL
+            )
+            """)
+    suspend fun updateAdjustmentAmount(contractId: Long, time: YearMonth, amount: BigDecimal?): Int
 
     @Transaction
-    suspend fun saveContract(contract: ContractEntity, serviceIds: List<Long>, adjustments: List<AdjustmentEntity>): Long {
+    suspend fun saveContract(
+        contract: ContractEntity,
+        serviceIds: List<Long>,
+        adjustments: List<AdjustmentEntity>,
+        bills: Map<BillEntity, List<BillItemEntity>>,
+        billDao: BillDao
+    ): Long {
         val contractId = insertContract(contract)
-        val crossRefs = serviceIds.map { ContractServiceCrossRef(contractId, it) }
-        insertContractServiceCrossRefs(crossRefs)
+        insertContractService(serviceIds.map { ContractServiceCrossRef(contractId, it) } )
         insertAdjustments(adjustments.map { it.copy(contractId = contractId) })
+        billDao.createAll(bills.mapKeys { (bill, _ ) -> bill.copy(contractId = contractId) } )
         return contractId
     }
 }

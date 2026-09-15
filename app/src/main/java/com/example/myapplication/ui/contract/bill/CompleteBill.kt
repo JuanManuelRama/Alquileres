@@ -172,7 +172,7 @@ internal fun BillCompletionForm(
                                     value = item.description,
                                     showLabel = false,
                                     modifiable = !isSaving,
-                                    modifier = Modifier.weight(1f),
+                                    modifier = Modifier.weight(1f).semantics { contentDescription = "Item name" },
                                     onValueChange = { if (!isSaving) item.description = it }
                                 )
                             }

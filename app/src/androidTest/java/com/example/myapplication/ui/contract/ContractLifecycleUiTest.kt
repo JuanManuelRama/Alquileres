@@ -54,7 +54,7 @@ class ContractLifecycleUiTest {
         composeRule.setContent {
             MaterialTheme { BillCompletionForm(bill, false, { writes++ }, { _, _ -> writes++ }, isInactive = true) }
         }
-        composeRule.onNodeWithText("Never paid.", substring = true).assertExists()
+        composeRule.onNodeWithText("Unpaid").assertExists()
         composeRule.onNodeWithText("Save bill").assertDoesNotExist()
         composeRule.onNodeWithText("Mark as paid").assertDoesNotExist()
         composeRule.onNodeWithContentDescription("Add bill item").assertDoesNotExist()

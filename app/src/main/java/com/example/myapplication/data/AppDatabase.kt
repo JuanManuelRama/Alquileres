@@ -37,6 +37,24 @@ import com.example.myapplication.data.entity.ServiceEntity
 @ColumnTypeConverters(Converters::class)
 abstract class AppDatabase: RoomDatabase() {
     companion object {
+        val MIGRATION_19_20 = object : Migration(19, 20) {
+            override suspend fun migrate(connection: SQLiteConnection) {
+                connection.execSQL("""
+                    CREATE TABLE ContractServiceCrossRef_new (
+                        contractId INTEGER NOT NULL,
+                        serviceId INTEGER NOT NULL,
+                        PRIMARY KEY(contractId, serviceId),
+                        FOREIGN KEY(contractId) REFERENCES Contract(id) ON DELETE CASCADE,
+                        FOREIGN KEY(serviceId) REFERENCES Service(id) ON DELETE NO ACTION
+                    )
+                """.trimIndent())
+                connection.execSQL("INSERT INTO ContractServiceCrossRef_new SELECT contractId, serviceId FROM ContractServiceCrossRef")
+                connection.execSQL("DROP TABLE ContractServiceCrossRef")
+                connection.execSQL("ALTER TABLE ContractServiceCrossRef_new RENAME TO ContractServiceCrossRef")
+                connection.execSQL("CREATE INDEX index_ContractServiceCrossRef_serviceId ON ContractServiceCrossRef(serviceId)")
+            }
+        }
+
         val MIGRATION_18_19 = object : Migration(18, 19) {
             override suspend fun migrate(connection: SQLiteConnection) {
                 connection.execSQL("ALTER TABLE Contract ADD COLUMN isFinished INTEGER NOT NULL DEFAULT 0")

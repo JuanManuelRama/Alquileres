@@ -11,7 +11,7 @@ class MyApplication : Application() {
             AppDatabase::class.java,
             "my-app.db"
         )
-          //  .addMigrations(AppDatabase.MIGRATION_18_19)
+            .addMigrations(AppDatabase.MIGRATION_18_19, AppDatabase.MIGRATION_19_20)
             .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
     }

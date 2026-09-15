@@ -27,10 +27,15 @@ class BillRepository(
     override suspend fun list(contractId: Long): List<Bill> =
         dao.list(contractId).map { it.toDomain() }
 
-    override suspend fun markPaid(bill: Bill, date: LocalDate): Bill =
-        dao.markPaid(bill.copy(updatedAt = System.currentTimeMillis()), date).toDomain(bill.contract)
+    override suspend fun markPaid(bill: Bill, date: LocalDate): Bill {
+        require(!bill.isPaid) { "Bill is already paid" }
+        require(!date.isAfter(LocalDate.now())) { "Payment date cannot be in the future" }
+        require(bill.isValid) { "Complete all amounts and descriptions before confirming payment" }
+        return dao.markPaid(bill.copy(updatedAt = System.currentTimeMillis()), date).toDomain()
+    }
 
     override suspend fun save(bill: Bill): Bill {
+        require(!bill.isPaid) { "Paid bills cannot be edited" }
         val saved = bill.copy(updatedAt = System.currentTimeMillis())
         dao.save(saved.toEntity(), saved.itemEntities())
         return checkNotNull(dao.find(saved.contract.id, saved.month)).toDomain(bill.contract)
