@@ -1,6 +1,5 @@
 package com.example.myapplication.ui.contract.bill
 
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals

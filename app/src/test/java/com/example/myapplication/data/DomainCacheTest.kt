@@ -1,13 +1,24 @@
 package com.example.myapplication.data
 
-import com.example.myapplication.data.entity.*
+import com.example.myapplication.data.entity.BasicContract
+import com.example.myapplication.data.entity.BillEntity
+import com.example.myapplication.data.entity.BillItemEntity
+import com.example.myapplication.data.entity.BillWithItems
+import com.example.myapplication.data.entity.ContractEntity
+import com.example.myapplication.data.entity.ContractWithRelations
+import com.example.myapplication.data.entity.OwnerEntity
+import com.example.myapplication.data.entity.PropertyEntity
+import com.example.myapplication.data.entity.PropertyWithOwner
+import com.example.myapplication.data.entity.toEntity
 import com.example.myapplication.model.Address
 import com.example.myapplication.model.Tenant
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotSame
+import org.junit.Assert.assertSame
 import org.junit.Test
 import java.math.BigDecimal
-import java.time.YearMonth
 import java.time.LocalDate
+import java.time.YearMonth
 
 class DomainCacheTest {
     private val owner = OwnerEntity(1, "Owner")

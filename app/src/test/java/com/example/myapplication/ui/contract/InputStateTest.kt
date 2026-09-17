@@ -1,15 +1,14 @@
 package com.example.myapplication.ui.contract
 
-import com.example.myapplication.ui.contract.create.ContractInputs
 import com.example.myapplication.model.Address
 import com.example.myapplication.model.Owner
 import com.example.myapplication.model.Property
 import com.example.myapplication.model.Service
-import java.time.YearMonth
-import kotlinx.serialization.encodeToString
+import com.example.myapplication.ui.contract.create.ContractInputs
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import java.time.YearMonth
 
 class InputStateTest {
     @Test

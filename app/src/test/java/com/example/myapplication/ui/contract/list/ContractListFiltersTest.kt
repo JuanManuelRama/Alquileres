@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.contract.list
 
+import androidx.compose.runtime.saveable.SaverScope
 import com.example.myapplication.model.Address
 import com.example.myapplication.model.Contract
 import com.example.myapplication.model.Owner
@@ -8,7 +9,6 @@ import com.example.myapplication.model.Tenant
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import androidx.compose.runtime.saveable.SaverScope
 import org.junit.Test
 import java.math.BigDecimal
 import java.time.YearMonth

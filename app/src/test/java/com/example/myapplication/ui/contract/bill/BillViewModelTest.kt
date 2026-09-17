@@ -2,9 +2,9 @@ package com.example.myapplication.ui.contract.bill
 
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.repository.BillStore
+import com.example.myapplication.model.Address
 import com.example.myapplication.model.Bill
 import com.example.myapplication.model.BillItem
-import com.example.myapplication.model.Address
 import com.example.myapplication.model.Contract
 import com.example.myapplication.model.Owner
 import com.example.myapplication.model.Property
@@ -20,12 +20,16 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.math.BigDecimal
-import java.time.YearMonth
 import java.time.LocalDate
+import java.time.YearMonth
 import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
