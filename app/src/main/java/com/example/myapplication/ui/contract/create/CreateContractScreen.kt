@@ -36,7 +36,7 @@ fun CreateContractScreen(
     modifier: Modifier = Modifier,
 ) {
     var inputs by rememberSerializable {
-        mutableStateOf(ContractInputs.default())
+        mutableStateOf(ContractInputs())
     }
     val properties by viewModel.properties.collectAsStateWithLifecycle()
     val owners by viewModel.owners.collectAsStateWithLifecycle()
@@ -44,7 +44,7 @@ fun CreateContractScreen(
 
     var confirmingDiscard by rememberSaveable { mutableStateOf(false) }
     val onBack = {
-        if (inputs != ContractInputs.default()) confirmingDiscard = true else onBackClick()
+        if (inputs != ContractInputs()) confirmingDiscard = true else onBackClick()
     }
     BackHandler(onBack = onBack)
     if (confirmingDiscard) {

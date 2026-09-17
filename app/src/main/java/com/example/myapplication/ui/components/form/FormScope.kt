@@ -3,6 +3,7 @@ package com.example.myapplication.ui.components.form
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.LocalTextStyle
+import com.example.myapplication.ui.components.picker.PickerInputs
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
@@ -134,6 +135,8 @@ class FormScope {
         itemLabel: (T) -> String,
         itemSearchText: (T) -> String = itemLabel,
         createContent: @Composable (onCreated: (T) -> Unit, onCancel: () -> Unit) -> Unit,
+        pickerInputs: PickerInputs? = null,
+        onPickerInputsChanged: (PickerInputs) -> Unit = {},
         placeholder: String = "Search...",
         validate: ((List<T>) -> Validation<*>)? = null,
         onItemsChanged: (List<T>) -> Unit,
@@ -151,6 +154,8 @@ class FormScope {
                 itemLabel = itemLabel,
                 itemSearchText = itemSearchText,
                 createContent = createContent,
+                pickerInputs = pickerInputs,
+                onPickerInputsChanged = onPickerInputsChanged,
                 placeholder = placeholder,
                 validate = validate,
             ),
@@ -198,6 +203,8 @@ class FormScope {
         itemLabel: (T) -> String,
         itemSearchText: (T) -> String = itemLabel,
         createContent: @Composable (onCreated: (T) -> Unit, onCancel: () -> Unit) -> Unit,
+        pickerInputs: PickerInputs? = null,
+        onPickerInputsChanged: (PickerInputs) -> Unit = {},
         placeholder: String = "Search...",
         validate: ((T?) -> Validation<*>)? = null,
         onItemSelected: (T?) -> Unit,
@@ -215,6 +222,8 @@ class FormScope {
                 itemLabel = itemLabel,
                 itemSearchText = itemSearchText,
                 createContent = createContent,
+                pickerInputs = pickerInputs,
+                onPickerInputsChanged = onPickerInputsChanged,
                 placeholder = placeholder,
                 validate = validate,
             ),

@@ -2,10 +2,7 @@ package com.example.myapplication.ui.owner
 
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.semantics.semantics
@@ -19,12 +16,13 @@ import com.example.myapplication.ui.components.form.doesntExist
 
 @Composable
 fun OwnerCreator(
+    inputs: OwnerInputs,
+    onInputsChanged: (OwnerInputs) -> Unit,
     owners: List<Owner>,
     onCreated: (Owner) -> Unit,
     cancel: Cancel? = null,
     modifier: Modifier = Modifier,
 ) {
-    var name by remember { mutableStateOf("") }
     val existingNames = remember(owners) { owners.map { it.name }.toSet() }
 
     Form(
@@ -32,7 +30,7 @@ fun OwnerCreator(
         onSubmit = {
             onCreated(
                 Owner(
-                    name = name
+                    name = inputs.name
                 )
             )
         },
@@ -41,12 +39,12 @@ fun OwnerCreator(
     ) {
         Item(
             field = "Full Name",
-            value = name,
+            value = inputs.name,
             keyboardOptions = KeyboardOptions(
                 keyboardType =  KeyboardType.Text,
                 capitalization = KeyboardCapitalization.Words),
             modifier = Modifier.semantics { ContentType.PersonFullName },
-            onValueChange = { name = it },
+            onValueChange = { onInputsChanged(inputs.copy(name = it)) },
             validate = { Validate(it).doesntExist(existingNames) }
         )
     }

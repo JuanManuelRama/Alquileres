@@ -29,7 +29,9 @@ fun <T> MultiEntityPicker(
     label: String,
     placeholder: String = "Search...",
     isError: Boolean = false,
-    supportingText: String? = null
+    supportingText: String? = null,
+    pickerInputs: PickerInputs? = null,
+    onPickerInputsChanged: (PickerInputs) -> Unit = {}
 ) {
     Column(
         modifier = modifier,
@@ -50,6 +52,8 @@ fun <T> MultiEntityPicker(
             itemLabel = itemLabel,
             itemSearchText = itemSearchText,
             createContent = createContent,
+            pickerInputs = pickerInputs,
+            onPickerInputsChanged = onPickerInputsChanged,
             modifier = Modifier.fillMaxWidth(),
             label = label,
             placeholder = placeholder,

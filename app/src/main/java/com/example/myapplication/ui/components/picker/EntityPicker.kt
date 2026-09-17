@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSerializable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
@@ -50,9 +51,15 @@ fun <T> EntityPicker(
     label: String,
     placeholder: String = "Search...",
     isError: Boolean = false,
-    supportingText: String? = null
+    supportingText: String? = null,
+    pickerInputs: PickerInputs? = null,
+    onPickerInputsChanged: (PickerInputs) -> Unit = {}
 ) {
-    var mode by remember { mutableStateOf(EntityPickerMode.SELECT) }
+    var localInputs by rememberSerializable { mutableStateOf(PickerInputs()) }
+    val inputs = pickerInputs ?: localInputs
+    fun updateInputs(value: PickerInputs) {
+        if (pickerInputs == null) localInputs = value else onPickerInputsChanged(value)
+    }
     var creatorFocusRequest by remember { mutableStateOf(0) }
     val creatorFocusRequester = remember { FocusRequester() }
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
@@ -60,7 +67,7 @@ fun <T> EntityPicker(
     val coroutineScope = rememberCoroutineScope()
 
     fun collapseCreator() {
-        mode = EntityPickerMode.SELECT
+        if (pickerInputs == null) localInputs = PickerInputs()
         focusManager.clearFocus()
         coroutineScope.launch {
             withFrameNanos { }
@@ -75,10 +82,14 @@ fun <T> EntityPicker(
         EntitySelection(
             items = items,
             selectedItem = selectedItem,
-            onItemSelected = onItemSelected,
+            query = inputs.query,
+            onQueryChanged = { updateInputs(inputs.copy(query = it)) },
+            onItemSelected = {
+                if (pickerInputs == null) localInputs = PickerInputs()
+                onItemSelected(it)
+            },
             onCreateNew = {
-                onItemSelected(null)
-                mode = EntityPickerMode.CREATE
+                updateInputs(inputs.copy(isCreating = true))
                 creatorFocusRequest++
             },
             itemLabel = itemLabel,
@@ -92,7 +103,7 @@ fun <T> EntityPicker(
             supportingText = supportingText
         )
 
-        if (mode == EntityPickerMode.CREATE) {
+        if (inputs.isCreating) {
             LaunchedEffect(creatorFocusRequest) {
                 // Wait until the creator's input is attached before moving focus.
                 withFrameNanos { }
@@ -116,17 +127,12 @@ fun <T> EntityPicker(
                             onItemCreated(it)
                             collapseCreator()
                         },
-                        { collapseCreator() }
+                        { updateInputs(PickerInputs()); collapseCreator() }
                     )
                 }
             }
         }
     }
-}
-
-private enum class EntityPickerMode {
-    SELECT,
-    CREATE,
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -142,10 +148,11 @@ private fun <T> EntitySelection(
     label: String,
     placeholder: String,
     isError: Boolean,
-    supportingText: String?
+    supportingText: String?,
+    query: String,
+    onQueryChanged: (String) -> Unit
 ) {
     var expanded by remember(selectedItem) { mutableStateOf(false) }
-    var query by remember(selectedItem) { mutableStateOf("") }
     val hasSelection = selectedItem != null
     var inputFocused by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
@@ -182,7 +189,7 @@ private fun <T> EntitySelection(
                 value = selectedItem?.let(itemLabel) ?: query,
                 onValueChange = {
                     if (!hasSelection) {
-                        query = it
+                        onQueryChanged(it)
                         expanded = true
                     }
                 },
@@ -203,7 +210,6 @@ private fun <T> EntitySelection(
                 trailingIcon = {
                     if (hasSelection) {
                         IconButton(onClick = {
-                            query = ""
                             expanded = false
                             focusManager.clearFocus()
                             onItemSelected(null)
@@ -234,7 +240,6 @@ private fun <T> EntitySelection(
                         },
                         onClick = {
                             onItemSelected(item)
-                            query = ""
                             expanded = false
                             focusManager.clearFocus()
                         }
@@ -255,7 +260,6 @@ private fun <T> EntitySelection(
                     },
                     onClick = {
                         expanded = false
-                        query = ""
                         onCreateNew()
                     }
                 )

@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.components.form
 
 import androidx.compose.foundation.text.KeyboardOptions
+import com.example.myapplication.ui.components.picker.PickerInputs
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.TextStyle
 import java.time.LocalDate
@@ -65,6 +66,8 @@ data class PickerFormItemState<T>(
     val itemLabel: (T) -> String,
     val itemSearchText: (T) -> String = itemLabel,
     val createContent: @Composable (onCreated: (T) -> Unit, onCancel: () -> Unit) -> Unit,
+    val pickerInputs: PickerInputs? = null,
+    val onPickerInputsChanged: (PickerInputs) -> Unit = {},
     val placeholder: String = "Search $label...",
     override val validate: ((T?) -> Validation<*>)? = null,
 ) : ValidatedFormItemState<T?> {
@@ -82,6 +85,8 @@ data class MultiPickerFormItemState<T>(
     val itemLabel: (T) -> String,
     val itemSearchText: (T) -> String = itemLabel,
     val createContent: @Composable (onCreated: (T) -> Unit, onCancel: () -> Unit) -> Unit,
+    val pickerInputs: PickerInputs? = null,
+    val onPickerInputsChanged: (PickerInputs) -> Unit = {},
     val placeholder: String = "Search $label...",
     override val validate: ((List<T>) -> Validation<*>)? = null,
 ) : ValidatedFormItemState<List<T>> {

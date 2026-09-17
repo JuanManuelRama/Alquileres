@@ -5,10 +5,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.semantics.semantics
@@ -20,30 +16,30 @@ import com.example.myapplication.model.Owner
 import com.example.myapplication.model.Property
 import com.example.myapplication.ui.components.form.Cancel
 import com.example.myapplication.ui.components.form.Form
+import com.example.myapplication.ui.owner.OwnerInputs
+import com.example.myapplication.ui.components.picker.PickerInputs
 import com.example.myapplication.ui.owner.OwnerCreator
 
 @Composable
 fun PropertyCreator(
+    inputs: PropertyInputs,
+    onInputsChanged: (PropertyInputs) -> Unit,
     owners: List<Owner>,
     onCreated: (Property) -> Unit,
     cancel: Cancel? = null,
     modifier: Modifier = Modifier,
 ) {
-    var street by remember { mutableStateOf("") }
-    var number by remember { mutableStateOf("") }
-    var unit by remember { mutableStateOf("") }
-    var selectedOwner by remember { mutableStateOf<Owner?>(null) }
 
     Form(
         submitText = "Create",
         onSubmit = {
-            val owner = checkNotNull(selectedOwner)
+            val owner = checkNotNull(inputs.selectedOwner)
             onCreated(
                 Property(
                     address = Address(
-                        street = street,
-                        number = number,
-                        unit = unit
+                        street = inputs.street,
+                        number = inputs.number,
+                        unit = inputs.unit
                     ),
                     owner = owner
                 )) },
@@ -52,8 +48,8 @@ fun PropertyCreator(
     ) {
         Item(
             field = "Street",
-            value = street,
-            onValueChange = { street = it },
+            value = inputs.street,
+            onValueChange = { onInputsChanged(inputs.copy(street = it)) },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Text,
                 capitalization = KeyboardCapitalization.Words
@@ -67,15 +63,15 @@ fun PropertyCreator(
             ) {
                 Item(
                     field = "Number",
-                    value = number,
-                    onValueChange = { number = it },
+                    value = inputs.number,
+                    onValueChange = { onInputsChanged(inputs.copy(number = it)) },
                     modifier = Modifier.weight(1f).semantics { ContentType.AddressAuxiliaryDetails }
                 )
                 Item(
                     field = "Unit",
-                    value = unit,
+                    value = inputs.unit,
                     mandatory = false,
-                    onValueChange = { unit = it },
+                    onValueChange = { onInputsChanged(inputs.copy(unit = it)) },
                     modifier = Modifier.weight(1f).semantics { ContentType.AddressAuxiliaryDetails }
                 )
             }
@@ -83,18 +79,25 @@ fun PropertyCreator(
         PickerItem(
             label = "Owner",
             items = owners,
-            selectedItem = selectedOwner,
+            selectedItem = inputs.selectedOwner,
+            pickerInputs = inputs.ownerPicker,
+            onPickerInputsChanged = {
+                onInputsChanged(inputs.copy(ownerPicker = it,
+                    ownerDraft = if (it.isCreating) inputs.ownerDraft else OwnerInputs()))
+            },
             itemLabel = { it.name },
             createContent = { onCreated, onCanceled ->
                 OwnerCreator(
+                    inputs = inputs.ownerDraft,
+                    onInputsChanged = { onInputsChanged(inputs.copy(ownerDraft = it)) },
                     owners = owners,
                     onCreated = onCreated,
                     cancel = Cancel(text = "Cancel", onClick = onCanceled),
                     modifier = Modifier.fillMaxWidth()
                 )
             },
-            onItemSelected = { selectedOwner = it } ,
-            onItemCreated = { selectedOwner = it }
+            onItemSelected = { onInputsChanged(inputs.copy(selectedOwner = it, ownerPicker = PickerInputs(), ownerDraft = OwnerInputs())) } ,
+            onItemCreated = { onInputsChanged(inputs.copy(selectedOwner = it, ownerPicker = PickerInputs(), ownerDraft = OwnerInputs())) }
         )
 
     }

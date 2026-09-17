@@ -27,6 +27,9 @@ import com.example.myapplication.ui.components.form.isBigDecimal
 import com.example.myapplication.ui.components.form.isLong
 import com.example.myapplication.ui.components.form.isPositive
 import com.example.myapplication.ui.components.form.limitDecimals
+import com.example.myapplication.ui.property.PropertyInputs
+import com.example.myapplication.ui.service.ServiceInputs
+import com.example.myapplication.ui.components.picker.PickerInputs
 import com.example.myapplication.ui.property.PropertyCreator
 import com.example.myapplication.ui.service.ServiceCreator
 import java.math.BigDecimal
@@ -72,17 +75,26 @@ fun ContractCreator(
             label = "Property",
             items = properties,
             selectedItem = inputs.selectedProperty,
+            pickerInputs = inputs.propertyPicker,
+            onPickerInputsChanged = {
+                onInputsChanged (inputs.copy(
+                    propertyPicker = it,
+                    propertyDraft = if (it.isCreating) inputs.propertyDraft else PropertyInputs()
+                ))
+            },
             itemLabel = { it.toString() },
             createContent = { onCreated, onCanceled ->
                 PropertyCreator(
+                    inputs = inputs.propertyDraft,
+                    onInputsChanged = { onInputsChanged(inputs.copy(propertyDraft = it)) },
                     owners = owners,
                     onCreated = onCreated,
                     cancel = Cancel(text = "Cancel", onClick = onCanceled)
                 )
             },
-            onItemSelected = { onInputsChanged(inputs.copy(selectedProperty = it)) },
+            onItemSelected = { onInputsChanged(inputs.copy(selectedProperty = it, propertyPicker = PickerInputs(), propertyDraft = PropertyInputs())) },
             onItemCreated = {
-                onInputsChanged(inputs.copy(selectedProperty = it))
+                onInputsChanged(inputs.copy(selectedProperty = it, propertyPicker = PickerInputs(), propertyDraft = PropertyInputs()))
             }
         )
         Content {
@@ -123,15 +135,26 @@ fun ContractCreator(
             label = "Services",
             items = services,
             selectedItems = inputs.selectedServices,
+            pickerInputs = inputs.servicePicker,
+            onPickerInputsChanged = {
+                onInputsChanged(inputs.copy(servicePicker = it,
+                    serviceDraft = if (it.isCreating) inputs.serviceDraft else ServiceInputs()))
+            },
             itemLabel = { it.name },
             createContent = { onCreated, onCanceled ->
                 ServiceCreator(
+                    inputs = inputs.serviceDraft,
+                    onInputsChanged = { onInputsChanged(inputs.copy(serviceDraft = it)) },
                     services = services + inputs.selectedServices,
                     onCreated = onCreated,
                     cancel = Cancel(text = "Cancel", onClick = onCanceled)
                 )
             },
-            onItemsChanged = { onInputsChanged(inputs.copy(selectedServices = it)) },
+            onItemsChanged = {
+                onInputsChanged(if (it.size > inputs.selectedServices.size) {
+                    inputs.copy(selectedServices = it, servicePicker = PickerInputs(), serviceDraft = ServiceInputs())
+                } else inputs.copy(selectedServices = it))
+            },
             onItemCreated = { }
         )
 
