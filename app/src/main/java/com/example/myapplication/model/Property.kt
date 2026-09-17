@@ -1,5 +1,8 @@
 package com.example.myapplication.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Property(
     val address: Address,
     val owner: Owner,

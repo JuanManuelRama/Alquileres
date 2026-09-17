@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.contract.create
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,10 +19,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSerializable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.myapplication.ui.components.form.DiscardChangesDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,10 +35,27 @@ fun CreateContractScreen(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val inputs = rememberSaveable(saver = ContractInputs.Saver) { ContractInputs() }
+    var inputs by rememberSerializable {
+        mutableStateOf(ContractInputs.default())
+    }
     val properties by viewModel.properties.collectAsStateWithLifecycle()
     val owners by viewModel.owners.collectAsStateWithLifecycle()
     val services by viewModel.services.collectAsStateWithLifecycle()
+
+    var confirmingDiscard by rememberSaveable { mutableStateOf(false) }
+    val onBack = {
+        if (inputs != ContractInputs.default()) confirmingDiscard = true else onBackClick()
+    }
+    BackHandler(onBack = onBack)
+    if (confirmingDiscard) {
+        DiscardChangesDialog(
+            onDiscard = {
+                confirmingDiscard = false
+                onBackClick()
+            },
+            onKeepEditing = { confirmingDiscard = false }
+        )
+    }
 
     Scaffold(
         modifier = modifier,
@@ -41,7 +63,7 @@ fun CreateContractScreen(
             TopAppBar(
                 title = { Text("New Contract") },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
@@ -59,6 +81,7 @@ fun CreateContractScreen(
         ) {
             ContractCreator(
                 inputs = inputs,
+                onInputsChanged = { inputs = it },
                 properties = properties,
                 owners = owners,
                 services = services,

@@ -21,9 +21,13 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.myapplication.ui.components.form.DiscardChangesDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,9 +38,31 @@ fun BillScreen(
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val onBack = { if (!state.isSaving) onBackClick() }
+    var changedBillIds by rememberSaveable { mutableStateOf(emptyList<Long>()) }
+    var confirmingDiscard by rememberSaveable { mutableStateOf(false) }
+    val onBack = {
+        if (!state.isSaving) {
+            if (changedBillIds.isNotEmpty()) {
+                confirmingDiscard = true
+            } else onBackClick()
+        }
+    }
 
     BackHandler(onBack = onBack)
+
+    if (confirmingDiscard) {
+        DiscardChangesDialog(
+            onDiscard = {
+                if (!state.isSaving) {
+                    confirmingDiscard = false
+                    onBackClick()
+                }
+            },
+            onKeepEditing = {
+                confirmingDiscard = false
+            }
+        )
+    }
 
     Scaffold(
         modifier = modifier,
@@ -92,11 +118,15 @@ fun BillScreen(
                         isInactive = isInactive,
                         isSaving = state.isSaving,
                         onSubmit = viewModel::save,
-                        onMarkPaid = viewModel::markPaid
+                        onMarkPaid = viewModel::markPaid,
+                        onChangesChanged = { hasChanges ->
+                            changedBillIds = if (hasChanges) {
+                                (changedBillIds + bill.id).distinct()
+                            } else changedBillIds - bill.id
+                        }
                     )
                 }
             }
         }
     }
 }
-

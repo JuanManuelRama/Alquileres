@@ -18,6 +18,8 @@ import com.example.myapplication.model.Owner
 import com.example.myapplication.model.Property
 import com.example.myapplication.model.Tenant
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.math.BigDecimal
@@ -40,6 +42,7 @@ class BillDraftRestorationTest {
             Bill(2, contract, month.plusMonths(1), BigDecimal("1000"), listOf(BillItem("Water", BigDecimal("24"))), 0)
         )
         var saves = 0
+        val changed = mutableMapOf<Long, Boolean>()
         val restoration = StateRestorationTester(composeRule)
         restoration.setContent {
             var selected by rememberSaveable { mutableStateOf(0) }
@@ -47,12 +50,20 @@ class BillDraftRestorationTest {
                 BillCards(bills, bills[selected].month, true, { selectedMonth ->
                     selected = bills.indexOfFirst { it.month == selectedMonth }
                 }) {
-                    BillCompletionForm(bills[selected], false, { saves++ }, { _, _ -> saves++ })
+                    val bill = bills[selected]
+                    BillCompletionForm(
+                        bill, false, { saves++ }, { _, _ -> saves++ },
+                        onChangesChanged = { changed[bill.id] = it }
+                    )
                 }
             }
         }
 
+        composeRule.runOnIdle { assertFalse(changed.getValue(1)) }
+        restoration.emulateSavedInstanceStateRestore()
+        composeRule.runOnIdle { assertFalse(changed.getValue(1)) }
         composeRule.onNodeWithText("12").performTextReplacement("55.")
+        composeRule.runOnIdle { assertTrue(changed.getValue(1)) }
         composeRule.onNodeWithText("Next").performClick()
         composeRule.onNodeWithText("24").performTextReplacement("-")
         composeRule.onNodeWithText("Previous").performClick()
@@ -61,10 +72,14 @@ class BillDraftRestorationTest {
         restoration.emulateSavedInstanceStateRestore()
 
         composeRule.onNodeWithText("55.").assertExists()
+        composeRule.runOnIdle { assertTrue(changed.getValue(1)) }
         composeRule.onNodeWithText("Next").performClick()
         composeRule.onNodeWithText("-").assertExists()
+        composeRule.runOnIdle { assertTrue(changed.getValue(2)) }
         composeRule.onNodeWithText("Previous").performClick()
         composeRule.onNodeWithText("55.").assertExists()
+        composeRule.onNodeWithText("55.").performTextReplacement("12")
+        composeRule.runOnIdle { assertFalse(changed.getValue(1)) }
         composeRule.runOnIdle { assertEquals(0, saves) }
     }
 }

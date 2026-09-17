@@ -21,13 +21,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSerializable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
@@ -43,6 +43,7 @@ import com.example.myapplication.ui.components.form.Validate
 import com.example.myapplication.ui.components.form.check
 import com.example.myapplication.ui.components.form.isBigDecimal
 import com.example.myapplication.ui.components.form.limitDecimals
+import kotlinx.serialization.builtins.ListSerializer
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -52,12 +53,23 @@ internal fun BillCompletionForm(
     isSaving: Boolean,
     onSubmit: (Bill) -> Unit,
     onMarkPaid: (Bill, LocalDate) -> Unit,
-    isInactive: Boolean = false
+    isInactive: Boolean = false,
+    onChangesChanged: (Boolean) -> Unit = {}
 ) {
     val isFrozen = isInactive || bill.isPaid
-    val items = rememberSaveable(bill, saver = BillItemsSaver) {
-        bill.items.map { BillItemInput(it.description, it.amount?.toPlainString().orEmpty(), it.isExtra) }.toMutableStateList()
+    val initialItems = rememberSerializable(bill, serializer = ListSerializer(BillItemInput.serializer())) {
+        bill.items.map { item ->
+            BillItemInput(
+                description = item.description,
+                amount = item.amount?.toPlainString().orEmpty(),
+                isExtra = item.isExtra
+            )
+        }
     }
+    var items by rememberSerializable(bill) {
+        mutableStateOf(initialItems)
+    }
+    SideEffect { onChangesChanged(!isFrozen && items != initialItems) }
     var confirmingPayment by remember(bill.id) { mutableStateOf(false) }
     val amountsValid = items.all { it.description.isNotBlank() && Validate(it.amount).isBigDecimal().limitDecimals(2).isValid }
     val total = bill.rent + items.sumOf { it.amount.toBigDecimalOrNull() ?: BigDecimal.ZERO }
@@ -154,7 +166,7 @@ internal fun BillCompletionForm(
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 IconButton(
-                                    onClick = { if (!isSaving) items.remove(item) },
+                                    onClick = { if (!isSaving) items = items.filterNot { it.key == item.key } },
                                     enabled = !isSaving,
                                     modifier = Modifier
                                         .size(28.dp)
@@ -173,7 +185,13 @@ internal fun BillCompletionForm(
                                     showLabel = false,
                                     modifiable = !isSaving,
                                     modifier = Modifier.weight(1f).semantics { contentDescription = "Item name" },
-                                    onValueChange = { if (!isSaving) item.description = it }
+                                    onValueChange = { description ->
+                                        if (!isSaving) {
+                                            items = items.map {
+                                                if (it.key == item.key) it.copy(description = description) else it
+                                            }
+                                        }
+                                    }
                                 )
                             }
                         }) else null
@@ -192,7 +210,9 @@ internal fun BillCompletionForm(
                             validate = { Validate(it).isBigDecimal().limitDecimals(2) },
                             onValueChange = { amount ->
                                 if (!isSaving && !isFrozen) {
-                                    item.amount = amount
+                                    items = items.map {
+                                        if (it.key == item.key) it.copy(amount = amount) else it
+                                    }
                                 }
                             }
                         )
@@ -204,7 +224,7 @@ internal fun BillCompletionForm(
         if (!isFrozen) {
             Content {
                 TextButton(
-                    onClick = { if (!isSaving) items.add(BillItemInput("", "", true)) },
+                    onClick = { if (!isSaving) items = items + BillItemInput("", "", true) },
                     enabled = !isSaving,
                     modifier = Modifier.semantics { contentDescription = "Add bill item" }
                 ) {

@@ -39,6 +39,7 @@ fun ContractCreator(
     services: List<Service>,
     onCreated: (Contract) -> Unit,
     inputs: ContractInputs,
+    onInputsChanged: (ContractInputs) -> Unit,
     cancel: Cancel? = null,
     modifier: Modifier = Modifier,
 ) {
@@ -79,9 +80,9 @@ fun ContractCreator(
                     cancel = Cancel(text = "Cancel", onClick = onCanceled)
                 )
             },
-            onItemSelected = { inputs.selectedProperty = it },
+            onItemSelected = { onInputsChanged(inputs.copy(selectedProperty = it)) },
             onItemCreated = {
-                inputs.selectedProperty = it
+                onInputsChanged(inputs.copy(selectedProperty = it))
             }
         )
         Content {
@@ -99,14 +100,14 @@ fun ContractCreator(
                             keyboardType = KeyboardType.Text,
                             capitalization = KeyboardCapitalization.Words
                         ),
-                        onValueChange = { inputs.tenantName = it }
+                        onValueChange = { onInputsChanged(inputs.copy(tenantName = it)) }
                     )
                     Item(
                         field = "Phone",
                         value = inputs.tenantPhone,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                         modifier = Modifier.weight(1f).semantics { ContentType.PhoneNumber },
-                        onValueChange = { inputs.tenantPhone = it }
+                        onValueChange = { onInputsChanged(inputs.copy(tenantPhone = it)) }
                     )
                 }
             }
@@ -116,7 +117,7 @@ fun ContractCreator(
             value = inputs.rent,
             keyboardOptions = KeyboardOptions(keyboardType =  KeyboardType.Decimal),
             validate = { Validate(it).isBigDecimal().isPositive().limitDecimals(2) },
-            onValueChange = { inputs.rent = it }
+            onValueChange = { onInputsChanged(inputs.copy(rent = it)) }
         )
         MultiPickerItem(
             label = "Services",
@@ -130,7 +131,7 @@ fun ContractCreator(
                     cancel = Cancel(text = "Cancel", onClick = onCanceled)
                 )
             },
-            onItemsChanged = { inputs.selectedServices = it },
+            onItemsChanged = { onInputsChanged(inputs.copy(selectedServices = it)) },
             onItemCreated = { }
         )
 
@@ -143,7 +144,7 @@ fun ContractCreator(
                 MonthItem(
                     label = "Starting month",
                     value = inputs.startMonth,
-                    onValueChange = { inputs.startMonth = it },
+                    onValueChange = { onInputsChanged(inputs.copy(startMonth = it)) },
                     modifier = Modifier.weight(1f)
                 )
                 MonthItem(
@@ -155,7 +156,7 @@ fun ContractCreator(
                             start == null || date != null && date >= start
                         }
                     },
-                    onValueChange = { inputs.endMonth = it },
+                    onValueChange = { onInputsChanged(inputs.copy(endMonth = it)) },
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -173,7 +174,7 @@ fun ContractCreator(
                     mandatory = false,
                     keyboardOptions = KeyboardOptions(keyboardType =  KeyboardType.Number),
                     validate = { Validate(it).isLong().isPositive() },
-                    onValueChange = { inputs.adjustmentTime = it },
+                    onValueChange = { onInputsChanged(inputs.copy(adjustmentTime = it)) },
                     modifier = Modifier.weight(1f)
                 )
                 Item(
@@ -183,7 +184,7 @@ fun ContractCreator(
                     keyboardOptions = KeyboardOptions(keyboardType =  KeyboardType.Decimal),
                     validate = { Validate(it).isBigDecimal().limitDecimals(4)
                         .check("can't have hikes without adjustment time") { inputs.adjustmentTime.isNotBlank() } },
-                    onValueChange = { inputs.fixedHike = it },
+                    onValueChange = { onInputsChanged(inputs.copy(fixedHike = it)) },
                     modifier = Modifier.weight(1f)
                 )
             }

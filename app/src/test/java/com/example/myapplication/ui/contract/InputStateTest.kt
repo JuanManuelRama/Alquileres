@@ -1,28 +1,40 @@
 package com.example.myapplication.ui.contract
 
-import androidx.compose.runtime.snapshots.Snapshot
 import com.example.myapplication.ui.contract.create.ContractInputs
+import com.example.myapplication.model.Address
+import com.example.myapplication.model.Owner
+import com.example.myapplication.model.Property
+import com.example.myapplication.model.Service
+import java.time.YearMonth
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class InputStateTest {
     @Test
-    fun contractEditsAreObservableWithoutReplacingTheHolder() {
-        val inputs = ContractInputs(tenantName = "Before", rent = "100")
-        val snapshot = Snapshot.takeSnapshot()
-        try {
-            inputs.tenantName = "After"
-            inputs.rent = "55."
+    fun contractInputsSerializeDefaultsAndAllNestedValues() {
+        val defaults = ContractInputs.default()
+        assertEquals(defaults, Json.decodeFromString<ContractInputs>(Json.encodeToString(defaults)))
+        val inputs = defaults.copy(
+            tenantName = "Tenant", tenantPhone = "123", rent = "55.", fixedHike = "10",
+            adjustmentTime = "6", startMonth = YearMonth.of(2026, 9), endMonth = YearMonth.of(2027, 9),
+            selectedProperty = Property(Address("Street", "12", "A"), Owner("Owner", 1), 2),
+            selectedServices = listOf(Service("Water", 3))
+        )
+        assertEquals(inputs, Json.decodeFromString<ContractInputs>(Json.encodeToString(inputs)))
+    }
 
-            assertEquals("After", inputs.tenantName)
-            assertEquals("55.", inputs.rent)
-            snapshot.enter {
-                assertEquals("Before", inputs.tenantName)
-                assertEquals("100", inputs.rent)
-            }
-        } finally {
-            snapshot.dispose()
-        }
+    @Test
+    fun contractEditsLeavePreviousInputsUnchanged() {
+        val inputs = ContractInputs.default().copy(tenantName = "Before", rent = "100")
+        val edited = inputs.copy(tenantName = "After", rent = "55.")
+
+        assertEquals("Before", inputs.tenantName)
+        assertEquals("100", inputs.rent)
+        assertEquals("After", edited.tenantName)
+        assertEquals("55.", edited.rent)
+        assertEquals(inputs, edited.copy(tenantName = "Before", rent = "100"))
     }
 
 }
