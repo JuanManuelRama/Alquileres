@@ -41,15 +41,17 @@ class BillCompletionFormTest {
         val bill = Bill(1, contract, month, BigDecimal("1000"), emptyList(), 0)
         var saved: Bill? = null
         var paid: Bill? = null
+        var sent: Bill? = null
         composeRule.setContent {
             MaterialTheme {
                 Column(Modifier.verticalScroll(rememberScrollState())) {
-                    BillCompletionForm(bill, false, { saved = it }, { value, _ -> paid = value })
+                    BillCompletionForm(bill, false, { saved = it }, { value, _ -> paid = value }, onSendMessage = { sent = it })
                 }
             }
         }
         composeRule.onNodeWithContentDescription("Add bill item").performScrollTo().performClick()
         composeRule.onNodeWithText("Save bill").assertIsNotEnabled()
+        composeRule.onNodeWithText("Send message").assertIsNotEnabled()
         composeRule.onNodeWithText("Mark as paid").assertIsNotEnabled()
         composeRule.onNodeWithContentDescription("Item name").performTextReplacement("Repairs")
         composeRule.onNodeWithContentDescription("Extra amount").performTextReplacement("25.50")
@@ -63,6 +65,13 @@ class BillCompletionFormTest {
             assertEquals(null, saved)
             assertEquals(null, paid)
             assertEquals(emptyList<BillItem>(), bill.items)
+        }
+        composeRule.onNodeWithText("Send message").performScrollTo().performClick()
+        composeRule.runOnIdle {
+            assertEquals(null, saved)
+            val messageBill = checkNotNull(sent)
+            assertEquals(bill.contract.tenant, messageBill.contract.tenant)
+            assertEquals(listOf(BillItem("Refund", BigDecimal("-10.25"), true)), messageBill.items)
         }
         composeRule.onNodeWithText("Save bill").performScrollTo().performClick()
         composeRule.runOnIdle {

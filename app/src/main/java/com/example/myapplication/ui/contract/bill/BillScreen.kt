@@ -25,18 +25,23 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myapplication.ui.components.form.DiscardChangesDialog
+import com.example.myapplication.message.BillMessageFormatter
+import com.example.myapplication.message.MessageSender
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BillScreen(
     viewModel: BillViewModel,
+    messageSender: MessageSender,
     onBackClick: () -> Unit,
     isInactive: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var changedBillIds by rememberSaveable { mutableStateOf(emptyList<Long>()) }
     var confirmingDiscard by rememberSaveable { mutableStateOf(false) }
@@ -119,6 +124,13 @@ fun BillScreen(
                         isSaving = state.isSaving,
                         onSubmit = viewModel::save,
                         onMarkPaid = viewModel::markPaid,
+                        onSendMessage = { draft ->
+                            messageSender.sendMessage(
+                                context,
+                                draft.contract.tenant.phone,
+                                BillMessageFormatter.format(draft)
+                            )
+                        },
                         onChangesChanged = { hasChanges ->
                             changedBillIds = if (hasChanges) {
                                 (changedBillIds + bill.id).distinct()

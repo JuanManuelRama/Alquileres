@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
@@ -18,6 +19,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -54,7 +56,8 @@ internal fun BillCompletionForm(
     onSubmit: (Bill) -> Unit,
     onMarkPaid: (Bill, LocalDate) -> Unit,
     isInactive: Boolean = false,
-    onChangesChanged: (Boolean) -> Unit = {}
+    onChangesChanged: (Boolean) -> Unit = {},
+    onSendMessage: ((Bill) -> Unit)? = null
 ) {
     val isFrozen = isInactive || bill.isPaid
     val initialItems = rememberSerializable(bill, serializer = ListSerializer(BillItemInput.serializer())) {
@@ -93,7 +96,7 @@ internal fun BillCompletionForm(
     }
 
     Form(
-        showActions = !isFrozen,
+        showActions = false,
         enabled = !isSaving,
         submitText = if (isSaving) "Saving..." else "Save bill",
         onSubmit = {
@@ -263,6 +266,38 @@ internal fun BillCompletionForm(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Mark as paid")
+                }
+            }
+        }
+        if(!isFrozen) {
+            Content {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (onSendMessage != null) {
+                        OutlinedButton(
+                            onClick = {
+                                if (amountsValid && !isSaving) onSendMessage(completedBill())
+                            },
+                            enabled = amountsValid && !isSaving && bill.contract.tenant.phone.isNotBlank()
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.Send,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text("Send message")
+                        }
+                    }
+                    Button(
+                        onClick = {
+                            if (amountsValid && !isSaving) onSubmit(completedBill())
+                        },
+                        enabled = amountsValid && !isSaving
+                    ) { Text(if (isSaving) "Saving..." else "Save bill") }
                 }
             }
         }

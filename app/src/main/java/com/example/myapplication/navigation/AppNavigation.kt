@@ -15,6 +15,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.example.myapplication.ui.AppViewModelFactory
+import com.example.myapplication.message.MessageSender
 import com.example.myapplication.ui.contract.ContractViewModel
 import com.example.myapplication.ui.contract.bill.BillScreen
 import com.example.myapplication.ui.contract.create.CreateContractScreen
@@ -87,6 +88,7 @@ fun AppNavigation(
                         viewModelFactory.billFactory(route.contractId)
                     }
                     BillScreen(
+                        messageSender = MessageSender.WhatsApp,
                         isInactive = route.isInactive,
                         viewModel = viewModel(factory = factory),
                         onBackClick = { backStack.removeLastOrNull() }
