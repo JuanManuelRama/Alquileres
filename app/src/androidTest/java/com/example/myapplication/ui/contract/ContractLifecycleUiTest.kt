@@ -42,8 +42,19 @@ class ContractLifecycleUiTest {
             MaterialTheme {
                 var isInactive by remember { mutableStateOf(false) }
                 val state = if (isInactive) ContractListUiState.Inactive(listOf(inactive))
-                    else ContractListUiState.Active(listOf(ContractListItem(active, false, false, false)))
-                ContractListScreen(state, {}, {}, onTabSelected = { isInactive = it })
+                    else ContractListUiState.Active(listOf(ContractListItem(
+                    contract = active,
+                    paymentDue = false,
+                    expiresSoon = false,
+                    hikeThisMonth = false
+                )))
+                ContractListScreen(
+                    state = state,
+                    onContractClick = {},
+                    addContractClick =  {},
+                    onTabSelected = { isInactive = it },
+                    onSettingsClick = {}
+                )
             }
         }
         composeRule.onNodeWithText("Tenant: Tenant 1").assertExists()

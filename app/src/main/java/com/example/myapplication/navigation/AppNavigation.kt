@@ -22,6 +22,7 @@ import com.example.myapplication.ui.contract.create.CreateContractScreen
 import com.example.myapplication.ui.contract.create.CreateContractViewModel
 import com.example.myapplication.ui.contract.detail.ContractDetailScreen
 import com.example.myapplication.ui.contract.list.ContractListScreen
+import com.example.myapplication.ui.settings.SettingsScreen
 
 @Composable
 fun AppNavigation(
@@ -54,6 +55,7 @@ fun AppNavigation(
                         state = listState,
                         onContractClick = { backStack.add(ContractDetail(it.id, route.isInactive)) },
                         addContractClick = { backStack.add(AddPropiedad) },
+                        onSettingsClick = { backStack.add(Settings) },
                         onTabSelected = { inactiveState ->
                             if (inactiveState != route.isInactive) {
                                 val index = backStack.indexOf(route)
@@ -61,6 +63,9 @@ fun AppNavigation(
                             }
                         }
                     )
+                }
+                is Settings -> NavEntry(route) {
+                    SettingsScreen(onBackClick = { backStack.removeLastOrNull() })
                 }
                 is AddPropiedad -> NavEntry(route) {
                     CreateContractScreen(

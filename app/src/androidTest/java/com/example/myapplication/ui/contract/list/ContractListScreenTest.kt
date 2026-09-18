@@ -27,7 +27,13 @@ class ContractListScreenTest {
     fun inactiveLoadingAndEmptyStatesKeepTheInactiveTabAndHideCreation() {
         var state by mutableStateOf<ContractListUiState>(ContractListUiState.Loading(isInactive = true))
         composeRule.setContent {
-            MaterialTheme { ContractListScreen(state, {}, {}) }
+            MaterialTheme { ContractListScreen(
+                state = state,
+                onContractClick = {},
+                addContractClick = {},
+                onTabSelected = {},
+                onSettingsClick = {}
+            ) }
         }
         composeRule.onNodeWithText("Inactive contracts").assertIsDisplayed()
         composeRule.onNodeWithText("Inactive").assertIsSelected()
@@ -44,7 +50,13 @@ class ContractListScreenTest {
         var state by mutableStateOf<ContractListUiState>(ContractListUiState.Loading())
         composeRule.setContent {
             MaterialTheme {
-                ContractListScreen(state = state, onContractClick = {}, addContractClick = {})
+                ContractListScreen(
+                    state = state,
+                    onContractClick = {},
+                    addContractClick = {},
+                    onTabSelected = {},
+                    onSettingsClick = {}
+                )
             }
         }
         composeRule.onNodeWithText("Loading contracts...").assertIsDisplayed()

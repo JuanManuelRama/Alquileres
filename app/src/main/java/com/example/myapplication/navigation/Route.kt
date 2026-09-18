@@ -6,6 +6,9 @@ import kotlinx.serialization.Serializable
 sealed interface Route : NavKey
 
 @Serializable
+data object Settings : Route
+
+@Serializable
 data class ContractList(val isInactive: Boolean) : Route
 
 @Serializable
