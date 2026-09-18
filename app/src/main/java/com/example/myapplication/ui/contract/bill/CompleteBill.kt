@@ -50,6 +50,8 @@ import com.example.myapplication.ui.components.form.limitDecimals
 import kotlinx.serialization.builtins.ListSerializer
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 @Composable
 internal fun BillCompletionForm(
@@ -125,8 +127,9 @@ internal fun BillCompletionForm(
                 )
             }
             if (bill.isPaid) {
+                val formated = bill.paidAt!!.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
                 Text(
-                    text = stringResource(R.string.bill_status_paid_on, bill.paidAt!!.formatPaidAtDate()),
+                    text = stringResource(R.string.bill_status_paid_on, formated),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )

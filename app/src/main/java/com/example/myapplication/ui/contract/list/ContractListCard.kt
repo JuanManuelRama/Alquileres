@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.myapplication.ui.util.toMoney
 import com.example.myapplication.R
 import com.example.myapplication.model.Contract
 import java.time.YearMonth
@@ -86,7 +87,7 @@ fun ContractListCard(
                 },
                 trailingContent = {
                     Text(
-                        text = stringResource(R.string.base_rent_format, contract.rent.stripTrailingZeros().toPlainString()),
+                        text = stringResource(R.string.base_rent_format, contract.rent.toMoney()),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary
                     )

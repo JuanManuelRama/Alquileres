@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.example.myapplication.R
 import com.example.myapplication.model.Adjustment
+import com.example.myapplication.ui.util.toMoney
+import com.example.myapplication.ui.util.toPercentage
 import com.example.myapplication.model.Contract
 import com.example.myapplication.ui.components.form.Cancel
 import com.example.myapplication.ui.components.form.Form
@@ -69,10 +71,8 @@ fun AdjustmentCard(
                     verticalAlignment = Alignment.Top
                 ) {
                     Text(
-                        text = adjustment.amount?.let { "${it.multiply(100.toBigDecimal())
-                            .setScale(4, RoundingMode.HALF_UP)
-                            .stripTrailingZeros()
-                            .toPlainString()}%" } ?: stringResource(R.string.label_not_set),
+                        text = adjustment.amount?.let { "${it.multiply(100.toBigDecimal()).toPercentage()}%" }
+                            ?: stringResource(R.string.label_not_set),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     if (editable) {
@@ -92,7 +92,7 @@ fun AdjustmentCard(
                 }
 
                 Text(
-                    text = "$${contract.valueAtMonth(adjustment.time).stripTrailingZeros().toPlainString()}",
+                    text = "$${contract.valueAtMonth(adjustment.time).toMoney()}",
                     modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.bodyMedium
                 )

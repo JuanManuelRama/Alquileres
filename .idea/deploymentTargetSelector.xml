@@ -21,10 +21,6 @@
           </targets>
         </DialogSelection>
       </SelectionState>
-      <SelectionState runConfigName="PropertyRepositoryTest">
-        <option name="selectionMode" value="DROPDOWN" />
-        <DialogSelection />
-      </SelectionState>
       <SelectionState runConfigName="insertAndGetAllPropertiesWithOwners()">
         <option name="selectionMode" value="DROPDOWN" />
         <DialogSelection />
@@ -35,10 +31,10 @@
       </SelectionState>
       <SelectionState runConfigName="Tests in 'com.example.myapplication'">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-09-14T13:36:01.726133900Z">
+        <DropdownSelection timestamp="2026-09-18T21:49:18.505336500Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="Wireless" identifier="serviceName=adb-R5CY410K0AV-uNufEU" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\user\.android\avd\Medium_Phone.avd" />
             </handle>
           </Target>
         </DropdownSelection>

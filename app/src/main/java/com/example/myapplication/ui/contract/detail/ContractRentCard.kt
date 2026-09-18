@@ -11,6 +11,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
 import com.example.myapplication.model.Contract
+import com.example.myapplication.ui.util.toMoney
 
 @Composable
 fun ContractRentCard(
@@ -21,11 +22,11 @@ fun ContractRentCard(
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = stringResource(R.string.label_rent), style = MaterialTheme.typography.labelLarge)
             Text(
-                text = stringResource(R.string.rent_current_format, contract.currentValue().stripTrailingZeros().toPlainString()),
+                text = stringResource(R.string.rent_current_format, contract.currentValue().toMoney()),
                 style = MaterialTheme.typography.bodyLarge
             )
             Text(
-                text = stringResource(R.string.rent_initial_format, contract.rent.stripTrailingZeros().toPlainString()),
+                text = stringResource(R.string.rent_initial_format, contract.rent.toMoney()),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
