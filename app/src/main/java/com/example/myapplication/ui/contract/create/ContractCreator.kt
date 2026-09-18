@@ -64,15 +64,14 @@ fun ContractCreator(
 
     val contactPickerLauncher = rememberLauncherForActivityResult(
         contract = PhoneContactPicker()
-    ) { uri -> uri?.let {
-        queryPhoneDetails(context, uri).let { (name, phone) ->
-            onInputsChanged(
-                inputs.copy(
-                    tenantName = name.ifBlank { inputs.tenantName },
-                    tenantPhone = phone.ifBlank { inputs.tenantPhone }
-                ))
-        }
-    }
+    ) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        val (name, phone) = queryPhoneDetails(context, uri)
+        onInputsChanged(
+            inputs.copy(
+                tenantName = name.ifBlank { inputs.tenantName },
+                tenantPhone = phone.ifBlank { inputs.tenantPhone }
+            ))
     }
 
     Form(
@@ -134,7 +133,7 @@ fun ContractCreator(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("Tenant", style = MaterialTheme.typography.titleMedium)
-                    TextButton(onClick = { contactPickerLauncher.launch(null) }) {
+                    TextButton(onClick = { contactPickerLauncher.launch(Unit) }) {
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = "Pick contact",

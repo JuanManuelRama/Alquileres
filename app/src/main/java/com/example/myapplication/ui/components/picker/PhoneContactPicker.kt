@@ -7,8 +7,8 @@ import android.net.Uri
 import android.provider.ContactsContract
 import androidx.activity.result.contract.ActivityResultContract
 
-class PhoneContactPicker : ActivityResultContract<Void?, Uri?>() {
-    override fun createIntent(context: Context, input: Void?): Intent {
+class PhoneContactPicker : ActivityResultContract<Unit, Uri?>() {
+    override fun createIntent(context: Context, input: Unit): Intent {
         return Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)
     }
 
@@ -36,7 +36,7 @@ fun queryPhoneDetails(context: Context, uri: Uri): Pair<String, String> {
             }
         }
     } catch (_: Exception) {
-        // Logs or handles parsing issues
+
     }
 
     return Pair(name, phone)
