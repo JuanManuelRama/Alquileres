@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -45,6 +46,7 @@ fun EmptyContracts(onCreateContract: () -> Unit, modifier: Modifier = Modifier) 
         label = "Contract height"
     )
 
+    val createFirstContractText = stringResource(R.string.action_create_first_contract)
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Column(
             modifier = Modifier
@@ -54,7 +56,7 @@ fun EmptyContracts(onCreateContract: () -> Unit, modifier: Modifier = Modifier) 
                 .clip(RoundedCornerShape(28.dp))
                 .clickable(
                     role = Role.Button,
-                    onClickLabel = "Create your first contract",
+                    onClickLabel = createFirstContractText,
                     onClick = onCreateContract
                 )
                 .padding(24.dp),
@@ -86,12 +88,12 @@ fun EmptyContracts(onCreateContract: () -> Unit, modifier: Modifier = Modifier) 
                 )
             }
             Text(
-                "A fresh start, on paper",
+                stringResource(R.string.empty_contracts_headline),
                 style = MaterialTheme.typography.headlineSmall,
                 textAlign = TextAlign.Center
             )
             Text(
-                "No contracts yet. Add your first one and give your rental details a place to call home.",
+                stringResource(R.string.empty_contracts_body),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -102,7 +104,7 @@ fun EmptyContracts(onCreateContract: () -> Unit, modifier: Modifier = Modifier) 
             ) {
                 Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 Text(
-                    "Create your first contract",
+                    createFirstContractText,
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary
                 )

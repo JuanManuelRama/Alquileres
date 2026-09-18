@@ -1,3 +1,184 @@
 <resources>
     <string name="app_name">My Application</string>
+
+    <!-- Common Actions -->
+    <string name="action_back">Back</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_save">Save</string>
+    <string name="action_close">Close</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_create">Create</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_ok">OK</string>
+    <string name="action_next">Next</string>
+    <string name="action_previous">Previous</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_clear_all">Clear all</string>
+    <string name="action_clear_date">Clear date</string>
+    <string name="action_search_placeholder">Search&#8230;</string>
+
+    <!-- Common Content Descriptions -->
+    <string name="cd_more_options">More options</string>
+    <string name="cd_previous_year">Previous year</string>
+    <string name="cd_next_year">Next year</string>
+    <string name="cd_remove">Remove</string>
+
+    <!-- Common Labels and Titles -->
+    <string name="label_year">Year</string>
+    <string name="label_property">Property</string>
+    <string name="label_owner">Owner</string>
+    <string name="label_tenant">Tenant</string>
+    <string name="label_rent">Rent</string>
+    <string name="label_full_name">Full Name</string>
+    <string name="label_phone">Phone</string>
+
+    <!-- Discard Changes Dialog -->
+    <string name="discard_changes_title">Discard changes?</string>
+    <string name="discard_changes_message">Your unsaved changes will be lost.</string>
+    <string name="action_discard">Discard</string>
+    <string name="action_keep_editing">Keep editing</string>
+
+    <!-- Entity Picker -->
+    <string name="cd_clear_selection">Clear %1$s selection</string>
+    <string name="picker_create_new">Create new %1$s</string>
+
+    <!-- Contract List -->
+    <string name="title_active_contracts">Active contracts</string>
+    <string name="title_inactive_contracts">Inactive contracts</string>
+    <string name="tab_active">Active</string>
+    <string name="tab_inactive">Inactive</string>
+    <string name="cd_create_new_contract">Create new contract</string>
+    <string name="loading_contracts">Loading contracts&#8230;</string>
+    <string name="empty_inactive_contracts">No inactive contracts yet.</string>
+    <string name="no_matching_contracts">No contracts match these filters.</string>
+    <string name="tenant_name_format">Tenant: %1$s</string>
+    <string name="base_rent_format">Base: $%1$s</string>
+    <string name="status_payment_due">Payment due</string>
+    <string name="status_expires_soon">Expires soon</string>
+    <string name="status_hike_this_month">Hike this month</string>
+
+    <!-- Contract List Filters -->
+    <string name="filter_start_date_title">Filter by start date</string>
+    <string name="filter_end_date_title">Filter by end date</string>
+    <string name="action_search_placeholder_contracts">Search by address, unit&#8230;</string>
+    <string name="cd_search_icon">Search icon</string>
+    <string name="cd_clear_search">Clear search</string>
+    <string name="filter_due">Due</string>
+    <string name="filter_expiring">Expiring</string>
+    <string name="filter_hike">Hike</string>
+    <string name="filter_from">From</string>
+    <string name="filter_from_format">From %1$s</string>
+    <string name="cd_clear_start_date">Clear start date</string>
+    <string name="filter_to">To</string>
+    <string name="filter_to_format">To %1$s</string>
+    <string name="cd_clear_end_date">Clear end date</string>
+    <string name="filter_owners">Owners</string>
+    <string name="filter_owner">Owner</string>
+    <string name="filter_all_owners">All owners</string>
+
+    <!-- Empty Contracts Screen -->
+    <string name="empty_contracts_headline">A fresh start, on paper</string>
+    <string name="empty_contracts_body">No contracts yet. Add your first one and give your rental details a place to call home.</string>
+    <string name="action_create_first_contract">Create your first contract</string>
+
+    <!-- New Contract / Contract Creator -->
+    <string name="title_new_contract">New Contract</string>
+    <string name="action_create_contract">Create Contract</string>
+    <string name="action_pick_contact">Pick contact</string>
+    <string name="label_services">Services</string>
+    <string name="header_months">Months</string>
+    <string name="label_starting_month">Starting month</string>
+    <string name="label_finishing_month">Finishing month</string>
+    <string name="header_adjustments">Adjustments</string>
+    <string name="label_adjustment_time">Adjustment Time</string>
+    <string name="label_fixed_hike">Fixed Hike (%)</string>
+
+    <!-- Contract Details Screen -->
+    <string name="title_contract_details">Contract Details</string>
+    <string name="contract_finish_title">Finish Contract?</string>
+    <string name="contract_cancel_title">Cancel Contract?</string>
+    <string name="contract_finish_message">This contract will move to Inactive. All its bills will be frozen, including unpaid ones.</string>
+    <string name="action_finish_contract">Finish Contract</string>
+    <string name="action_cancel_contract">Cancel Contract</string>
+    <string name="contract_delete_title">Delete Contract?</string>
+    <string name="contract_delete_message">Are you sure you want to delete this contract? This action cannot be undone.</string>
+    <string name="action_delete_contract">Delete Contract</string>
+    <string name="loading_contract">Loading contract&#8230;</string>
+    <string name="err_contract_not_found">Contract not found.</string>
+    <string name="contract_status_inactive">Inactive contract</string>
+    <string name="contract_all_bills_paid_message">Every bill is paid. This contract is ready to finish.</string>
+    <string name="action_finishing">Finishing&#8230;</string>
+    <string name="action_renew_contract">Renew Contract</string>
+    <string name="header_adjustment_schedule">Adjustment Schedule</string>
+    <string name="action_view_bills">View bills</string>
+    <string name="duration_from_format">From: %1$s</string>
+    <string name="duration_to_format">To: %1$s</string>
+    <string name="rent_current_format">Current: $%1$s</string>
+    <string name="rent_initial_format">Initial: $%1$s</string>
+    <string name="header_included_services">Included Services</string>
+    <string name="label_duration">Duration</string>
+    <string name="tenant_phone_format">Phone: %1$s</string>
+    <string name="label_not_set">Not set</string>
+    <string name="cd_edit_hike">Edit hike</string>
+    <string name="title_edit_hike">Edit Hike</string>
+    <string name="action_save_hike">Save Hike</string>
+    <string name="label_hike">Hike (%)</string>
+
+    <!-- Bills Screen & Form -->
+    <string name="bill_screen_title">Bills</string>
+    <string name="bill_select_title">Select bill</string>
+    <string name="bill_current_suffix"> (current)</string>
+    <string name="action_save_bill">Save bill</string>
+    <string name="action_saving">Saving&#8230;</string>
+    <string name="bill_status_unpaid">Unpaid</string>
+    <string name="bill_status_paid_on">Paid on %1$s</string>
+    <string name="label_item">Item</string>
+    <string name="label_amount">Amount</string>
+    <string name="cd_remove_extra_item">Remove extra item</string>
+    <string name="label_item_name">Item name</string>
+    <string name="label_extra_amount">Extra amount</string>
+    <string name="cd_add_bill_item">Add bill item</string>
+    <string name="action_add_extra_item">Add extra item</string>
+    <string name="label_total">Total</string>
+    <string name="action_mark_as_paid">Mark as paid</string>
+    <string name="action_send_message">Send message</string>
+    <string name="bill_confirm_payment_title">Confirm payment?</string>
+    <string name="bill_confirm_payment_message">This will save these amounts, mark it as paid, and permanently lock this bill. You won\'t be able to edit it afterward.</string>
+    <string name="action_confirm_payment">Confirm payment</string>
+    <string name="label_payment_date">Payment date</string>
+
+    <!-- Property / Owner / Service Creators -->
+    <string name="label_street">Street</string>
+    <string name="label_number">Number</string>
+    <string name="label_unit">Unit</string>
+    <string name="label_service_name">Service Name</string>
+
+    <!-- Settings Screen -->
+    <string name="title_settings">Settings</string>
+    <string name="header_appearance">Appearance</string>
+    <string name="label_theme">Theme</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="label_app_language">App Language</string>
+    <string name="title_choose_language">Choose Language</string>
+
+    <!-- Validations and Errors -->
+    <string name="validation_invalid_decimal">must be a valid decimal number</string>
+    <string name="validation_invalid_number">must be a valid number</string>
+    <string name="validation_must_be_positive">must be positive</string>
+    <string name="validation_must_be_unique">must be unique</string>
+    <string name="validation_max_decimals">mustn\'t have more than %1$d decimal places</string>
+    <string name="validation_end_month_after_start">must be on or after starting month</string>
+    <string name="validation_hike_requires_adjustment_time">can\'t have hikes without adjustment time</string>
+    <string name="validation_payment_date_future">Payment date cannot be in the future</string>
+    <string name="err_invalid_phone_number">Enter a valid phone number</string>
+    <string name="err_invalid_phone_country_code">The tenant needs a valid phone number with a country code</string>
+    <string name="err_whatsapp_not_installed">WhatsApp is not installed</string>
+    <string name="err_no_sms_app">No SMS app found</string>
+    <string name="err_could_not_load_bills">Could not load bills. Please retry.</string>
+    <string name="err_could_not_save_bill">Could not save this bill. Please try Save bill again.</string>
+    <string name="err_could_not_confirm_payment">Could not confirm payment. </string>
+    <string name="err_could_not_finish_contract">Could not finish the contract. Please try again.</string>
+    <string name="err_could_not_delete_contract">Could not delete the contract. Please try again.</string>
 </resources>

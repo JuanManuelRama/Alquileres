@@ -30,8 +30,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.myapplication.R
 import com.example.myapplication.model.Contract
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,9 +59,9 @@ fun ContractDetailScreen(
     if (showFinishDialog && state != null && !isInactive) {
         AlertDialog(
             onDismissRequest = { showFinishDialog = false },
-            title = { Text(if (requireAllPaid) "Finish Contract?" else "Cancel Contract?") },
+            title = { Text(stringResource(if (requireAllPaid) R.string.contract_finish_title else R.string.contract_cancel_title)) },
             text = {
-                Text("This contract will move to Inactive. All its bills will be frozen, including unpaid ones.")
+                Text(stringResource(R.string.contract_finish_message))
             },
             confirmButton = {
                 TextButton(
@@ -71,14 +73,14 @@ fun ContractDetailScreen(
                     }
                 ) {
                     Text(
-                        text = if (requireAllPaid) "Finish Contract" else "Cancel Contract",
+                        text = stringResource(if (requireAllPaid) R.string.action_finish_contract else R.string.action_cancel_contract),
                         color = MaterialTheme.colorScheme.error
                     )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showFinishDialog = false } ) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.action_cancel))
                 }
             }
         )
@@ -86,9 +88,9 @@ fun ContractDetailScreen(
     if (showDeleteDialog && state != null) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete Contract?") },
+            title = { Text(stringResource(R.string.contract_delete_title)) },
             text = {
-                Text("Are you sure you want to delete this contract? This action cannot be undone.")
+                Text(stringResource(R.string.contract_delete_message))
             },
             confirmButton = {
                 TextButton(
@@ -101,14 +103,14 @@ fun ContractDetailScreen(
                     }
                 ) {
                     Text(
-                        text = "Delete Contract",
+                        text = stringResource(R.string.action_delete_contract),
                         color = MaterialTheme.colorScheme.error
                     )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.action_cancel))
                 }
             }
         )
@@ -119,10 +121,10 @@ fun ContractDetailScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text("Contract Details") },
+                title = { Text(stringResource(R.string.title_contract_details)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 actions = {
@@ -130,7 +132,7 @@ fun ContractDetailScreen(
                         IconButton(onClick = { showMenu = true }) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
-                                contentDescription = "More options"
+                                contentDescription = stringResource(R.string.cd_more_options)
                             )
                         }
                         DropdownMenu(
@@ -138,7 +140,7 @@ fun ContractDetailScreen(
                             onDismissRequest = { showMenu = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Cancel Contract") },
+                                text = { Text(stringResource(R.string.action_cancel_contract)) },
                                 enabled = state != null && !isInactive && !state.isFinishing,
                                 onClick = {
                                     showMenu = false
@@ -147,7 +149,7 @@ fun ContractDetailScreen(
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text(text = "Delete Contract", color = MaterialTheme.colorScheme.error) },
+                                text = { Text(text = stringResource(R.string.action_delete_contract), color = MaterialTheme.colorScheme.error) },
                                 onClick = {
                                     showMenu = false
                                     showDeleteDialog = true
@@ -168,16 +170,16 @@ fun ContractDetailScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             if (state == null) {
-                Text(if (uiState == ContractDetailUiState.Loading) "Loading contract..." else "Contract not found.")
+                Text(if (uiState == ContractDetailUiState.Loading) stringResource(R.string.loading_contract) else stringResource(R.string.err_contract_not_found))
                 return@Column
             }
             val contract = state.contract
             if (isInactive) {
-                Text("Inactive contract", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.contract_status_inactive), style = MaterialTheme.typography.titleMedium)
             }
             state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             if (!isInactive && state.allBillsPaid) {
-                Text("Every bill is paid. This contract is ready to finish.")
+                Text(stringResource(R.string.contract_all_bills_paid_message))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(
                         enabled = !state.isFinishing,
@@ -186,9 +188,9 @@ fun ContractDetailScreen(
                             showFinishDialog = true
                         },
                         modifier = Modifier.weight(1f)
-                    ) { Text(if (state.isFinishing) "Finishing..." else "Finish Contract") }
+                    ) { Text(if (state.isFinishing) stringResource(R.string.action_finishing) else stringResource(R.string.action_finish_contract)) }
                     Button(onClick = {}, enabled = false, modifier = Modifier.weight(1f)) {
-                        Text("Renew Contract")
+                        Text(stringResource(R.string.action_renew_contract))
                     }
                 }
             }
@@ -217,7 +219,7 @@ fun ContractDetailScreen(
             }
 
             if (contract.adjustments.isNotEmpty()) {
-                Text(text = "Adjustment Schedule", style = MaterialTheme.typography.titleSmall)
+                Text(text = stringResource(R.string.header_adjustment_schedule), style = MaterialTheme.typography.titleSmall)
                 Column {
                     contract.adjustments.forEach { adjustment ->
                         val hasAffectedPaidBill = state.paidMonths.any { it >= adjustment.time }
@@ -243,7 +245,7 @@ fun ContractDetailScreen(
                     enabled = !state.isFinishing,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(text = "View bills")
+                    Text(text = stringResource(R.string.action_view_bills))
                 }
             }
         }

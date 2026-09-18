@@ -32,11 +32,13 @@ import androidx.compose.runtime.saveable.rememberSerializable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.myapplication.R
 import com.example.myapplication.model.Bill
 import com.example.myapplication.model.BillItem
 import com.example.myapplication.ui.components.form.Cancel
@@ -95,10 +97,19 @@ internal fun BillCompletionForm(
         )
     }
 
+    val saveText = stringResource(R.string.action_save_bill)
+    val savingText = stringResource(R.string.action_saving)
+    val rentLabel = stringResource(R.string.label_rent)
+    val itemNameLabel = stringResource(R.string.label_item_name)
+    val extraAmountLabel = stringResource(R.string.label_extra_amount)
+    val removeExtraCd = stringResource(R.string.cd_remove_extra_item)
+    val addBillItemCd = stringResource(R.string.cd_add_bill_item)
+    val totalLabel = stringResource(R.string.label_total)
+
     Form(
         showActions = false,
         enabled = !isSaving,
-        submitText = if (isSaving) "Saving..." else "Save bill",
+        submitText = if (isSaving) savingText else saveText,
         onSubmit = {
             if (!isSaving && !isFrozen && amountsValid) {
                 onSubmit(completedBill())
@@ -108,7 +119,7 @@ internal fun BillCompletionForm(
         Content {
             if (isInactive && !bill.isPaid) {
                 Text(
-                    text = "Unpaid",
+                    text = stringResource(R.string.bill_status_unpaid),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -116,7 +127,7 @@ internal fun BillCompletionForm(
             if (bill.isPaid) {
                 val formattedDate = bill.paidAt!!.format(BillDateFormatter)
                 Text(
-                    text = "Paid on $formattedDate",
+                    text = stringResource(R.string.bill_status_paid_on, formattedDate),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -127,13 +138,13 @@ internal fun BillCompletionForm(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = "Item",
+                    text = stringResource(R.string.label_item),
                     modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "Amount",
+                    text = stringResource(R.string.label_amount),
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.End,
                     style = MaterialTheme.typography.labelLarge,
@@ -143,9 +154,9 @@ internal fun BillCompletionForm(
 
             HorizontalDivider()
 
-            BillAmountRow("Rent") {
+            BillAmountRow(rentLabel) {
                 Item(
-                    field = "Rent",
+                    field = rentLabel,
                     value = bill.rent.toCurrencyString(),
                     prefix = { Text("$") },
                     textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.End),
@@ -173,7 +184,7 @@ internal fun BillCompletionForm(
                                     enabled = !isSaving,
                                     modifier = Modifier
                                         .size(28.dp)
-                                        .semantics { contentDescription = "Remove extra item" }
+                                        .semantics { contentDescription = removeExtraCd }
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Close,
@@ -183,11 +194,11 @@ internal fun BillCompletionForm(
                                     )
                                 }
                                 Item(
-                                    field = "Item name",
+                                    field = itemNameLabel,
                                     value = item.description,
                                     showLabel = false,
                                     modifiable = !isSaving,
-                                    modifier = Modifier.weight(1f).semantics { contentDescription = "Item name" },
+                                    modifier = Modifier.weight(1f).semantics { contentDescription = itemNameLabel },
                                     onValueChange = { description ->
                                         if (!isSaving) {
                                             items = items.map {
@@ -200,9 +211,9 @@ internal fun BillCompletionForm(
                         }) else null
                     ) {
                         Item(
-                            field = if (item.isExtra) "Extra amount" else item.description,
+                            field = if (item.isExtra) extraAmountLabel else item.description,
                             modifier = Modifier.semantics {
-                                contentDescription = if (item.isExtra) "Extra amount" else item.description
+                                contentDescription = if (item.isExtra) extraAmountLabel else item.description
                             },
                             value = item.amount,
                             modifiable = !isFrozen && !isSaving,
@@ -229,7 +240,7 @@ internal fun BillCompletionForm(
                 TextButton(
                     onClick = { if (!isSaving) items = items + BillItemInput("", "", true) },
                     enabled = !isSaving,
-                    modifier = Modifier.semantics { contentDescription = "Add bill item" }
+                    modifier = Modifier.semantics { contentDescription = addBillItemCd }
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
@@ -237,16 +248,16 @@ internal fun BillCompletionForm(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Add extra item")
+                    Text(stringResource(R.string.action_add_extra_item))
                 }
             }
         }
 
         Content {
             HorizontalDivider(thickness = 2.dp)
-            BillAmountRow("Total", total = true) {
+            BillAmountRow(totalLabel, total = true) {
                 Item(
-                    field = "Total",
+                    field = totalLabel,
                     value = total.toCurrencyString(),
                     modifiable = false,
                     mandatory = false,
@@ -265,7 +276,7 @@ internal fun BillCompletionForm(
                     enabled = amountsValid && !isSaving,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Mark as paid")
+                    Text(stringResource(R.string.action_mark_as_paid))
                 }
             }
         }
@@ -289,7 +300,7 @@ internal fun BillCompletionForm(
                                 modifier = Modifier.size(18.dp)
                             )
                             Spacer(Modifier.width(6.dp))
-                            Text("Send message")
+                            Text(stringResource(R.string.action_send_message))
                         }
                     }
                     Button(
@@ -297,7 +308,7 @@ internal fun BillCompletionForm(
                             if (amountsValid && !isSaving) onSubmit(completedBill())
                         },
                         enabled = amountsValid && !isSaving
-                    ) { Text(if (isSaving) "Saving..." else "Save bill") }
+                    ) { Text(if (isSaving) savingText else saveText) }
                 }
             }
         }
@@ -311,25 +322,26 @@ private fun PaymentConfirmation(
     onDismiss: () -> Unit
 ) {
     var paymentDate by remember { mutableStateOf<LocalDate?>(LocalDate.now()) }
+    val futureDateError = stringResource(R.string.validation_payment_date_future)
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Confirm payment?") },
+        title = { Text(stringResource(R.string.bill_confirm_payment_title)) },
         text = {
             Form(
-                submitText = "Confirm payment",
+                submitText = stringResource(R.string.action_confirm_payment),
                 onSubmit = { paymentDate?.let(onConfirm) },
-                cancel = Cancel(text = "Cancel", onClick = onDismiss)
+                cancel = Cancel(text = stringResource(R.string.action_cancel), onClick = onDismiss)
             ) {
                 Content {
                     val monthText = bill.month.format(BillMonthFormatter)
                     Text("$monthText - $${bill.total.toCurrencyString()}")
-                    Text("This will save these amounts, mark it as paid, and permanently lock this bill. You won't be able to edit it afterward.")
+                    Text(stringResource(R.string.bill_confirm_payment_message))
                 }
                 DateItem(
-                    label = "Payment date",
+                    label = stringResource(R.string.label_payment_date),
                     value = paymentDate,
                     validate = { date ->
-                        Validate(date).check("Payment date cannot be in the future") {
+                        Validate(date).check(futureDateError) {
                             it != null && !it.isAfter(LocalDate.now())
                         }
                     },

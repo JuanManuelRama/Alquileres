@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.core.net.toUri
+import com.example.myapplication.R
 import io.michaelrocks.libphonenumber.android.NumberParseException
 import io.michaelrocks.libphonenumber.android.PhoneNumberUtil
 
@@ -22,12 +23,12 @@ enum class MessageSender(
             val util = PhoneNumberUtil.createInstance(context.applicationContext)
             val phone = whatsappPhoneNumber(rawPhone, context.resources.configuration.locales[0].country, util)
             if (phone == null) {
-                Toast.makeText(context, "The tenant needs a valid phone number with a country code", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(R.string.err_invalid_phone_country_code), Toast.LENGTH_LONG).show()
                 return
             }
             val packageName = whatsAppPackage(context)
             if (packageName == null) {
-                Toast.makeText(context, "WhatsApp is not installed", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.err_whatsapp_not_installed), Toast.LENGTH_SHORT).show()
                 return
             }
             val intent = Intent(
@@ -40,7 +41,7 @@ enum class MessageSender(
             try {
                 context.startActivity(intent)
             } catch (_: ActivityNotFoundException) {
-                Toast.makeText(context, "WhatsApp is not installed", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.err_whatsapp_not_installed), Toast.LENGTH_SHORT).show()
             }
         }
     },
@@ -57,7 +58,7 @@ enum class MessageSender(
             try {
                 context.startActivity(intent)
             } catch (_: ActivityNotFoundException) {
-                Toast.makeText(context, "No SMS app found", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.err_no_sms_app), Toast.LENGTH_SHORT).show()
             }
         }
     };

@@ -37,11 +37,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.myapplication.R
 import com.example.myapplication.model.Owner
 import java.time.Month
 import java.time.YearMonth
@@ -62,7 +64,7 @@ internal fun ContractListFilters(
 
     if (showStartPicker && showDateFilters) {
         MonthPickerDialog(
-            title = "Filter by start date",
+            title = stringResource(R.string.filter_start_date_title),
             initialMonth = state.startingMonth,
             onMonthSelected = {
                 state.startingMonth = it
@@ -74,7 +76,7 @@ internal fun ContractListFilters(
 
     if (showFinishPicker && showDateFilters) {
         MonthPickerDialog(
-            title = "Filter by end date",
+            title = stringResource(R.string.filter_end_date_title),
             initialMonth = state.finishingMonth,
             onMonthSelected = {
                 state.finishingMonth = it
@@ -91,13 +93,13 @@ internal fun ContractListFilters(
         OutlinedTextField(
             value = state.query,
             onValueChange = { state.query = it },
-            placeholder = { Text("Search by address, unit...") },
+            placeholder = { Text(stringResource(R.string.action_search_placeholder_contracts)) },
             singleLine = true,
             shape = RoundedCornerShape(16.dp),
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = "Search icon"
+                    contentDescription = stringResource(R.string.cd_search_icon)
                 )
             },
             trailingIcon = {
@@ -105,7 +107,7 @@ internal fun ContractListFilters(
                     IconButton(onClick = { state.query = "" }) {
                         Icon(
                             imageVector = Icons.Default.Close,
-                            contentDescription = "Clear search"
+                            contentDescription = stringResource(R.string.cd_clear_search)
                         )
                     }
                 }
@@ -121,7 +123,7 @@ internal fun ContractListFilters(
                 FilterChip(
                     selected = state.paymentDue,
                     onClick = { state.paymentDue = !state.paymentDue },
-                    label = { Text("Due") },
+                    label = { Text(stringResource(R.string.filter_due)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Warning,
@@ -134,7 +136,7 @@ internal fun ContractListFilters(
                 FilterChip(
                     selected = state.expiresSoon,
                     onClick = { state.expiresSoon = !state.expiresSoon },
-                    label = { Text("Expiring") },
+                    label = { Text(stringResource(R.string.filter_expiring)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.HourglassEmpty,
@@ -147,7 +149,7 @@ internal fun ContractListFilters(
                 FilterChip(
                     selected = state.hikeThisMonth,
                     onClick = { state.hikeThisMonth = !state.hikeThisMonth },
-                    label = { Text("Hike") },
+                    label = { Text(stringResource(R.string.filter_hike)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.KeyboardArrowUp,
@@ -159,12 +161,13 @@ internal fun ContractListFilters(
             }
 
             if (showDateFilters) {
+                val fromFormat = stringResource(R.string.filter_from)
                 FilterChip(
                     selected = state.startingMonth != null,
                     onClick = { showStartPicker = true },
                     label = {
                         Text(
-                            state.startingMonth?.let { "From " + it.format(DateTimeFormatter.ofPattern("MMM yyyy")) } ?: "From"
+                            state.startingMonth?.let { stringResource(R.string.filter_from_format, it.format(DateTimeFormatter.ofPattern("MMM yyyy"))) } ?: fromFormat
                         )
                     },
                     leadingIcon = {
@@ -182,7 +185,7 @@ internal fun ContractListFilters(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
-                                    contentDescription = "Clear start date",
+                                    contentDescription = stringResource(R.string.cd_clear_start_date),
                                     modifier = Modifier.size(12.dp)
                                 )
                             }
@@ -192,12 +195,13 @@ internal fun ContractListFilters(
             }
 
             if (showDateFilters) {
+                val toFormat = stringResource(R.string.filter_to)
                 FilterChip(
                     selected = state.finishingMonth != null,
                     onClick = { showFinishPicker = true },
                     label = {
                         Text(
-                            state.finishingMonth?.let { "To " + it.format(DateTimeFormatter.ofPattern("MMM yyyy")) } ?: "To"
+                            state.finishingMonth?.let { stringResource(R.string.filter_to_format, it.format(DateTimeFormatter.ofPattern("MMM yyyy"))) } ?: toFormat
                         )
                     },
                     leadingIcon = {
@@ -215,7 +219,7 @@ internal fun ContractListFilters(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
-                                    contentDescription = "Clear end date",
+                                    contentDescription = stringResource(R.string.cd_clear_end_date),
                                     modifier = Modifier.size(12.dp)
                                 )
                             }
@@ -225,13 +229,15 @@ internal fun ContractListFilters(
             }
 
             Box {
+                val ownersLabel = stringResource(R.string.filter_owners)
+                val ownerLabel = stringResource(R.string.filter_owner)
                 FilterChip(
                     selected = state.ownerId != null,
                     onClick = { ownersExpanded = true },
                     label = {
                         Text(
-                            if (state.ownerId == null) "Owners"
-                            else owners.firstOrNull { it.id == state.ownerId }?.name ?: "Owner"
+                            if (state.ownerId == null) ownersLabel
+                            else owners.firstOrNull { it.id == state.ownerId }?.name ?: ownerLabel
                         )
                     },
                     leadingIcon = {
@@ -254,7 +260,7 @@ internal fun ContractListFilters(
                     onDismissRequest = { ownersExpanded = false }
                 ) {
                     DropdownMenuItem(
-                        text = { Text("All owners") },
+                        text = { Text(stringResource(R.string.filter_all_owners)) },
                         onClick = {
                             state.ownerId = null
                             ownersExpanded = false
@@ -282,7 +288,7 @@ internal fun ContractListFilters(
                         contentDescription = null,
                         modifier = Modifier.size(16.dp)
                     )
-                    Text("Clear all", style = MaterialTheme.typography.labelMedium)
+                    Text(stringResource(R.string.action_clear_all), style = MaterialTheme.typography.labelMedium)
                 }
             }
         }
@@ -299,6 +305,9 @@ private fun MonthPickerDialog(
     var yearText by remember { mutableStateOf((initialMonth ?: YearMonth.now()).year.toString()) }
     val year = yearText.toIntOrNull()?.takeIf { it in 1..9999 }
 
+    val previousYearCd = stringResource(R.string.cd_previous_year)
+    val nextYearCd = stringResource(R.string.cd_next_year)
+    val yearLabel = stringResource(R.string.label_year)
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
@@ -308,12 +317,12 @@ private fun MonthPickerDialog(
                     TextButton(
                         enabled = year != null && year > 1,
                         onClick = { yearText = (year!! - 1).toString() },
-                        modifier = Modifier.semantics { contentDescription = "Previous year" }
+                        modifier = Modifier.semantics { contentDescription = previousYearCd }
                     ) { Text("<") }
                     OutlinedTextField(
                         value = yearText,
                         onValueChange = { if (it.length <= 4 && it.all(Char::isDigit)) yearText = it },
-                        label = { Text("Year") },
+                        label = { Text(yearLabel) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true,
                         isError = year == null,
@@ -322,7 +331,7 @@ private fun MonthPickerDialog(
                     TextButton(
                         enabled = year != null && year < 9999,
                         onClick = { yearText = (year!! + 1).toString() },
-                        modifier = Modifier.semantics { contentDescription = "Next year" }
+                        modifier = Modifier.semantics { contentDescription = nextYearCd }
                     ) { Text(">") }
                 }
                 Month.entries.chunked(3).forEach { months ->
@@ -351,13 +360,13 @@ private fun MonthPickerDialog(
                     onMonthSelected(null)
                     onDismiss()
                 }) {
-                    Text("Clear date")
+                    Text(stringResource(R.string.action_clear_date))
                 }
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.action_cancel))
             }
         }
     )

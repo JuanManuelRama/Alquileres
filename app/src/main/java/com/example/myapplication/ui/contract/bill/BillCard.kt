@@ -21,9 +21,11 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.example.myapplication.R
 import com.example.myapplication.model.Bill
 import java.time.YearMonth
 
@@ -43,9 +45,10 @@ fun BillCards(
     var showBillPicker by remember { mutableStateOf(false) }
 
     if (showBillPicker && enabled) {
+        val currentSuffix = stringResource(R.string.bill_current_suffix)
         AlertDialog(
             onDismissRequest = { showBillPicker = false },
-            title = { Text("Select bill") },
+            title = { Text(stringResource(R.string.bill_select_title)) },
             text = {
                 LazyColumn(
                     modifier = Modifier
@@ -65,7 +68,7 @@ fun BillCards(
                                 .semantics { selected = isCurrent }
                         ) {
                             Text(
-                                text = bill.month.format(BillMonthFormatter) + if (isCurrent) " (current)" else ""
+                                text = bill.month.format(BillMonthFormatter) + if (isCurrent) currentSuffix else ""
                             )
                         }
                     }
@@ -73,7 +76,7 @@ fun BillCards(
             },
             confirmButton = {
                 TextButton(onClick = { showBillPicker = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.action_cancel))
                 }
             }
         )
@@ -88,7 +91,7 @@ fun BillCards(
                 onClick = { onSelect(bills[index - 1].month) },
                 enabled = enabled && index > 0
             ) {
-                Text("Previous")
+                Text(stringResource(R.string.action_previous))
             }
             TextButton(
                 onClick = { showBillPicker = true },
@@ -101,7 +104,7 @@ fun BillCards(
                 onClick = { onSelect(bills[index + 1].month) },
                 enabled = enabled && index < bills.lastIndex
             ) {
-                Text("Next")
+                Text(stringResource(R.string.action_next))
             }
         }
         billStates.SaveableStateProvider(bills[index].id) {

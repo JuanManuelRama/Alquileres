@@ -35,7 +35,9 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.myapplication.R
 import kotlinx.coroutines.launch
 
 @Composable
@@ -216,7 +218,7 @@ private fun <T> EntitySelection(
                         }) {
                             Icon(
                                 Icons.Default.Close,
-                                contentDescription = "Clear $label selection"
+                                contentDescription = stringResource(R.string.cd_clear_selection, label)
                             )
                         }
                     } else {
@@ -250,7 +252,7 @@ private fun <T> EntitySelection(
 
                 DropdownMenuItem(
                     text = {
-                        Text("Create new $label")
+                        Text(stringResource(R.string.picker_create_new, label))
                     },
                     leadingIcon = {
                         Icon(

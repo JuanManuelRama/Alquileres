@@ -15,13 +15,13 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -31,12 +31,13 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
 import com.example.myapplication.model.Contract
@@ -70,15 +71,15 @@ fun ContractListScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text(if (isInactive) "Inactive contracts" else "Active contracts") },
+                title = { Text(if (isInactive) stringResource(R.string.title_inactive_contracts) else stringResource(R.string.title_active_contracts)) },
                 actions = {
                     Box {
                         IconButton(onClick = { menuExpanded = true }) {
-                            Icon(Icons.Default.MoreVert, contentDescription = "More options")
+                            Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.cd_more_options))
                         }
                         DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                             DropdownMenuItem(
-                                text = { Text("Settings") },
+                                text = { Text(stringResource(R.string.title_settings)) },
                                 leadingIcon = { Icon(Icons.Default.Settings, contentDescription = null) },
                                 onClick = {
                                     menuExpanded = false
@@ -96,13 +97,13 @@ fun ContractListScreen(
                     selected = !isInactive,
                     onClick = { onTabSelected(false) },
                     icon = { Icon(painterResource(R.drawable.ic_contract), contentDescription = null, modifier = Modifier.size(24.dp)) },
-                    label = { Text("Active") }
+                    label = { Text(stringResource(R.string.tab_active)) }
                 )
                 NavigationBarItem(
                     selected = isInactive,
                     onClick = { onTabSelected(true) },
                     icon = { Icon(Icons.Default.Archive, contentDescription = null) },
-                    label = { Text("Inactive") }
+                    label = { Text(stringResource(R.string.tab_inactive)) }
                 )
             }
         },
@@ -111,7 +112,7 @@ fun ContractListScreen(
             FloatingActionButton(onClick = addContractClick) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Create new contract"
+                    contentDescription = stringResource(R.string.cd_create_new_contract)
                 )
             }
         }
@@ -124,11 +125,11 @@ fun ContractListScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     CircularProgressIndicator()
-                    Text("Loading contracts...", style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.loading_contracts), style = MaterialTheme.typography.bodyMedium)
                 }
             } else if (contracts.isEmpty()) {
                 if (isInactive) {
-                    Text("No inactive contracts yet.", modifier = Modifier.align(Alignment.Center))
+                    Text(stringResource(R.string.empty_inactive_contracts), modifier = Modifier.align(Alignment.Center))
                 } else EmptyContracts(
                     onCreateContract = addContractClick,
                     modifier = Modifier.fillMaxSize().padding(bottom = 16.dp)
@@ -149,7 +150,7 @@ fun ContractListScreen(
                     }
                     if (filteredContracts.isEmpty()) {
                         item(key = "no_matches") {
-                            Text("No contracts match these filters.", modifier = Modifier.padding(16.dp))
+                            Text(stringResource(R.string.no_matching_contracts), modifier = Modifier.padding(16.dp))
                         }
                     }
                     items(filteredContracts, key = { it.id }) { contract ->

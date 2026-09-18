@@ -33,9 +33,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.myapplication.R
 import com.example.myapplication.data.settings.AppLanguage
 import com.example.myapplication.data.settings.ThemeMode
 import com.example.myapplication.ui.theme.MyApplicationTheme
@@ -56,10 +58,10 @@ fun SettingsScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text("Settings") },
+                title = { Text(stringResource(R.string.title_settings)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
             )
@@ -74,7 +76,7 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                text = "Appearance",
+                text = stringResource(R.string.header_appearance),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary,
             )
@@ -89,7 +91,7 @@ fun SettingsScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     Text(
-                        text = "Theme",
+                        text = stringResource(R.string.label_theme),
                         style = MaterialTheme.typography.titleSmall,
                     )
 
@@ -107,9 +109,9 @@ fun SettingsScreen(
                             ) {
                                 Text(
                                     text = when (mode) {
-                                        ThemeMode.SYSTEM -> "System"
-                                        ThemeMode.LIGHT -> "Light"
-                                        ThemeMode.DARK -> "Dark"
+                                        ThemeMode.SYSTEM -> stringResource(R.string.theme_system)
+                                        ThemeMode.LIGHT -> stringResource(R.string.theme_light)
+                                        ThemeMode.DARK -> stringResource(R.string.theme_dark)
                                     },
                                 )
                             }
@@ -133,7 +135,7 @@ fun SettingsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "App Language",
+                        text = stringResource(R.string.label_app_language),
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
@@ -147,7 +149,7 @@ fun SettingsScreen(
             if (showLanguageDialog) {
                 AlertDialog(
                     onDismissRequest = { showLanguageDialog = false },
-                    title = { Text("Choose Language") },
+                    title = { Text(stringResource(R.string.title_choose_language)) },
                     text = {
                         Column {
                             AppLanguage.entries.forEach { lang ->
@@ -178,7 +180,7 @@ fun SettingsScreen(
                     },
                     confirmButton = {
                         TextButton(onClick = { showLanguageDialog = false }) {
-                            Text("Cancel")
+                            Text(stringResource(R.string.action_cancel))
                         }
                     },
                 )

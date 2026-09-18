@@ -7,11 +7,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
+import com.example.myapplication.R
 import io.michaelrocks.libphonenumber.android.NumberParseException
 import io.michaelrocks.libphonenumber.android.PhoneNumberUtil
 import io.michaelrocks.libphonenumber.android.Phonenumber.PhoneNumber
@@ -46,10 +48,15 @@ internal fun phoneNumberForParsing(value: String, region: String, util: PhoneNum
     return if (local == null || local == international) "+$input" else input
 }
 
-internal fun validatePhoneNumber(value: String, region: String, util: PhoneNumberUtil): Validation<String> {
+internal fun validatePhoneNumber(
+    value: String,
+    region: String,
+    util: PhoneNumberUtil,
+    errorMessage: String = "Enter a valid phone number"
+): Validation<String> {
     val number = phoneNumberForParsing(value, region, util)
     return if (validPhoneNumber(number, region, util) != null) Validation.Valid(phoneNumberDigits(value))
-    else Validation.Invalid("Enter a valid phone number")
+    else Validation.Invalid(errorMessage)
 }
 
 @Composable
@@ -64,12 +71,13 @@ fun FormScope.PhoneItem(
     val context = LocalContext.current.applicationContext
     val util = remember(context) { PhoneNumberUtil.createInstance(context) }
     val transformation = remember(util, region) { PhoneVisualTransformation(util, region) }
+    val invalidPhoneError = stringResource(R.string.err_invalid_phone_number)
     Item(
         field = field,
         value = normalizePhoneInput(value),
         mandatory = mandatory,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-        validate = { validatePhoneNumber(it, region, util) },
+        validate = { validatePhoneNumber(it, region, util, invalidPhoneError) },
         visualTransformation = transformation,
         modifier = modifier,
         onValueChange = { onValueChange(normalizePhoneInput(it)) }

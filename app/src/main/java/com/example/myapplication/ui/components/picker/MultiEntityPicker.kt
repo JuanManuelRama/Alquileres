@@ -13,7 +13,9 @@ import androidx.compose.material3.InputChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.myapplication.R
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -74,7 +76,7 @@ fun <T> MultiEntityPicker(
                     trailingIcon = {
                         Icon(
                             Icons.Default.Close,
-                            contentDescription = "Remove",
+                            contentDescription = stringResource(R.string.cd_remove),
                             modifier = Modifier.clickable {
                                 onItemsChanged(selectedItems - item)
                             }

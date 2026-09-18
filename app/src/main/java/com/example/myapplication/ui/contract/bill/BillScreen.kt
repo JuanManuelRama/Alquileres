@@ -26,11 +26,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.myapplication.ui.components.form.DiscardChangesDialog
+import com.example.myapplication.R
 import com.example.myapplication.message.BillMessageFormatter
 import com.example.myapplication.message.MessageSender
+import com.example.myapplication.ui.components.form.DiscardChangesDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,7 +75,7 @@ fun BillScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text("Bills") },
+                title = { Text(stringResource(R.string.bill_screen_title)) },
                 navigationIcon = {
                     IconButton(
                         onClick = onBack,
@@ -81,7 +83,7 @@ fun BillScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.action_back)
                         )
                     }
                 }
@@ -105,7 +107,7 @@ fun BillScreen(
                 Text(text = error, color = MaterialTheme.colorScheme.error)
                 if (state.bill == null) {
                     TextButton(onClick = viewModel::retry) {
-                        Text("Retry")
+                        Text(stringResource(R.string.action_retry))
                     }
                 }
             }

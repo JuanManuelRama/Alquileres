@@ -3,6 +3,8 @@ package com.example.myapplication.ui.service
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.example.myapplication.R
 import com.example.myapplication.model.Service
 import com.example.myapplication.ui.components.form.Cancel
 import com.example.myapplication.ui.components.form.Form
@@ -20,8 +22,11 @@ fun ServiceCreator(
 ) {
     val serviceNames = remember(services) { services.map { it.name }.toSet() }
 
+    val serviceNameLabel = stringResource(R.string.label_service_name)
+    val uniqueError = stringResource(R.string.validation_must_be_unique)
+
     Form(
-        submitText = "Create",
+        submitText = stringResource(R.string.action_create),
         onSubmit = {
             onCreated(
                 Service(
@@ -33,9 +38,9 @@ fun ServiceCreator(
         modifier = modifier,
     ) {
         Item(
-            field = "Service Name",
+            field = serviceNameLabel,
             value = inputs.name,
-            validate = { Validate(it).doesntExist(serviceNames) },
+            validate = { Validate(it).doesntExist(serviceNames, uniqueError) },
             onValueChange = { onInputsChanged(inputs.copy(name = it)) }
         )
     }

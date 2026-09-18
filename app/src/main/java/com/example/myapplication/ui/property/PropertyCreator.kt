@@ -7,18 +7,20 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.ContentType
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.myapplication.R
 import com.example.myapplication.model.Address
 import com.example.myapplication.model.Owner
 import com.example.myapplication.model.Property
 import com.example.myapplication.ui.components.form.Cancel
 import com.example.myapplication.ui.components.form.Form
-import com.example.myapplication.ui.owner.OwnerInputs
 import com.example.myapplication.ui.components.picker.PickerInputs
 import com.example.myapplication.ui.owner.OwnerCreator
+import com.example.myapplication.ui.owner.OwnerInputs
 
 @Composable
 fun PropertyCreator(
@@ -30,8 +32,10 @@ fun PropertyCreator(
     modifier: Modifier = Modifier,
 ) {
 
+    val cancelText = stringResource(R.string.action_cancel)
+
     Form(
-        submitText = "Create",
+        submitText = stringResource(R.string.action_create),
         onSubmit = {
             val owner = checkNotNull(inputs.selectedOwner)
             onCreated(
@@ -47,7 +51,7 @@ fun PropertyCreator(
         modifier = modifier
     ) {
         Item(
-            field = "Street",
+            field = stringResource(R.string.label_street),
             value = inputs.street,
             onValueChange = { onInputsChanged(inputs.copy(street = it)) },
             keyboardOptions = KeyboardOptions(
@@ -62,13 +66,13 @@ fun PropertyCreator(
                 horizontalArrangement = Arrangement.spacedBy(3.dp)
             ) {
                 Item(
-                    field = "Number",
+                    field = stringResource(R.string.label_number),
                     value = inputs.number,
                     onValueChange = { onInputsChanged(inputs.copy(number = it)) },
                     modifier = Modifier.weight(1f).semantics { ContentType.AddressAuxiliaryDetails }
                 )
                 Item(
-                    field = "Unit",
+                    field = stringResource(R.string.label_unit),
                     value = inputs.unit,
                     mandatory = false,
                     onValueChange = { onInputsChanged(inputs.copy(unit = it)) },
@@ -77,7 +81,7 @@ fun PropertyCreator(
             }
         }
         PickerItem(
-            label = "Owner",
+            label = stringResource(R.string.label_owner),
             items = owners,
             selectedItem = inputs.selectedOwner,
             pickerInputs = inputs.ownerPicker,
@@ -92,7 +96,7 @@ fun PropertyCreator(
                     onInputsChanged = { onInputsChanged(inputs.copy(ownerDraft = it)) },
                     owners = owners,
                     onCreated = onCreated,
-                    cancel = Cancel(text = "Cancel", onClick = onCanceled),
+                    cancel = Cancel(text = cancelText, onClick = onCanceled),
                     modifier = Modifier.fillMaxWidth()
                 )
             },

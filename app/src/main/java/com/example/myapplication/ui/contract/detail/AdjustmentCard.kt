@@ -22,9 +22,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.example.myapplication.R
 import com.example.myapplication.model.Adjustment
 import com.example.myapplication.model.Contract
 import com.example.myapplication.ui.components.form.Cancel
@@ -70,7 +72,7 @@ fun AdjustmentCard(
                         text = adjustment.amount?.let { "${it.multiply(100.toBigDecimal())
                             .setScale(4, RoundingMode.HALF_UP)
                             .stripTrailingZeros()
-                            .toPlainString()}%" } ?: "Not set",
+                            .toPlainString()}%" } ?: stringResource(R.string.label_not_set),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     if (editable) {
@@ -82,7 +84,7 @@ fun AdjustmentCard(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Edit,
-                                contentDescription = "Edit hike",
+                                contentDescription = stringResource(R.string.cd_edit_hike),
                                 modifier = Modifier.size(13.dp)
                             )
                         }
@@ -116,17 +118,17 @@ fun AdjustmentCard(
                     modifier = Modifier.padding(24.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text("Edit Hike", style = MaterialTheme.typography.headlineSmall)
+                    Text(stringResource(R.string.title_edit_hike), style = MaterialTheme.typography.headlineSmall)
                     Form(
-                        submitText = "Save Hike",
+                        submitText = stringResource(R.string.action_save_hike),
                         onSubmit = {
                             onAmountChange(percentage.toBigDecimal().divide(BigDecimal(100)))
                             showEditor = false
                         },
-                        cancel = Cancel(text = "Cancel", onClick = { showEditor = false } )
+                        cancel = Cancel(text = stringResource(R.string.action_cancel), onClick = { showEditor = false } )
                     ) {
                         Item(
-                            field = "Hike (%)",
+                            field = stringResource(R.string.label_hike),
                             value = percentage,
                             keyboardOptions = KeyboardOptions(keyboardType =  KeyboardType.Decimal),
                             validate = { Validate(it).isBigDecimal().isPositive().limitDecimals(4) },

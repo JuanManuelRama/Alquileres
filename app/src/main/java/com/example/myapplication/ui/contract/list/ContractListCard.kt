@@ -26,7 +26,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.example.myapplication.R
 import com.example.myapplication.model.Contract
 import java.time.YearMonth
 
@@ -78,13 +80,13 @@ fun ContractListCard(
                 },
                 supportingContent = {
                     Text(
-                        text = "Tenant: ${contract.tenant.name}",
+                        text = stringResource(R.string.tenant_name_format, contract.tenant.name),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 },
                 trailingContent = {
                     Text(
-                        text = "Base: $${contract.rent.stripTrailingZeros().toPlainString()}",
+                        text = stringResource(R.string.base_rent_format, contract.rent.stripTrailingZeros().toPlainString()),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -99,7 +101,7 @@ fun ContractListCard(
                     if (item.paymentDue) {
                         ContractStatusBadge(
                             icon = Icons.Default.Warning,
-                            label = "Payment due",
+                            label = stringResource(R.string.status_payment_due),
                             containerColor = MaterialTheme.colorScheme.errorContainer,
                             contentColor = MaterialTheme.colorScheme.onErrorContainer
                         )
@@ -107,7 +109,7 @@ fun ContractListCard(
                     if (item.expiresSoon) {
                         ContractStatusBadge(
                             icon = Icons.Default.HourglassEmpty,
-                            label = "Expires soon",
+                            label = stringResource(R.string.status_expires_soon),
                             containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                             contentColor = MaterialTheme.colorScheme.onTertiaryContainer
                         )
@@ -115,7 +117,7 @@ fun ContractListCard(
                     if (item.hikeThisMonth) {
                         ContractStatusBadge(
                             icon = Icons.Default.KeyboardArrowUp,
-                            label = "Hike this month",
+                            label = stringResource(R.string.status_hike_this_month),
                             containerColor = MaterialTheme.colorScheme.primaryContainer,
                             contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                         )
