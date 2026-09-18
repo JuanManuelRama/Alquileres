@@ -125,9 +125,8 @@ internal fun BillCompletionForm(
                 )
             }
             if (bill.isPaid) {
-                val formattedDate = bill.paidAt!!.format(BillDateFormatter)
                 Text(
-                    text = stringResource(R.string.bill_status_paid_on, formattedDate),
+                    text = stringResource(R.string.bill_status_paid_on, bill.paidAt!!.formatPaidAtDate()),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )

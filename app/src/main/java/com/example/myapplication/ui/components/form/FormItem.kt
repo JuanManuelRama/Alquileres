@@ -24,9 +24,9 @@ import androidx.compose.ui.text.input.ImeAction
 import com.example.myapplication.R
 import com.example.myapplication.ui.components.picker.EntityPicker
 import com.example.myapplication.ui.components.picker.MultiEntityPicker
+import com.example.myapplication.ui.contract.bill.formatSelectedDate
 import java.time.Instant
 import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun FormItem(item: FormItemState, modifier: Modifier = Modifier) {
@@ -161,7 +161,7 @@ private fun DateFormItemContent(item: DateFormItemState, error: Error, modifier:
     }
 
     OutlinedTextField(
-        value = item.value?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?: "",
+        value = item.value?.formatSelectedDate() ?: "",
         onValueChange = { },
         label = { Text(item.displayLabel) },
         isError = error.hasMessage,
