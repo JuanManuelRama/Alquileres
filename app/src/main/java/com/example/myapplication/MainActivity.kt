@@ -8,7 +8,9 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myapplication.data.repository.BillRepository
 import com.example.myapplication.data.repository.ContractRepository
 import com.example.myapplication.data.repository.OwnerRepository
@@ -27,27 +29,31 @@ class MainActivity : ComponentActivity() {
         setContent {
             val application = applicationContext as MyApplication
 
+            val settingsRepository = application.settingsRepository
+            val themeMode by settingsRepository.themeMode.collectAsStateWithLifecycle()
+
             val factory = AppViewModelFactory(
                 propertyRepository = PropertyRepository(application.database.propertyDao()),
                 ownerRepository = OwnerRepository(application.database.ownerDao()),
                 serviceRepository = ServiceRepository(application.database.serviceDao()),
                 contractRepository = ContractRepository(application.database.contractDao(), application.database.billDao()),
-                billStore = BillRepository(application.database.billDao())
+                billStore = BillRepository(application.database.billDao()),
+                settingsRepository = settingsRepository,
             )
 
             val createContractViewModel: CreateContractViewModel by viewModels { factory }
             val contractViewModel: ContractViewModel by viewModels { factory }
 
-            MyApplicationTheme {
+            MyApplicationTheme(themeMode = themeMode) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = MaterialTheme.colorScheme.background,
                 ) {
                     AppNavigation(
                         createContractViewModel = createContractViewModel,
                         contractViewModel = contractViewModel,
                         viewModelFactory = factory,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
                     )
                 }
             }

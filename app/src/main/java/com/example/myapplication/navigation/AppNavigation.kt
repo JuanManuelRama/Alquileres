@@ -23,13 +23,14 @@ import com.example.myapplication.ui.contract.create.CreateContractViewModel
 import com.example.myapplication.ui.contract.detail.ContractDetailScreen
 import com.example.myapplication.ui.contract.list.ContractListScreen
 import com.example.myapplication.ui.settings.SettingsScreen
+import com.example.myapplication.ui.settings.SettingsViewModel
 
 @Composable
 fun AppNavigation(
     createContractViewModel: CreateContractViewModel,
     contractViewModel: ContractViewModel,
     viewModelFactory: AppViewModelFactory,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val backStack = rememberNavBackStack(ContractList(isInactive = false))
 
@@ -41,7 +42,7 @@ fun AppNavigation(
         predictivePopTransitionSpec = { EnterTransition.None togetherWith ExitTransition.None },
         entryDecorators = listOf(
             rememberSaveableStateHolderNavEntryDecorator(),
-            rememberViewModelStoreNavEntryDecorator()
+            rememberViewModelStoreNavEntryDecorator(),
         ),
         onBack = { backStack.removeLastOrNull() },
         entryProvider = { key ->
@@ -61,16 +62,22 @@ fun AppNavigation(
                                 val index = backStack.indexOf(route)
                                 if (index >= 0) backStack[index] = ContractList(inactiveState)
                             }
-                        }
+                        },
                     )
                 }
                 is Settings -> NavEntry(route) {
-                    SettingsScreen(onBackClick = { backStack.removeLastOrNull() })
+                    val settingsViewModel: SettingsViewModel = viewModel(factory = viewModelFactory)
+                    val themeMode by settingsViewModel.themeMode.collectAsStateWithLifecycle()
+                    SettingsScreen(
+                        onBackClick = { backStack.removeLastOrNull() },
+                        themeMode = themeMode,
+                        onThemeModeSelected = settingsViewModel::setThemeMode,
+                    )
                 }
                 is AddPropiedad -> NavEntry(route) {
                     CreateContractScreen(
                         viewModel = createContractViewModel,
-                        onBackClick = { backStack.removeLastOrNull() }
+                        onBackClick = { backStack.removeLastOrNull() },
                     )
                 }
                 is ContractDetail -> NavEntry(route) {
@@ -85,7 +92,7 @@ fun AppNavigation(
                             val index = backStack.indexOf(route)
                             if (index >= 0) backStack[index] = ContractDetail(route.contractId, isInactive = true)
                         },
-                        onBackClick = { backStack.removeLastOrNull() }
+                        onBackClick = { backStack.removeLastOrNull() },
                     )
                 }
                 is PrepareBill -> NavEntry(route) {
@@ -96,10 +103,10 @@ fun AppNavigation(
                         messageSender = MessageSender.WhatsApp,
                         isInactive = route.isInactive,
                         viewModel = viewModel(factory = factory),
-                        onBackClick = { backStack.removeLastOrNull() }
+                        onBackClick = { backStack.removeLastOrNull() },
                     )
                 }
             }
-        }
+        },
     )
 }
