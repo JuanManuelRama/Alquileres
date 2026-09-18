@@ -59,6 +59,7 @@ private fun TextFormItemContent(
     OutlinedTextField(
         value = item.value,
         onValueChange = item.onValueChange,
+        visualTransformation = item.visualTransformation,
         readOnly = !item.modifiable,
         label = if (item.showLabel) ( { Text(item.displayLabel) } ) else null,
         prefix = item.prefix,

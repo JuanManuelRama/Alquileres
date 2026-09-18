@@ -15,9 +15,11 @@ coroutines = "1.11.0"
 serialization = "1.11.0"
 compose-icons = "1.7.8"
 material3 = "1.4.0"
+libphonenumber = "9.0.38"
 
 
 [libraries]
+libphonenumber = { group = "io.michaelrocks", name = "libphonenumber-android", version.ref = "libphonenumber" }
 kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "serialization" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

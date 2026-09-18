@@ -38,6 +38,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.libphonenumber)
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation3.runtime)

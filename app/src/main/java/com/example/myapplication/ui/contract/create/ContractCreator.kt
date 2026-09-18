@@ -31,6 +31,8 @@ import com.example.myapplication.model.Service
 import com.example.myapplication.model.Tenant
 import com.example.myapplication.ui.components.form.Cancel
 import com.example.myapplication.ui.components.form.Form
+import com.example.myapplication.ui.components.form.PhoneItem
+import com.example.myapplication.ui.components.form.phoneNumberDigits
 import com.example.myapplication.ui.components.form.Validate
 import com.example.myapplication.ui.components.form.check
 import com.example.myapplication.ui.components.form.isBigDecimal
@@ -81,7 +83,7 @@ fun ContractCreator(
             val finishingMonth = checkNotNull(inputs.endMonth)
             val contract = Contract(
                 property = property,
-                tenant = Tenant(name = inputs.tenantName, phone = inputs.tenantPhone),
+                tenant = Tenant(name = inputs.tenantName, phone = phoneNumberDigits(inputs.tenantPhone)),
                 rent = inputs.rent.toBigDecimal(),
                 startingMonth = startingMonth,
                 finishingMonth = finishingMonth,
@@ -156,10 +158,9 @@ fun ContractCreator(
                         ),
                         onValueChange = { onInputsChanged(inputs.copy(tenantName = it)) }
                     )
-                    Item(
+                    PhoneItem(
                         field = "Phone",
                         value = inputs.tenantPhone,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                         modifier = Modifier.weight(1f).semantics { ContentType.PhoneNumber },
                         onValueChange = { onInputsChanged(inputs.copy(tenantPhone = it)) }
                     )

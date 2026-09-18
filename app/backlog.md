@@ -22,6 +22,7 @@
 ## View
 
 - The x icon on Bill item is slightly unaligned
+- Scrolling Bills would be nice
 
 ## End of Contract
 

@@ -4,6 +4,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import com.example.myapplication.ui.components.picker.PickerInputs
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.VisualTransformation
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -50,7 +51,8 @@ data class TextFormItemState(
     val prefix: (@Composable () -> Unit)? = null,
     val textStyle: TextStyle? = null,
     val showLabel: Boolean = true,
-    val modifiable: Boolean = true
+    val modifiable: Boolean = true,
+    val visualTransformation: VisualTransformation = VisualTransformation.None
 ) : ValidatedFormItemState<String> {
     override val label: String get() = this.field
     override val isEmpty: Boolean get() = value.isBlank()

@@ -20,6 +20,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.LayoutDirection
 import java.time.LocalDate
 import java.time.YearMonth
@@ -175,6 +176,7 @@ class FormScope {
         textStyle: TextStyle = LocalTextStyle.current,
         showLabel: Boolean = true,
         modifiable: Boolean = true,
+        visualTransformation: VisualTransformation = VisualTransformation.None,
         onValueChange: (String) -> Unit
     ) {
         Field(
@@ -188,6 +190,7 @@ class FormScope {
                 textStyle = textStyle,
                 showLabel = showLabel,
                 modifiable = modifiable,
+                visualTransformation = visualTransformation,
                 onValueChange = onValueChange
             ),
             modifier = modifier
