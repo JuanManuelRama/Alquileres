@@ -1,15 +1,25 @@
 package com.example.myapplication.ui.contract.create
 
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.ContentType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
@@ -27,11 +37,13 @@ import com.example.myapplication.ui.components.form.isBigDecimal
 import com.example.myapplication.ui.components.form.isLong
 import com.example.myapplication.ui.components.form.isPositive
 import com.example.myapplication.ui.components.form.limitDecimals
-import com.example.myapplication.ui.property.PropertyInputs
-import com.example.myapplication.ui.service.ServiceInputs
+import com.example.myapplication.ui.components.picker.PhoneContactPicker
 import com.example.myapplication.ui.components.picker.PickerInputs
+import com.example.myapplication.ui.components.picker.queryPhoneDetails
 import com.example.myapplication.ui.property.PropertyCreator
+import com.example.myapplication.ui.property.PropertyInputs
 import com.example.myapplication.ui.service.ServiceCreator
+import com.example.myapplication.ui.service.ServiceInputs
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -46,6 +58,21 @@ fun ContractCreator(
     cancel: Cancel? = null,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+
+    val contactPickerLauncher = rememberLauncherForActivityResult(
+        contract = PhoneContactPicker()
+    ) { uri -> uri?.let {
+        queryPhoneDetails(context, uri).let { (name, phone) ->
+            onInputsChanged(
+                inputs.copy(
+                    tenantName = name.ifBlank { inputs.tenantName },
+                    tenantPhone = phone.ifBlank { inputs.tenantPhone }
+                ))
+        }
+    }
+    }
+
     Form(
         submitText = "Create Contract",
         onSubmit = {
@@ -99,7 +126,22 @@ fun ContractCreator(
         )
         Content {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Tenant", style = MaterialTheme.typography.titleMedium)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Tenant", style = MaterialTheme.typography.titleMedium)
+                    TextButton(onClick = { contactPickerLauncher.launch(null) }) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Pick contact",
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Pick contact")
+                    }
+                }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
