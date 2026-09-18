@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.components.form
 
+import com.example.myapplication.ui.util.rememberDateFormatters
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.DatePicker
@@ -26,8 +27,6 @@ import com.example.myapplication.ui.components.picker.EntityPicker
 import com.example.myapplication.ui.components.picker.MultiEntityPicker
 import java.time.Instant
 import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 
 @Composable
 fun FormItem(item: FormItemState, modifier: Modifier = Modifier) {
@@ -132,6 +131,7 @@ private fun <T> MultiPickerFormItemContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DateFormItemContent(item: DateFormItemState, error: Error, modifier: Modifier = Modifier) {
+    val dates = rememberDateFormatters()
     var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = item.value?.atStartOfDay(ZoneOffset.UTC)?.toInstant()?.toEpochMilli()
@@ -162,7 +162,7 @@ private fun DateFormItemContent(item: DateFormItemState, error: Error, modifier:
     }
 
     OutlinedTextField(
-        value = item.value?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)) ?: "",
+        value = item.value?.let(dates::shortDate) ?: "",
         onValueChange = { },
         label = { Text(item.displayLabel) },
         isError = error.hasMessage,

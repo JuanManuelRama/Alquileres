@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.contract.bill
 
+import com.example.myapplication.ui.util.rememberDateFormatters
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -47,11 +48,11 @@ import com.example.myapplication.ui.components.form.Validate
 import com.example.myapplication.ui.components.form.check
 import com.example.myapplication.ui.components.form.isBigDecimal
 import com.example.myapplication.ui.components.form.limitDecimals
+import com.example.myapplication.ui.util.getCurrencySymbol
+import com.example.myapplication.ui.util.toMoney
 import kotlinx.serialization.builtins.ListSerializer
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 
 @Composable
 internal fun BillCompletionForm(
@@ -63,6 +64,7 @@ internal fun BillCompletionForm(
     onChangesChanged: (Boolean) -> Unit = {},
     onSendMessage: ((Bill) -> Unit)? = null
 ) {
+    val dates = rememberDateFormatters()
     val isFrozen = isInactive || bill.isPaid
     val initialItems = rememberSerializable(bill, serializer = ListSerializer(BillItemInput.serializer())) {
         bill.items.map { item ->
@@ -127,7 +129,7 @@ internal fun BillCompletionForm(
                 )
             }
             if (bill.isPaid) {
-                val formated = bill.paidAt!!.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
+                val formated = dates.date(bill.paidAt!!)
                 Text(
                     text = stringResource(R.string.bill_status_paid_on, formated),
                     style = MaterialTheme.typography.titleMedium,
@@ -160,7 +162,7 @@ internal fun BillCompletionForm(
                 Item(
                     field = rentLabel,
                     value = bill.rent.toCurrencyString(),
-                    prefix = { Text("$") },
+                    prefix = { Text(getCurrencySymbol()) },
                     textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.End),
                     showLabel = false,
                     modifiable = false,
@@ -219,7 +221,7 @@ internal fun BillCompletionForm(
                             },
                             value = item.amount,
                             modifiable = !isFrozen && !isSaving,
-                            prefix = { Text("$") },
+                            prefix = { Text(getCurrencySymbol()) },
                             textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.End),
                             showLabel = false,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.DecimalSigned),
@@ -264,7 +266,7 @@ internal fun BillCompletionForm(
                     modifiable = false,
                     mandatory = false,
                     showLabel = false,
-                    prefix = { Text("$") },
+                    prefix = { Text(getCurrencySymbol()) },
                     textStyle = MaterialTheme.typography.titleMedium.copy(textAlign = TextAlign.End),
                     onValueChange = {}
                 )
@@ -323,6 +325,7 @@ private fun PaymentConfirmation(
     onConfirm: (LocalDate) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val dates = rememberDateFormatters()
     var paymentDate by remember { mutableStateOf<LocalDate?>(LocalDate.now()) }
     val futureDateError = stringResource(R.string.validation_payment_date_future)
     AlertDialog(
@@ -335,8 +338,8 @@ private fun PaymentConfirmation(
                 cancel = Cancel(text = stringResource(R.string.action_cancel), onClick = onDismiss)
             ) {
                 Content {
-                    val monthText = bill.month.format(BillMonthFormatter)
-                    Text("$monthText - $${bill.total.toCurrencyString()}")
+                    val monthText = dates.month(bill.month)
+                    Text("$monthText - ${bill.total.toMoney()}")
                     Text(stringResource(R.string.bill_confirm_payment_message))
                 }
                 DateItem(

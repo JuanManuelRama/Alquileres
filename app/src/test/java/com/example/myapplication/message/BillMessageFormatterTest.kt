@@ -28,16 +28,16 @@ class BillMessageFormatterTest {
             Bill for September 2026
             Property: Street 12 A
 
-            Rent: $1000.00
-            Water: $25.50
-            Refund: $-10.25
-            Total: $1015.25
+            Rent: $ 1,000
+            Water: $ 25.5
+            Refund: $ -10.25
+            Total: $ 1,015.25
         """.trimIndent(), BillMessageFormatter.format(bill, Locale.US))
     }
 
     @Test fun paidBillIncludesPaymentDate() {
         assertTrue(BillMessageFormatter.format(bill.copy(paidAt = LocalDate.of(2026, 9, 10)), Locale.US)
-            .endsWith("Paid on 10 Sep 2026"))
+            .endsWith("Paid on Sep 10, 2026"))
     }
 
     @Test(expected = IllegalArgumentException::class)

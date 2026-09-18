@@ -52,7 +52,7 @@
     <string name="empty_inactive_contracts">No inactive contracts yet.</string>
     <string name="no_matching_contracts">No contracts match these filters.</string>
     <string name="tenant_name_format">Tenant: %1$s</string>
-    <string name="base_rent_format">Base: $%1$s</string>
+    <string name="base_rent_format">Base: %1$s</string>
     <string name="status_payment_due">Payment due</string>
     <string name="status_expires_soon">Expires soon</string>
     <string name="status_hike_this_month">Hike this month</string>
@@ -113,8 +113,8 @@
     <string name="action_view_bills">View bills</string>
     <string name="duration_from_format">From: %1$s</string>
     <string name="duration_to_format">To: %1$s</string>
-    <string name="rent_current_format">Current: $%1$s</string>
-    <string name="rent_initial_format">Initial: $%1$s</string>
+    <string name="rent_current_format">Current: %1$s</string>
+    <string name="rent_initial_format">Initial: %1$s</string>
     <string name="header_included_services">Included Services</string>
     <string name="label_duration">Duration</string>
     <string name="tenant_phone_format">Phone: %1$s</string>

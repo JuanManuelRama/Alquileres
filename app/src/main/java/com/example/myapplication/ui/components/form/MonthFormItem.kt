@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.components.form
 
+import com.example.myapplication.ui.util.rememberDateFormatters
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,7 +20,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -30,14 +30,13 @@ import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
 import java.time.Month
 import java.time.YearMonth
-import java.time.format.DateTimeFormatter
-import java.time.format.TextStyle
 
 @Composable
 internal fun MonthFormItemContent(item: MonthFormItemState, error: Error, modifier: Modifier) {
+    val dates = rememberDateFormatters()
     var open by remember { mutableStateOf(false) }
     OutlinedTextField(
-        value = item.value?.format(DateTimeFormatter.ofPattern("MMM yyyy")) ?: "",
+        value = item.value?.let(dates::shortMonth) ?: "",
         onValueChange = {},
         label = { Text(item.displayLabel) },
         supportingText = { Text(error.message) },
@@ -74,7 +73,7 @@ internal fun MonthFormItemContent(item: MonthFormItemState, error: Error, modifi
                                     enabled = year != null,
                                     onClick = { item.onValueChange(YearMonth.of(year!!, month)); open = false },
                                     modifier = Modifier.weight(1f).semantics { selected = item.value?.let { it.year == year && it.month == month } == true }
-                                ) { Text(month.getDisplayName(TextStyle.SHORT, LocalLocale.current.platformLocale)) }
+                                ) { Text(dates.monthName(month)) }
                             }
                         }
                     }

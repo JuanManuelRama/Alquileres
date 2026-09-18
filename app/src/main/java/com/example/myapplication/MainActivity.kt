@@ -24,6 +24,7 @@ import com.example.myapplication.data.repository.ContractRepository
 import com.example.myapplication.data.repository.OwnerRepository
 import com.example.myapplication.data.repository.PropertyRepository
 import com.example.myapplication.data.repository.ServiceRepository
+import com.example.myapplication.data.settings.appLocale
 import com.example.myapplication.navigation.AppNavigation
 import com.example.myapplication.ui.AppViewModelFactory
 import com.example.myapplication.ui.contract.ContractViewModel
@@ -42,16 +43,20 @@ class MainActivity : ComponentActivity() {
             val themeMode by settingsRepository.themeMode.collectAsStateWithLifecycle()
             val language by settingsRepository.language.collectAsStateWithLifecycle()
 
-            LaunchedEffect(language) {
-                Locale.setDefault(language.locale)
-            }
-
             val currentContext = LocalContext.current
             val currentConfiguration = LocalConfiguration.current
+            // Read the device configuration before providing the app-localized configuration.
+            val locale = remember(language, currentConfiguration) {
+                appLocale(language.locale, currentConfiguration.locales[0])
+            }
 
-            val localizedConfiguration = remember(language, currentConfiguration) {
+            LaunchedEffect(locale) {
+                Locale.setDefault(locale)
+            }
+
+            val localizedConfiguration = remember(locale, currentConfiguration) {
                 Configuration(currentConfiguration).apply {
-                    setLocale(language.locale)
+                    setLocale(locale)
                 }
             }
 

@@ -28,8 +28,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.example.myapplication.R
 import com.example.myapplication.model.Adjustment
-import com.example.myapplication.ui.util.toMoney
-import com.example.myapplication.ui.util.toPercentage
 import com.example.myapplication.model.Contract
 import com.example.myapplication.ui.components.form.Cancel
 import com.example.myapplication.ui.components.form.Form
@@ -37,9 +35,11 @@ import com.example.myapplication.ui.components.form.Validate
 import com.example.myapplication.ui.components.form.isBigDecimal
 import com.example.myapplication.ui.components.form.isPositive
 import com.example.myapplication.ui.components.form.limitDecimals
+import com.example.myapplication.ui.util.rememberDateFormatters
+import com.example.myapplication.ui.util.toMoneyWithCurrency
+import com.example.myapplication.ui.util.toPercentage
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun AdjustmentCard(
@@ -49,7 +49,7 @@ fun AdjustmentCard(
     editable: Boolean = false,
     onAmountChange: (BigDecimal) -> Unit
 ) {
-    val dateFormatter = DateTimeFormatter.ofPattern("MMMM yyyy")
+    val dates = rememberDateFormatters()
     var showEditor by remember { mutableStateOf(false) }
     Card(modifier = modifier) {
         Row(
@@ -59,7 +59,7 @@ fun AdjustmentCard(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = adjustment.time.format(dateFormatter),
+                text = dates.month(adjustment.time),
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.bodyMedium
             )
@@ -92,7 +92,7 @@ fun AdjustmentCard(
                 }
 
                 Text(
-                    text = "$${contract.valueAtMonth(adjustment.time).toMoney()}",
+                    text = contract.valueAtMonth(adjustment.time).toMoneyWithCurrency(),
                     modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.bodyMedium
                 )

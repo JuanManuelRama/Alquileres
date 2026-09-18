@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.contract.list
 
+import com.example.myapplication.ui.util.rememberDateFormatters
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,7 +37,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
@@ -47,8 +47,6 @@ import com.example.myapplication.R
 import com.example.myapplication.model.Owner
 import java.time.Month
 import java.time.YearMonth
-import java.time.format.DateTimeFormatter
-import java.time.format.TextStyle
 
 @Composable
 internal fun ContractListFilters(
@@ -58,6 +56,7 @@ internal fun ContractListFilters(
     showDateFilters: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+    val dates = rememberDateFormatters()
     var ownersExpanded by remember { mutableStateOf(false) }
     var showStartPicker by remember { mutableStateOf(false) }
     var showFinishPicker by remember { mutableStateOf(false) }
@@ -167,7 +166,7 @@ internal fun ContractListFilters(
                     onClick = { showStartPicker = true },
                     label = {
                         Text(
-                            state.startingMonth?.let { stringResource(R.string.filter_from_format, it.format(DateTimeFormatter.ofPattern("MMM yyyy"))) } ?: fromFormat
+                            state.startingMonth?.let { stringResource(R.string.filter_from_format, dates.shortMonth(it)) } ?: fromFormat
                         )
                     },
                     leadingIcon = {
@@ -201,7 +200,7 @@ internal fun ContractListFilters(
                     onClick = { showFinishPicker = true },
                     label = {
                         Text(
-                            state.finishingMonth?.let { stringResource(R.string.filter_to_format, it.format(DateTimeFormatter.ofPattern("MMM yyyy"))) } ?: toFormat
+                            state.finishingMonth?.let { stringResource(R.string.filter_to_format, dates.shortMonth(it)) } ?: toFormat
                         )
                     },
                     leadingIcon = {
@@ -302,6 +301,7 @@ private fun MonthPickerDialog(
     onMonthSelected: (YearMonth?) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val dates = rememberDateFormatters()
     var yearText by remember { mutableStateOf((initialMonth ?: YearMonth.now()).year.toString()) }
     val year = yearText.toIntOrNull()?.takeIf { it in 1..9999 }
 
@@ -347,7 +347,7 @@ private fun MonthPickerDialog(
                                     .weight(1f)
                                     .semantics { selected = initialMonth?.year == year && initialMonth?.month == month }
                             ) {
-                                Text(month.getDisplayName(TextStyle.SHORT, LocalLocale.current.platformLocale))
+                                Text(dates.monthName(month))
                             }
                         }
                     }

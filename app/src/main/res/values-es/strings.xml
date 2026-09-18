@@ -52,7 +52,7 @@
     <string name="empty_inactive_contracts">Aún no hay contratos inactivos.</string>
     <string name="no_matching_contracts">Ningún contrato coincide con estos filtros.</string>
     <string name="tenant_name_format">Inquilino: %1$s</string>
-    <string name="base_rent_format">Base: $%1$s</string>
+    <string name="base_rent_format">Base: %1$s</string>
     <string name="status_payment_due">Pago pendiente</string>
     <string name="status_expires_soon">Vence pronto</string>
     <string name="status_hike_this_month">Aumento este mes</string>
@@ -113,8 +113,8 @@
     <string name="action_view_bills">Ver facturas</string>
     <string name="duration_from_format">Desde: %1$s</string>
     <string name="duration_to_format">Hasta: %1$s</string>
-    <string name="rent_current_format">Actual: $%1$s</string>
-    <string name="rent_initial_format">Inicial: $%1$s</string>
+    <string name="rent_current_format">Actual: %1$s</string>
+    <string name="rent_initial_format">Inicial: %1$s</string>
     <string name="header_included_services">Servicios incluidos</string>
     <string name="label_duration">Duración</string>
     <string name="tenant_phone_format">Teléfono: %1$s</string>

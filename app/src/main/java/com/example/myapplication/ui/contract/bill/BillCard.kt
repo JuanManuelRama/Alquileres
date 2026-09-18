@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.contract.bill
 
+import com.example.myapplication.ui.util.rememberDateFormatters
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -38,6 +39,7 @@ fun BillCards(
     onSelect: (YearMonth) -> Unit,
     content: @Composable () -> Unit
 ) {
+    val dates = rememberDateFormatters()
     val billStates = rememberSaveableStateHolder()
     val index = bills.indexOfFirst { it.month == selectedMonth }
     if (index < 0) return
@@ -68,7 +70,7 @@ fun BillCards(
                                 .semantics { selected = isCurrent }
                         ) {
                             Text(
-                                text = bill.month.format(BillMonthFormatter) + if (isCurrent) currentSuffix else ""
+                                text = dates.month(bill.month) + if (isCurrent) currentSuffix else ""
                             )
                         }
                     }
@@ -98,7 +100,7 @@ fun BillCards(
                 enabled = enabled,
                 modifier = Modifier.weight(1f)
             ) {
-                Text(selectedMonth.format(BillMonthFormatter))
+                Text(dates.month(selectedMonth))
             }
             TextButton(
                 onClick = { onSelect(bills[index + 1].month) },

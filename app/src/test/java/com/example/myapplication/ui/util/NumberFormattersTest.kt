@@ -8,6 +8,23 @@ import java.util.Locale
 class NumberFormattersTest {
 
     @Test
+    fun explicitCurrencyLocaleOverridesTheDefaultLocale() {
+        val original = Locale.getDefault()
+        val originalDisplay = Locale.getDefault(Locale.Category.DISPLAY)
+        val originalFormat = Locale.getDefault(Locale.Category.FORMAT)
+        try {
+            Locale.setDefault(Locale.forLanguageTag("es-AR"))
+            assertEquals("$", getCurrencySymbol(Locale.US))
+            assertEquals("$ 1,234.5", BigDecimal("1234.50").toMoneyWithCurrency(Locale.US))
+            assertEquals("$ -10.25", BigDecimal("-10.25").toMoneyWithCurrency(Locale.US))
+        } finally {
+            Locale.setDefault(original)
+            Locale.setDefault(Locale.Category.DISPLAY, originalDisplay)
+            Locale.setDefault(Locale.Category.FORMAT, originalFormat)
+        }
+    }
+
+    @Test
     fun toMoneyFormatsWithTwoDecimalsAndLocaleGrouping() {
         val amount = BigDecimal("1234.5")
 
