@@ -11,6 +11,7 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -24,6 +25,7 @@ import com.example.myapplication.data.repository.ContractRepository
 import com.example.myapplication.data.repository.OwnerRepository
 import com.example.myapplication.data.repository.PropertyRepository
 import com.example.myapplication.data.repository.ServiceRepository
+import com.example.myapplication.data.settings.AppLanguage
 import com.example.myapplication.data.settings.appLocale
 import com.example.myapplication.navigation.AppNavigation
 import com.example.myapplication.ui.AppViewModelFactory
@@ -43,29 +45,6 @@ class MainActivity : ComponentActivity() {
             val themeMode by settingsRepository.themeMode.collectAsStateWithLifecycle()
             val language by settingsRepository.language.collectAsStateWithLifecycle()
 
-            val currentContext = LocalContext.current
-            val currentConfiguration = LocalConfiguration.current
-            // Read the device configuration before providing the app-localized configuration.
-            val locale = remember(language, currentConfiguration) {
-                appLocale(language.locale, currentConfiguration.locales[0])
-            }
-
-            LaunchedEffect(locale) {
-                Locale.setDefault(locale)
-            }
-
-            val localizedConfiguration = remember(locale, currentConfiguration) {
-                Configuration(currentConfiguration).apply {
-                    setLocale(locale)
-                }
-            }
-
-            val localizedContext = remember(language, currentContext, localizedConfiguration) {
-                currentContext.createConfigurationContext(localizedConfiguration)
-            }
-
-            val activityResultOwner = currentContext as? ActivityResultRegistryOwner
-
             val factory = AppViewModelFactory(
                 propertyRepository = PropertyRepository(application.database.propertyDao()),
                 ownerRepository = OwnerRepository(application.database.ownerDao()),
@@ -78,17 +57,7 @@ class MainActivity : ComponentActivity() {
             val createContractViewModel: CreateContractViewModel by viewModels { factory }
             val contractViewModel: ContractViewModel by viewModels { factory }
 
-            val providers = remember(localizedContext, localizedConfiguration, activityResultOwner) {
-                buildList {
-                    add(LocalContext provides localizedContext)
-                    add(LocalConfiguration provides localizedConfiguration)
-                    if (activityResultOwner != null) {
-                        add(LocalActivityResultRegistryOwner provides activityResultOwner)
-                    }
-                }.toTypedArray()
-            }
-
-            CompositionLocalProvider(*providers) {
+            LocalizedContent(language = language) {
                 MyApplicationTheme(themeMode = themeMode) {
                     Surface(
                         modifier = Modifier.fillMaxSize(),
@@ -103,6 +72,63 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Wraps the provided [content] with localized [LocalContext] and [LocalConfiguration] values,
+     * ensuring dynamic runtime language switching while preserving device region settings.
+     *
+     * This helper function:
+     * 1. Resolves an app-specific [Locale] combining the target [AppLanguage] with device region preferences.
+     * 2. Sets [Locale.setDefault] when the locale changes.
+     * 3. Creates a localized [Configuration] and wraps the current [android.content.Context] via [android.content.Context.createConfigurationContext].
+     * 4. Provides [LocalContext], [LocalConfiguration], and [LocalActivityResultRegistryOwner] to all descendant composables via [CompositionLocalProvider].
+     *
+     * @param language The active [AppLanguage] selected in app settings.
+     * @param content The composable UI tree to be rendered under the localized context.
+     */
+    @Composable
+    private fun LocalizedContent(
+        language: AppLanguage,
+        content: @Composable () -> Unit,
+    ) {
+        val currentContext = LocalContext.current
+        val currentConfiguration = LocalConfiguration.current
+
+        // Read the device configuration before providing the app-localized configuration.
+        val locale = remember(language, currentConfiguration) {
+            appLocale(language.locale, currentConfiguration.locales[0])
+        }
+
+        LaunchedEffect(locale) {
+            Locale.setDefault(locale)
+        }
+
+        val localizedConfiguration = remember(locale, currentConfiguration) {
+            Configuration(currentConfiguration).apply {
+                setLocale(locale)
+            }
+        }
+
+        val localizedContext = remember(language, currentContext, localizedConfiguration) {
+            currentContext.createConfigurationContext(localizedConfiguration)
+        }
+
+        val activityResultOwner = currentContext as? ActivityResultRegistryOwner
+
+        val providers = remember(localizedContext, localizedConfiguration, activityResultOwner) {
+            buildList {
+                add(LocalContext provides localizedContext)
+                add(LocalConfiguration provides localizedConfiguration)
+                if (activityResultOwner != null) {
+                    add(LocalActivityResultRegistryOwner provides activityResultOwner)
+                }
+            }.toTypedArray()
+        }
+
+        CompositionLocalProvider(*providers) {
+            content()
         }
     }
 }
