@@ -84,6 +84,11 @@ fun ContractCreator(
     val pickContactText = stringResource(R.string.action_pick_contact)
     val monthValidationError = stringResource(R.string.validation_end_month_after_start)
     val hikeValidationError = stringResource(R.string.validation_hike_requires_adjustment_time)
+    val invalidDecimalError = stringResource(R.string.validation_invalid_decimal)
+    val invalidNumberError = stringResource(R.string.validation_invalid_number)
+    val positiveError = stringResource(R.string.validation_must_be_positive)
+    val maxDecimalsTwo = stringResource(R.string.validation_max_decimals, 2)
+    val maxDecimalsFour = stringResource(R.string.validation_max_decimals, 4)
 
     Form(
         enabled = enabled,
@@ -182,7 +187,7 @@ fun ContractCreator(
             field = stringResource(R.string.label_rent),
             value = inputs.rent,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            validate = { Validate(it).isBigDecimal().isPositive().limitDecimals(2) },
+            validate = { Validate(it).isBigDecimal(invalidDecimalError).isPositive(positiveError).limitDecimals(2, maxDecimalsTwo) },
             prefix = { Text(getCurrencySymbol()) },
             onValueChange = { onInputsChanged(inputs.copy(rent = it)) },
             visualTransformation = rememberNumberVisualTransformation()
@@ -252,7 +257,7 @@ fun ContractCreator(
                     value = inputs.adjustmentTime,
                     mandatory = false,
                     keyboardOptions = KeyboardOptions(keyboardType =  KeyboardType.Number),
-                    validate = { Validate(it).isLong().isPositive() },
+                    validate = { Validate(it).isLong(invalidNumberError).isPositive(positiveError) },
                     onValueChange = { onInputsChanged(inputs.copy(adjustmentTime = it)) },
                     modifier = Modifier.weight(1f)
                 )
@@ -261,7 +266,7 @@ fun ContractCreator(
                     value = inputs.fixedHike,
                     mandatory = false,
                     keyboardOptions = KeyboardOptions(keyboardType =  KeyboardType.Decimal),
-                    validate = { Validate(it).isBigDecimal().limitDecimals(4)
+                    validate = { Validate(it).isBigDecimal(invalidDecimalError).limitDecimals(4, maxDecimalsFour)
                         .check(hikeValidationError) { inputs.adjustmentTime.isNotBlank() } },
                     onValueChange = { onInputsChanged(inputs.copy(fixedHike = it)) },
                     modifier = Modifier.weight(1f)

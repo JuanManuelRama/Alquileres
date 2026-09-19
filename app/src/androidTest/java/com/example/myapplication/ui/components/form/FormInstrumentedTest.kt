@@ -127,7 +127,7 @@ class FormInstrumentedTest {
                             Content {
                                 Item(
                                     "Amount", value,
-                                    validate = { Validate(it).isBigDecimal() },
+                                    validate = { Validate(it).isBigDecimal("must be a valid decimal number") },
                                     onValueChange = { value = it }
                                 )
                             }
@@ -298,7 +298,7 @@ class FormInstrumentedTest {
                     Item(
                         field = "Amount",
                         value = "not-a-number",
-                        validate = { Validate(it).isBigDecimal() },
+                        validate = { Validate(it).isBigDecimal("must be a valid decimal number") },
                         onValueChange = {},
                     )
                 }

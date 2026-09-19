@@ -30,9 +30,9 @@ class ValidationsTest {
 
     @Test
     fun decimalAndPositiveValidatorsCompose() {
-        assertEquals(Validation.Valid(BigDecimal("12.50")), Validate("12.50").isBigDecimal().isPositive())
-        assertEquals(Validation.Invalid("must be positive"), Validate("0").isBigDecimal().isPositive())
-        assertEquals(Validation.Invalid("must be a valid decimal number"), Validate("abc").isBigDecimal().isPositive())
+        assertEquals(Validation.Valid(BigDecimal("12.50")), Validate("12.50").isBigDecimal("must be a valid decimal number").isPositive("must be positive"))
+        assertEquals(Validation.Invalid("must be positive"), Validate("0").isBigDecimal("must be a valid decimal number").isPositive("must be positive"))
+        assertEquals(Validation.Invalid("must be a valid decimal number"), Validate("abc").isBigDecimal("must be a valid decimal number").isPositive("must be positive"))
     }
 
     @Test

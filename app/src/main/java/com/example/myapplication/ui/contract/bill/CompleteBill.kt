@@ -81,7 +81,9 @@ internal fun BillCompletionForm(
     }
     SideEffect { onChangesChanged(!isFrozen && items != initialItems) }
     var confirmingPayment by remember(bill.id) { mutableStateOf(false) }
-    val amountsValid = items.all { it.description.isNotBlank() && Validate(it.amount).isBigDecimal().limitDecimals(2).isValid }
+    val invalidDecimalError = stringResource(R.string.validation_invalid_decimal)
+    val maxDecimalsTwo = stringResource(R.string.validation_max_decimals, 2)
+    val amountsValid = items.all { it.description.isNotBlank() && Validate(it.amount).isBigDecimal(invalidDecimalError).limitDecimals(2, maxDecimalsTwo).isValid }
     val total = bill.rent + items.sumOf { it.amount.toBigDecimalOrNull() ?: BigDecimal.ZERO }
 
     fun completedBill() = bill.copy(
@@ -226,7 +228,7 @@ internal fun BillCompletionForm(
                             textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.End),
                             showLabel = false,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.DecimalSigned),
-                            validate = { Validate(it).isBigDecimal().limitDecimals(2) },
+                            validate = { Validate(it).isBigDecimal(invalidDecimalError).limitDecimals(2, maxDecimalsTwo) },
                             visualTransformation = rememberNumberVisualTransformation(),
                             onValueChange = { amount ->
                                 if (!isSaving && !isFrozen) {

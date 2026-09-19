@@ -49,30 +49,29 @@ inline fun <T> Validation<T>.check(message: String, predicate: (T) -> Boolean): 
     }
 
 fun Validation<String>.isBigDecimal(
-    message: String = "must be a valid decimal number"
+    message: String
 ): Validation<BigDecimal> = map(message) { it.toBigDecimalOrNull() }
 
 fun Validation<String>.isLong(
-    message: String = "must be a valid number"
+    message: String
 ): Validation<Long> = map(message) { it.toLongOrNull() }
 
 @JvmName("isPositiveBigDecimal")
 fun Validation<BigDecimal>.isPositive(
-    message: String = "must be positive"
+    message: String
 ): Validation<BigDecimal> = check(message) { it > BigDecimal.ZERO }
 
 @JvmName("isPositiveLong")
 fun Validation<Long>.isPositive(
-    message: String = "must be positive"
+    message: String
 ): Validation<Long> = check(message) { it > 0.toLong() }
 
 fun Validation<BigDecimal>.limitDecimals(
     decimals: Int,
-    message: String = "mustn't have more than $decimals decimal places"
+    message: String
 ): Validation<BigDecimal> = check(message) { it.scale() <= decimals }
-
 
 fun <T> Validation<T>.doesntExist(
     elements: Set<T>,
-    message: String = "must be unique"
+    message: String
 ): Validation<T> = check(message) { it !in elements }
