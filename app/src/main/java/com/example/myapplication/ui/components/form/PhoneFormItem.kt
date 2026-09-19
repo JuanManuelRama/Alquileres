@@ -59,6 +59,23 @@ internal fun validatePhoneNumber(
     else Validation.Invalid(errorMessage)
 }
 
+/** Format a raw phone digit string for display using local (NATIONAL) or international format. */
+fun formatPhoneNumber(
+    phone: String,
+    region: String,
+    util: PhoneNumberUtil
+): String {
+    if (phone.isBlank()) return phone
+    val parsingInput = phoneNumberForParsing(phone, region, util)
+    val parsed = validPhoneNumber(parsingInput, region, util) ?: return phone
+    val format = if (parsed.countryCode == util.getCountryCodeForRegion(region)) {
+        PhoneNumberUtil.PhoneNumberFormat.NATIONAL
+    } else {
+        PhoneNumberUtil.PhoneNumberFormat.INTERNATIONAL
+    }
+    return util.format(parsed, format)
+}
+
 @Composable
 fun FormScope.PhoneItem(
     field: String,
