@@ -49,6 +49,7 @@ import com.example.myapplication.ui.property.PropertyInputs
 import com.example.myapplication.ui.service.ServiceCreator
 import com.example.myapplication.ui.service.ServiceInputs
 import com.example.myapplication.ui.util.getCurrencySymbol
+import com.example.myapplication.ui.util.rememberNumberVisualTransformation
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -180,10 +181,11 @@ fun ContractCreator(
         Item(
             field = stringResource(R.string.label_rent),
             value = inputs.rent,
-            keyboardOptions = KeyboardOptions(keyboardType =  KeyboardType.Decimal),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             validate = { Validate(it).isBigDecimal().isPositive().limitDecimals(2) },
             prefix = { Text(getCurrencySymbol()) },
-            onValueChange = { onInputsChanged(inputs.copy(rent = it)) }
+            onValueChange = { onInputsChanged(inputs.copy(rent = it)) },
+            visualTransformation = rememberNumberVisualTransformation()
         )
         MultiPickerItem(
             label = stringResource(R.string.label_services),

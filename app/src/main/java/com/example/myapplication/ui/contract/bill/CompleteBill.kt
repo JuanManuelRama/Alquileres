@@ -49,6 +49,7 @@ import com.example.myapplication.ui.components.form.isBigDecimal
 import com.example.myapplication.ui.components.form.limitDecimals
 import com.example.myapplication.ui.util.getCurrencySymbol
 import com.example.myapplication.ui.util.rememberDateFormatters
+import com.example.myapplication.ui.util.rememberNumberVisualTransformation
 import com.example.myapplication.ui.util.toMoney
 import kotlinx.serialization.builtins.ListSerializer
 import java.math.BigDecimal
@@ -161,7 +162,7 @@ internal fun BillCompletionForm(
             BillAmountRow(rentLabel) {
                 Item(
                     field = rentLabel,
-                    value = bill.rent.toCurrencyString(),
+                    value = bill.rent.toMoney(),
                     prefix = { Text(getCurrencySymbol()) },
                     textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.End),
                     showLabel = false,
@@ -226,6 +227,7 @@ internal fun BillCompletionForm(
                             showLabel = false,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.DecimalSigned),
                             validate = { Validate(it).isBigDecimal().limitDecimals(2) },
+                            visualTransformation = rememberNumberVisualTransformation(),
                             onValueChange = { amount ->
                                 if (!isSaving && !isFrozen) {
                                     items = items.map {
@@ -262,7 +264,7 @@ internal fun BillCompletionForm(
             BillAmountRow(totalLabel, total = true) {
                 Item(
                     field = totalLabel,
-                    value = total.toCurrencyString(),
+                    value = total.toMoney(),
                     modifiable = false,
                     mandatory = false,
                     showLabel = false,
