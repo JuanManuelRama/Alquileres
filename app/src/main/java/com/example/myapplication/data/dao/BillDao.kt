@@ -17,6 +17,9 @@ import java.time.YearMonth
 
 @Dao
 interface BillDao {
+    @Query("DELETE FROM Bill WHERE contractId = :contractId AND billingMonth > :cancellationMonth")
+    suspend fun deleteFutureBills(contractId: Long, cancellationMonth: YearMonth): Int
+
     @Query("SELECT billingMonth FROM Bill WHERE contractId = :contractId AND paidAt IS NOT NULL")
     fun observePaidMonths(contractId: Long): Flow<List<YearMonth>>
 

@@ -46,9 +46,15 @@ class ContractRepository(private val dao: ContractDao, private val billDao: Bill
         }
     }
 
-    suspend fun finish(contractId: Long, requireAllPaid: Boolean, cancellationMonth: YearMonth = YearMonth.now()) {
-        check(dao.finish(contractId, requireAllPaid, cancellationMonth) == 1) {
-            "Could not finish this contract. Check that all bills are paid and try again."
+    suspend fun finish(contractId: Long) {
+        check(dao.finish(contractId) == 1) {
+            "Could not finish this contract."
+        }
+    }
+
+    suspend fun cancel(contractId: Long, cancellationMonth: YearMonth = YearMonth.now()) {
+        check(dao.cancel(contractId, billDao, cancellationMonth) == 1) {
+            "Could not cancel this contract."
         }
     }
 

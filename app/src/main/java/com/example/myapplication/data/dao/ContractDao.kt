@@ -74,31 +74,21 @@ interface ContractDao {
     @Insert
     suspend fun insertAdjustments(adjustments: List<AdjustmentEntity>)
 
-    @Query("""
-        UPDATE Contract SET isFinished = 1,
-            finishingMonth = CASE
-                WHEN :requireAllPaid = 0 AND :cancellationMonth < finishingMonth THEN :cancellationMonth
-                ELSE finishingMonth
-            END
-        WHERE id = :contractId AND isFinished = 0
-        AND (:requireAllPaid = 0 OR (
-            EXISTS (SELECT 1 FROM Bill WHERE contractId = :contractId)
-            AND NOT EXISTS (SELECT 1 FROM Bill WHERE contractId = :contractId AND paidAt IS NULL)
-        ))
-    """)
-    suspend fun updateContractFinished(contractId: Long, requireAllPaid: Boolean, cancellationMonth: YearMonth): Int
+    @Query("UPDATE Contract SET isFinished = 1 WHERE id = :contractId")
+    suspend fun finish(contractId: Long): Int
 
-    @Query("DELETE FROM Bill WHERE contractId = :contractId AND billingMonth > :cancellationMonth")
-    suspend fun deleteFutureBills(contractId: Long, cancellationMonth: YearMonth): Int
+    @Query("UPDATE Contract SET finishingMonth = :month WHERE id = :contractId AND finishingMonth > :month")
+    suspend fun shortenTerm(contractId: Long, month: YearMonth): Int
 
     @Query("DELETE FROM Adjustment WHERE contractId = :contractId AND time > :cancellationMonth")
     suspend fun deleteFutureAdjustments(contractId: Long, cancellationMonth: YearMonth): Int
 
     @Transaction
-    suspend fun finish(contractId: Long, requireAllPaid: Boolean, cancellationMonth: YearMonth = YearMonth.now()): Int {
-        val updated = updateContractFinished(contractId, requireAllPaid, cancellationMonth)
-        if (updated > 0 && !requireAllPaid) {
-            deleteFutureBills(contractId, cancellationMonth)
+    suspend fun cancel(contractId: Long, billDao: BillDao, cancellationMonth: YearMonth = YearMonth.now()): Int {
+        val updated = finish(contractId)
+        if (updated > 0) {
+            shortenTerm(contractId, cancellationMonth)
+            billDao.deleteFutureBills(contractId, cancellationMonth)
             deleteFutureAdjustments(contractId, cancellationMonth)
         }
         return updated
@@ -130,7 +120,7 @@ interface ContractDao {
         renewingContractId: Long? = null
     ): Long {
         if (renewingContractId != null) {
-            check(finishForRenewal(renewingContractId) == 1) { "Original contract no longer exists" }
+            check(finish(renewingContractId) == 1) { "Original contract no longer exists" }
         }
         val contractId = insertContract(contract)
         insertContractService(serviceIds.map { ContractServiceCrossRef(contractId, it) } )
@@ -139,6 +129,4 @@ interface ContractDao {
         return contractId
     }
 
-    @Query("UPDATE Contract SET isFinished = 1 WHERE id = :contractId")
-    suspend fun finishForRenewal(contractId: Long): Int
 }

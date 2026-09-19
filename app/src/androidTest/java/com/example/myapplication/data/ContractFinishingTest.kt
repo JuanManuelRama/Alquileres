@@ -125,8 +125,7 @@ class ContractFinishingTest {
             val id = seed(db)
             val repo = BillRepository(db.billDao())
             val stale = repo.list(id).first()
-            assertEquals(0, db.contractDao().finish(id, requireAllPaid = true))
-            assertEquals(1, db.contractDao().finish(id, requireAllPaid = false))
+            assertEquals(1, db.contractDao().cancel(id, db.billDao()))
             assertTrue(db.contractDao().observeWithStatus(stale.month).first().isEmpty())
             assertEquals(id, db.contractDao().observeInactive().first().single().contract.id)
             val frozen = repo.list(id)
@@ -140,7 +139,7 @@ class ContractFinishingTest {
         } finally { db.close() }
     }
 
-    @Test fun finishingRequiresEveryBillToBePaidAndPreservesPaymentDates() = runTest {
+    @Test fun finishingPreservesPaymentDates() = runTest {
         val db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
         try {
             val id = seed(db)
@@ -148,9 +147,8 @@ class ContractFinishingTest {
             val bills = repo.list(id)
             val date = LocalDate.of(2026, 3, 1)
             repo.markPaid(bills.first(), date)
-            assertEquals(0, db.contractDao().finish(id, requireAllPaid = true))
             repo.markPaid(bills.last(), date)
-            assertEquals(1, db.contractDao().finish(id, requireAllPaid = true))
+            assertEquals(1, db.contractDao().finish(id))
             assertTrue(db.contractDao().observeWithStatus(bills.first().month).first().isEmpty())
             assertEquals(id, db.contractDao().observeInactive().first().single().contract.id)
             assertTrue(repo.list(id).all { it.paidAt == date })
@@ -194,7 +192,7 @@ class ContractFinishingTest {
             assertEquals(12, db.billDao().list(id).size)
 
             val cancelMonth = YearMonth.of(2026, 3)
-            assertEquals(1, db.contractDao().finish(id, requireAllPaid = false, cancellationMonth = cancelMonth))
+            assertEquals(1, db.contractDao().cancel(id, db.billDao(), cancellationMonth = cancelMonth))
 
             val cancelled = db.contractDao().observeById(id).first()!!.toDomain()
             assertEquals(cancelMonth, cancelled.finishingMonth)

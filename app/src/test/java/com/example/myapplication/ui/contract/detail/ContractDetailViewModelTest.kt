@@ -43,10 +43,16 @@ import kotlin.time.Duration.Companion.milliseconds
 @OptIn(ExperimentalCoroutinesApi::class)
 class ContractDetailViewModelTest {
     private val contracts = TestContractDao()
+    private val deletedBillContracts = mutableListOf<Long>()
     private val unusedBills = java.lang.reflect.Proxy.newProxyInstance(
         com.example.myapplication.data.dao.BillDao::class.java.classLoader,
         arrayOf(com.example.myapplication.data.dao.BillDao::class.java)
-    ) { _, _, _ -> error("Bill storage is not used by contract detail") }
+    ) { _, method, args ->
+        if (method.name == "deleteFutureBills") {
+            deletedBillContracts.add(args[0] as Long)
+            0
+        } else error("Unexpected bill operation: ${method.name}")
+    }
         as com.example.myapplication.data.dao.BillDao
     private val bills = TestBillStore()
     private val viewModels = mutableListOf<ContractDetailViewModel>()
@@ -138,7 +144,7 @@ class ContractDetailViewModelTest {
         val model = viewModel(1L)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { model.uiState.collect {} }
         runCurrent()
-        model.finishContract(requireAllPaid = true, onFinished = { finished = true })
+        model.finishContract(onFinished = { finished = true })
         runCurrent()
         assertFalse(finished)
         val activeContract = (model.uiState.value as ContractDetailUiState.Ready).contract
@@ -146,18 +152,20 @@ class ContractDetailViewModelTest {
             .takeWhile { it <= activeContract.finishingMonth }.toList()
         runCurrent()
         assertTrue((model.uiState.value as ContractDetailUiState.Ready).allBillsPaid)
-        model.finishContract(requireAllPaid = true, onFinished = { finished = true })
+        model.finishContract(onFinished = { finished = true })
         runCurrent()
         assertTrue(finished)
+        assertTrue(deletedBillContracts.isEmpty())
 
         contracts.results[2L] = MutableStateFlow(contract(2L))
         val other = viewModel(2L)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { other.uiState.collect {} }
         runCurrent()
         var cancelled = false
-        other.finishContract(requireAllPaid = false, onFinished = { cancelled = true })
+        other.cancelContract(onCancelled = { cancelled = true })
         runCurrent()
         assertTrue(cancelled)
+        assertEquals(listOf(2L), deletedBillContracts)
         assertTrue((other.uiState.value as ContractDetailUiState.Ready).paidMonths.isEmpty())
     }
 
@@ -175,21 +183,23 @@ class ContractDetailViewModelTest {
     }
 
     private class TestContractDao : ContractDao {
-        override suspend fun finishForRenewal(contractId: Long): Int = error("Unused")
         override suspend fun deleteContract(contractId: Long): Int {
             val state = results[contractId] ?: return 0
             state.value = null
             return 1
         }
-        override suspend fun updateContractFinished(contractId: Long, requireAllPaid: Boolean, cancellationMonth: YearMonth): Int = error("Unused")
-        override suspend fun deleteFutureBills(contractId: Long, cancellationMonth: YearMonth): Int = 0
-        override suspend fun deleteFutureAdjustments(contractId: Long, cancellationMonth: YearMonth): Int = 0
-
-        override suspend fun finish(contractId: Long, requireAllPaid: Boolean, cancellationMonth: YearMonth): Int {
+        override suspend fun shortenTerm(contractId: Long, month: YearMonth): Int {
             val state = results.getValue(contractId)
             val current = state.value ?: return 0
-            val newFinishingMonth = if (!requireAllPaid && cancellationMonth < current.contract.finishingMonth) cancellationMonth else current.contract.finishingMonth
-            state.value = current.copy(contract = current.contract.copy(isFinished = true, finishingMonth = newFinishingMonth))
+            state.value = current.copy(contract = current.contract.copy(finishingMonth = minOf(month, current.contract.finishingMonth)))
+            return 1
+        }
+        override suspend fun deleteFutureAdjustments(contractId: Long, cancellationMonth: YearMonth): Int = 0
+
+        override suspend fun finish(contractId: Long): Int {
+            val state = results.getValue(contractId)
+            val current = state.value ?: return 0
+            state.value = current.copy(contract = current.contract.copy(isFinished = true))
             return 1
         }
         override fun observeInactive(): Flow<List<BasicContract>> = error("Unused")

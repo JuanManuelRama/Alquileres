@@ -56,14 +56,24 @@ class ContractDetailViewModel(
         }
     }
 
-    fun finishContract(requireAllPaid: Boolean, onFinished: () -> Unit, cancellationMonth: YearMonth = YearMonth.now()) {
+    fun finishContract(onFinished: () -> Unit) {
         val state = uiState.value as? ContractDetailUiState.Ready ?: return
-        if (finishState.value.saving || (requireAllPaid && !state.allBillsPaid)) return
+        if (!state.allBillsPaid) return
+        completeContract(onFinished) { contractRepository.finish(contractId) }
+    }
+
+    fun cancelContract(onCancelled: () -> Unit, cancellationMonth: YearMonth = YearMonth.now()) {
+        if (uiState.value !is ContractDetailUiState.Ready) return
+        completeContract(onCancelled) { contractRepository.cancel(contractId, cancellationMonth) }
+    }
+
+    private fun completeContract(onCompleted: () -> Unit, action: suspend () -> Unit) {
+        if (finishState.value.saving) return
         finishState.value = FinishState(saving = true)
         viewModelScope.launch {
             try {
-                contractRepository.finish(contractId, requireAllPaid, cancellationMonth)
-                onFinished()
+                action()
+                onCompleted()
                 finishState.value = FinishState()
             } catch (error: CancellationException) {
                 throw error

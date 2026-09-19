@@ -53,14 +53,14 @@ fun ContractDetailScreen(
     var showMenu by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showFinishDialog by remember { mutableStateOf(false) }
-    var requireAllPaid by remember { mutableStateOf(false) }
+    var isFinishAction by remember { mutableStateOf(false) }
 
     val state = uiState as? ContractDetailUiState.Ready
 
     if (showFinishDialog && state != null && !isInactive) {
         AlertDialog(
             onDismissRequest = { showFinishDialog = false },
-            title = { Text(stringResource(if (requireAllPaid) R.string.contract_finish_title else R.string.contract_cancel_title)) },
+            title = { Text(stringResource(if (isFinishAction) R.string.contract_finish_title else R.string.contract_cancel_title)) },
             text = {
                 Text(stringResource(R.string.contract_finish_message))
             },
@@ -68,13 +68,17 @@ fun ContractDetailScreen(
                 TextButton(
                     enabled = !state.isFinishing,
                     onClick = {
-                        viewModel.finishContract(requireAllPaid, onFinished)
-                        showFinishDialog = false
-                        onBackClick()
+                        val onCompleted = {
+                            showFinishDialog = false
+                            onFinished()
+                            onBackClick()
+                        }
+                        if (isFinishAction) viewModel.finishContract(onCompleted)
+                        else viewModel.cancelContract(onCompleted)
                     }
                 ) {
                     Text(
-                        text = stringResource(if (requireAllPaid) R.string.action_finish_contract else R.string.action_cancel_contract),
+                        text = stringResource(if (isFinishAction) R.string.action_finish_contract else R.string.action_cancel_contract),
                         color = MaterialTheme.colorScheme.error
                     )
                 }
@@ -145,7 +149,7 @@ fun ContractDetailScreen(
                                 enabled = state != null && !isInactive && !state.isFinishing,
                                 onClick = {
                                     showMenu = false
-                                    requireAllPaid = false
+                                    isFinishAction = false
                                     showFinishDialog = true
                                 }
                             )
@@ -185,7 +189,7 @@ fun ContractDetailScreen(
                     Button(
                         enabled = !state.isFinishing,
                         onClick = {
-                            requireAllPaid = true
+                            isFinishAction = true
                             showFinishDialog = true
                         },
                         modifier = Modifier.weight(1f)
