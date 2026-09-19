@@ -28,13 +28,14 @@ class ContractRepository(private val dao: ContractDao, private val billDao: Bill
         }
     }
 
-    suspend fun insert(contract: Contract): Contract {
+    suspend fun insert(contract: Contract, renewingContractId: Long? = null): Contract {
         val id = dao.saveContract(
             contract = contract.toEntity(),
             serviceIds = contract.services.map { it.id },
             adjustments = contract.adjustments.map { it.toEntity() },
             bills = contract.createBills().associate { bill -> bill.toEntity() to bill.itemEntities() },
-            billDao = billDao
+            billDao = billDao,
+            renewingContractId = renewingContractId
         )
         return contract.copy(id = id)
     }

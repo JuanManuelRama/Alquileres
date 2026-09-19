@@ -14,6 +14,16 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.test.platform.app.InstrumentationRegistry
+import com.example.myapplication.R
+import com.example.myapplication.model.Contract
+import com.example.myapplication.model.Tenant
+import com.example.myapplication.model.Service
+import com.example.myapplication.ui.contract.create.renewalInputs
+import java.math.BigDecimal
+import java.time.YearMonth
 import com.example.myapplication.model.Address
 import com.example.myapplication.model.Owner
 import com.example.myapplication.model.Property
@@ -30,6 +40,48 @@ import org.junit.Test
 
 class ContractDraftRestorationTest {
     @get:Rule val composeRule = createComposeRule()
+
+    @Test fun renewalDraftRestoresEditsAndSubmitsANewContract() {
+        val original = Contract(
+            property = Property(Address("Main", "12", null), Owner("Owner", 41), 42),
+            tenant = Tenant("Tenant", "16502530000"), rent = BigDecimal("1000"),
+            startingMonth = YearMonth.of(2026, 1), finishingMonth = YearMonth.of(2026, 12),
+            services = listOf(Service("Water", 7)), adjustments = emptyList(), id = 99,
+        )
+        var created: Contract? = null
+        lateinit var current: ContractInputs
+        val restoration = StateRestorationTester(composeRule)
+        restoration.setContent {
+            var inputs by rememberSerializable { mutableStateOf(original.renewalInputs()) }
+            current = inputs
+            MaterialTheme {
+                ContractCreator(listOf(original.property), listOf(original.property.owner), original.services,
+                    { created = it }, inputs, { inputs = it },
+                    modifier = Modifier.verticalScroll(rememberScrollState()))
+            }
+        }
+        composeRule.onNodeWithText("1000.00").performScrollTo().performTextReplacement("1500")
+        restoration.emulateSavedInstanceStateRestore()
+        composeRule.runOnIdle {
+            assertEquals("1500", current.rent)
+            assertEquals(original.property, current.selectedProperty)
+            assertEquals(original.services, current.selectedServices)
+            assertEquals(null, created)
+        }
+        val createText = InstrumentationRegistry.getInstrumentation().targetContext.getString(R.string.action_create_contract)
+        composeRule.onNodeWithText(createText).performScrollTo().assertIsEnabled().performClick()
+        composeRule.runOnIdle {
+            val renewed = checkNotNull(created)
+            assertEquals(0L, renewed.id)
+            assertEquals(original.property, renewed.property)
+            assertEquals(original.tenant, renewed.tenant)
+            assertEquals(original.services, renewed.services)
+            assertEquals(YearMonth.of(2027, 1), renewed.startingMonth)
+            assertEquals(YearMonth.of(2027, 12), renewed.finishingMonth)
+            assertEquals(BigDecimal("1500"), renewed.rent)
+            assertEquals(BigDecimal("1000"), original.rent)
+        }
+    }
 
     @Test fun pickerQueryRestoresAndSelectingExistingPropertyKeepsIds() {
         val property = Property(Address("Main", "12", null), Owner("Owner", 41), 42)

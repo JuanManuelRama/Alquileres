@@ -18,6 +18,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -36,17 +40,24 @@ fun CreateContractScreen(
     viewModel: CreateContractViewModel,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
+    afterCreate: () -> Unit,
+    defaults: ContractInputs = ContractInputs(),
+    renewingContractId: Long? = null,
 ) {
-    var inputs by rememberSerializable {
-        mutableStateOf(ContractInputs())
-    }
+    val scope = rememberCoroutineScope()
+    var isSaving by remember { mutableStateOf(false) }
+    var saveFailed by remember { mutableStateOf(false) }
+    val initialInputs by rememberSerializable { mutableStateOf(defaults) }
+    var inputs by rememberSerializable { mutableStateOf(initialInputs) }
     val properties by viewModel.properties.collectAsStateWithLifecycle()
     val owners by viewModel.owners.collectAsStateWithLifecycle()
     val services by viewModel.services.collectAsStateWithLifecycle()
 
     var confirmingDiscard by rememberSaveable { mutableStateOf(false) }
     val onBack = {
-        if (inputs != ContractInputs()) confirmingDiscard = true else onBackClick()
+        if (!isSaving) {
+            if (inputs != initialInputs) confirmingDiscard = true else onBackClick()
+        }
     }
     BackHandler(onBack = onBack)
     if (confirmingDiscard) {
@@ -81,15 +92,31 @@ fun CreateContractScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            if (saveFailed) Text(stringResource(R.string.err_could_not_create_contract))
             ContractCreator(
+                enabled = !isSaving,
                 inputs = inputs,
-                onInputsChanged = { inputs = it },
+                onInputsChanged = { if (!isSaving) inputs = it },
                 properties = properties,
                 owners = owners,
                 services = services,
                 onCreated = { contract ->
-                    viewModel.saveContract(contract)
-                    onBackClick()
+                    if (!isSaving) {
+                        isSaving = true
+                        saveFailed = false
+                        scope.launch {
+                            try {
+                                viewModel.saveContract(contract, renewingContractId)
+                                afterCreate()
+                            } catch (error: CancellationException) {
+                                throw error
+                            } catch (_: Exception) {
+                                saveFailed = true
+                            } finally {
+                                isSaving = false
+                            }
+                        }
+                    }
                 },
                 modifier = Modifier.fillMaxWidth()
             )

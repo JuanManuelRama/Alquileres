@@ -126,12 +126,19 @@ interface ContractDao {
         serviceIds: List<Long>,
         adjustments: List<AdjustmentEntity>,
         bills: Map<BillEntity, List<BillItemEntity>>,
-        billDao: BillDao
+        billDao: BillDao,
+        renewingContractId: Long? = null
     ): Long {
+        if (renewingContractId != null) {
+            check(finishForRenewal(renewingContractId) == 1) { "Original contract no longer exists" }
+        }
         val contractId = insertContract(contract)
         insertContractService(serviceIds.map { ContractServiceCrossRef(contractId, it) } )
         insertAdjustments(adjustments.map { it.copy(contractId = contractId) })
         billDao.createAll(bills.mapKeys { (bill, _ ) -> bill.copy(contractId = contractId) } )
         return contractId
     }
+
+    @Query("UPDATE Contract SET isFinished = 1 WHERE id = :contractId")
+    suspend fun finishForRenewal(contractId: Long): Int
 }

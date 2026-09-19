@@ -175,6 +175,7 @@ class ContractDetailViewModelTest {
     }
 
     private class TestContractDao : ContractDao {
+        override suspend fun finishForRenewal(contractId: Long): Int = error("Unused")
         override suspend fun deleteContract(contractId: Long): Int {
             val state = results[contractId] ?: return 0
             state.value = null

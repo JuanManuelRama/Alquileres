@@ -15,6 +15,9 @@ data class ContractList(val isInactive: Boolean) : Route
 data class ContractDetail(val contractId: Long, val isInactive: Boolean) : Route
 
 @Serializable
+data class RenewContract(val contractId: Long) : Route
+
+@Serializable
 data object AddPropiedad : Route
 
 @Serializable

@@ -20,6 +20,7 @@ import com.example.myapplication.ui.contract.ContractViewModel
 import com.example.myapplication.ui.contract.bill.BillScreen
 import com.example.myapplication.ui.contract.create.CreateContractScreen
 import com.example.myapplication.ui.contract.create.CreateContractViewModel
+import com.example.myapplication.ui.contract.create.RenewContractScreen
 import com.example.myapplication.ui.contract.detail.ContractDetailScreen
 import com.example.myapplication.ui.contract.list.ContractListScreen
 import com.example.myapplication.ui.settings.SettingsScreen
@@ -33,6 +34,7 @@ fun AppNavigation(
     modifier: Modifier = Modifier,
 ) {
     val backStack = rememberNavBackStack(ContractList(isInactive = false))
+    val back: () -> Unit = { backStack.removeLastOrNull() }
 
     NavDisplay(
         backStack = backStack,
@@ -44,7 +46,7 @@ fun AppNavigation(
             rememberSaveableStateHolderNavEntryDecorator(),
             rememberViewModelStoreNavEntryDecorator(),
         ),
-        onBack = { backStack.removeLastOrNull() },
+        onBack = back,
         entryProvider = { key ->
             when (val route = key as Route) {
                 is ContractList -> NavEntry(route) {
@@ -70,7 +72,7 @@ fun AppNavigation(
                     val themeMode by settingsViewModel.themeMode.collectAsStateWithLifecycle()
                     val language by settingsViewModel.language.collectAsStateWithLifecycle()
                     SettingsScreen(
-                        onBackClick = { backStack.removeLastOrNull() },
+                        onBackClick = back,
                         themeMode = themeMode,
                         onThemeModeSelected = settingsViewModel::setThemeMode,
                         language = language,
@@ -80,7 +82,8 @@ fun AppNavigation(
                 is AddPropiedad -> NavEntry(route) {
                     CreateContractScreen(
                         viewModel = createContractViewModel,
-                        onBackClick = { backStack.removeLastOrNull() },
+                        onBackClick = back,
+                        afterCreate = back,
                     )
                 }
                 is ContractDetail -> NavEntry(route) {
@@ -93,11 +96,31 @@ fun AppNavigation(
                         isInactive = route.isInactive,
                         onFinished = {
                             val index = backStack.indexOf(route)
-                            if (index >= 0) backStack[index] = ContractDetail(route.contractId, isInactive = true)
+                            if (index >= 0) backStack[index] =
+                                ContractDetail(route.contractId, isInactive = true)
                         },
-                        onBackClick = { backStack.removeLastOrNull() },
+                        onBackClick = back,
+                        onRenewContractClick = {
+                            backStack.add(RenewContract(route.contractId))
+                        },
                     )
                 }
+
+                is RenewContract -> NavEntry(route) {
+                    val detailFactory = remember(route.contractId, viewModelFactory) {
+                        viewModelFactory.contractDetailFactory(route.contractId)
+                    }
+                    RenewContractScreen(
+                        detailViewModel = viewModel(factory = detailFactory),
+                        createViewModel = createContractViewModel,
+                        onBackClick = back,
+                        afterCreate = {
+                            back()
+                            back()
+                        },
+                    )
+                }
+
                 is PrepareBill -> NavEntry(route) {
                     val factory = remember(route.contractId, viewModelFactory) {
                         viewModelFactory.billFactory(route.contractId)
@@ -106,7 +129,7 @@ fun AppNavigation(
                         messageSender = MessageSender.WhatsApp,
                         isInactive = route.isInactive,
                         viewModel = viewModel(factory = factory),
-                        onBackClick = { backStack.removeLastOrNull() },
+                        onBackClick = back,
                     )
                 }
             }

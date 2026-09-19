@@ -28,6 +28,7 @@
 
 - Renew contract after registering the last bill
 - Start registering lease extension monthly after the last bill
+- Finish and finish early should have different functions, they are clearly separate stuff
 
 ## List
 

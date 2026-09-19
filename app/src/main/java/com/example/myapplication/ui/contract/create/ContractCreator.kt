@@ -62,6 +62,7 @@ fun ContractCreator(
     onInputsChanged: (ContractInputs) -> Unit,
     cancel: Cancel? = null,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     val context = LocalContext.current
 
@@ -83,6 +84,7 @@ fun ContractCreator(
     val hikeValidationError = stringResource(R.string.validation_hike_requires_adjustment_time)
 
     Form(
+        enabled = enabled,
         submitText = stringResource(R.string.action_create_contract),
         onSubmit = {
             val property = checkNotNull(inputs.selectedProperty)

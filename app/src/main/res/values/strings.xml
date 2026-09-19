@@ -1,4 +1,5 @@
 <resources>
+    <string name="err_could_not_create_contract">Could not create the contract. Please try again.</string>
     <string name="app_name">My Application</string>
 
     <!-- Common Actions -->

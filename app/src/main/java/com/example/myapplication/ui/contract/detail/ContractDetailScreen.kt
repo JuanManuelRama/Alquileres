@@ -44,6 +44,7 @@ fun ContractDetailScreen(
     onBackClick: () -> Unit,
     isInactive: Boolean,
     onFinished: () -> Unit,
+    onRenewContractClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -189,7 +190,11 @@ fun ContractDetailScreen(
                         },
                         modifier = Modifier.weight(1f)
                     ) { Text(if (state.isFinishing) stringResource(R.string.action_finishing) else stringResource(R.string.action_finish_contract)) }
-                    Button(onClick = {}, enabled = false, modifier = Modifier.weight(1f)) {
+                    Button(
+                        onClick = onRenewContractClick,
+                        enabled = !state.isFinishing,
+                        modifier = Modifier.weight(1f)
+                    ) {
                         Text(stringResource(R.string.action_renew_contract))
                     }
                 }

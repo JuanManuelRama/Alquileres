@@ -60,29 +60,28 @@ class CreateContractViewModel(
         }
     }
 
-    fun saveContract(contract: Contract) {
-        viewModelScope.launch {
-            val property = if (contract.property.id == 0L) {
-                val owner = if (contract.property.owner.id == 0L) {
-                    ownerRepository.insert(contract.property.owner)
-                } else {
-                    contract.property.owner
-                }
-                propertyRepository.insert(contract.property.copy(owner = owner))
+    suspend fun saveContract(contract: Contract, renewingContractId: Long? = null) {
+        val property = if (contract.property.id == 0L) {
+            val owner = if (contract.property.owner.id == 0L) {
+                ownerRepository.insert(contract.property.owner)
             } else {
-                contract.property
+                contract.property.owner
             }
-
-            val services = contract.services.map { service ->
-                if (service.id == 0L) serviceRepository.insert(service) else service
-            }
-
-            contractRepository.insert(
-                contract.copy(
-                    property = property,
-                    services = services
-                )
-            )
+            propertyRepository.insert(contract.property.copy(owner = owner))
+        } else {
+            contract.property
         }
+
+        val services = contract.services.map { service ->
+            if (service.id == 0L) serviceRepository.insert(service) else service
+        }
+
+        contractRepository.insert(
+            contract.copy(
+                property = property,
+                services = services
+            ),
+            renewingContractId = renewingContractId
+        )
     }
 }

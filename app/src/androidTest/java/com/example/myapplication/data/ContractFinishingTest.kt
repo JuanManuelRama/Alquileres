@@ -21,12 +21,53 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
+import org.junit.Assert.assertFalse
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
 import java.util.UUID
 
 class ContractFinishingTest {
+    @Test fun renewalFinishesOriginalAndPreservesItsBills() = runTest {
+        val db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
+        try {
+            val id = seed(db)
+            val repository = com.example.myapplication.data.repository.ContractRepository(db.contractDao(), db.billDao())
+            val original = repository.observeById(id).first()!!
+            val bills = db.billDao().list(id)
+            val renewed = repository.insert(original.copy(
+                id = 0,
+                startingMonth = original.finishingMonth.plusMonths(1),
+                finishingMonth = original.finishingMonth.plusMonths(2),
+                adjustments = emptyList(),
+            ), renewingContractId = id)
+            assertTrue(db.contractDao().observeById(id).first()!!.contract.isFinished)
+            assertEquals(original, repository.observeById(id).first())
+            assertEquals(bills.map { it.bill }, db.billDao().list(id).map { it.bill })
+            assertFalse(db.contractDao().observeById(renewed.id).first()!!.contract.isFinished)
+            assertEquals(2, db.billDao().list(renewed.id).size)
+        } finally { db.close() }
+    }
+
+    @Test fun failedRenewalRollsBackOriginalFinishedFlagAndNewContract() = runTest {
+        val db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
+        try {
+            val id = seed(db)
+            val repository = com.example.myapplication.data.repository.ContractRepository(db.contractDao(), db.billDao())
+            val original = repository.observeById(id).first()!!
+            val failure = runCatching {
+                repository.insert(original.copy(
+                    id = 0,
+                    services = listOf(com.example.myapplication.model.Service("Missing", 9999)),
+                ), renewingContractId = id)
+            }
+            assertTrue(failure.isFailure)
+            assertFalse(db.contractDao().observeById(id).first()!!.contract.isFinished)
+            assertEquals(listOf(id), db.contractDao().getAllContracts().first().map { it.contract.id })
+            assertEquals(2, db.billDao().list(id).size)
+        } finally { db.close() }
+    }
+
     private val context: Context = ApplicationProvider.getApplicationContext()
 
     @Test fun migrationKeepsExistingContractsAndBillsActive() = runTest {
