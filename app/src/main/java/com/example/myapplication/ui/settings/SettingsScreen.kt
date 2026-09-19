@@ -39,18 +39,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
 import com.example.myapplication.data.settings.AppLanguage
+import com.example.myapplication.data.settings.AppSettings
 import com.example.myapplication.data.settings.ThemeMode
+import com.example.myapplication.message.MessageSender
 import com.example.myapplication.ui.theme.MyApplicationTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     onBackClick: () -> Unit,
+    settings: AppSettings,
     modifier: Modifier = Modifier,
-    themeMode: ThemeMode = ThemeMode.SYSTEM,
-    onThemeModeSelected: (ThemeMode) -> Unit = {},
-    language: AppLanguage = AppLanguage.ENGLISH,
-    onLanguageSelected: (AppLanguage) -> Unit = {},
+    onThemeModeSelected: (ThemeMode) -> Unit,
+    onLanguageSelected: (AppLanguage) -> Unit,
+    onMessageSenderSelected: (MessageSender) -> Unit,
 ) {
     var showLanguageDialog by remember { mutableStateOf(value = false) }
 
@@ -76,7 +78,7 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                text = stringResource(R.string.header_appearance),
+                text = stringResource(R.string.title_settings),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary,
             )
@@ -100,7 +102,7 @@ fun SettingsScreen(
                     ) {
                         ThemeMode.entries.forEachIndexed { index, mode ->
                             SegmentedButton(
-                                selected = mode == themeMode,
+                                selected = mode == settings.themeMode,
                                 onClick = { onThemeModeSelected(mode) },
                                 shape = SegmentedButtonDefaults.itemShape(
                                     index = index,
@@ -139,10 +141,46 @@ fun SettingsScreen(
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
-                        text = language.combined,
+                        text = settings.language.combined,
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
                     )
+                }
+            }
+
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Text(
+                        text = "Message Provider",
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+
+                    SingleChoiceSegmentedButtonRow(
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        MessageSender.entries.forEachIndexed { index, messager ->
+                            SegmentedButton(
+                                selected = messager == settings.messageSender,
+                                onClick = { onMessageSenderSelected(messager) },
+                                shape = SegmentedButtonDefaults.itemShape(
+                                    index = index,
+                                    count = ThemeMode.entries.size,
+                                ),
+                            ) {
+                                Text(
+                                    text = when (messager) {
+                                        MessageSender.WhatsApp -> stringResource(R.string.theme_system)
+                                        MessageSender.Sms -> stringResource(R.string.theme_light)
+                                    },
+                                )
+                            }
+                        }
+                    }
                 }
             }
 
@@ -153,7 +191,7 @@ fun SettingsScreen(
                     text = {
                         Column {
                             AppLanguage.entries.forEach { lang ->
-                                val isSelected = lang == language
+                                val isSelected = lang == settings.language
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -186,13 +224,5 @@ fun SettingsScreen(
                 )
             }
         }
-    }
-}
-
-@Preview
-@Composable
-private fun SettingsScreenPreview() {
-    MyApplicationTheme {
-        SettingsScreen(onBackClick = {})
     }
 }

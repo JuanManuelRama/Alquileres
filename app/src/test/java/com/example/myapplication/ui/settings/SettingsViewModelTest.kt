@@ -4,6 +4,7 @@ import com.example.myapplication.data.repository.SettingsRepository
 import com.example.myapplication.data.settings.AppLanguage
 import com.example.myapplication.data.settings.AppSettings
 import com.example.myapplication.data.settings.ThemeMode
+import com.example.myapplication.message.MessageSender
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,20 +16,25 @@ class SettingsViewModelTest {
     private class FakeSettingsRepository(
         initialThemeMode: ThemeMode = ThemeMode.SYSTEM,
         initialLanguage: AppLanguage = AppLanguage.ENGLISH,
+        initialMessageSender: MessageSender = MessageSender.WhatsApp,
     ) : SettingsRepository {
+        private val _settings = MutableStateFlow(
+            AppSettings(
+                themeMode = initialThemeMode,
+                language = initialLanguage,
+                messageSender = initialMessageSender,
+            ),
+        )
+        override val settings: StateFlow<AppSettings> = _settings.asStateFlow()
+
         private val _themeMode = MutableStateFlow(initialThemeMode)
         override val themeMode: StateFlow<ThemeMode> = _themeMode.asStateFlow()
 
         private val _language = MutableStateFlow(initialLanguage)
         override val language: StateFlow<AppLanguage> = _language.asStateFlow()
 
-        private val _settings = MutableStateFlow(
-            AppSettings(
-                themeMode = initialThemeMode,
-                language = initialLanguage,
-            ),
-        )
-        override val settings: StateFlow<AppSettings> = _settings.asStateFlow()
+        private val _messageSender = MutableStateFlow(initialMessageSender)
+        override val messageSender: StateFlow<MessageSender> = _messageSender.asStateFlow()
 
         override fun setThemeMode(mode: ThemeMode) {
             _themeMode.value = mode
@@ -38,6 +44,11 @@ class SettingsViewModelTest {
         override fun setLanguage(language: AppLanguage) {
             _language.value = language
             _settings.value = _settings.value.copy(language = language)
+        }
+
+        override fun setMessageSender(messageSender: MessageSender) {
+            _messageSender.value = messageSender
+            _settings.value = _settings.value.copy(messageSender = messageSender)
         }
     }
 

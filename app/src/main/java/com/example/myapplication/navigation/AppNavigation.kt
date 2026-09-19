@@ -67,14 +67,13 @@ fun AppNavigation(
                 }
                 is Settings -> NavEntry(route) {
                     val settingsViewModel: SettingsViewModel = viewModel(factory = viewModelFactory)
-                    val themeMode by settingsViewModel.themeMode.collectAsStateWithLifecycle()
-                    val language by settingsViewModel.language.collectAsStateWithLifecycle()
+                    val settings by settingsViewModel.settings.collectAsStateWithLifecycle()
                     SettingsScreen(
                         onBackClick = back,
-                        themeMode = themeMode,
+                        settings = settings,
                         onThemeModeSelected = settingsViewModel::setThemeMode,
-                        language = language,
                         onLanguageSelected = settingsViewModel::setLanguage,
+                        onMessageSenderSelected = settingsViewModel::setMessageSender,
                     )
                 }
                 is AddPropiedad -> NavEntry(route) {
