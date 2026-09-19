@@ -29,10 +29,6 @@
 - Renew contract after registering the last bill
 - Start registering lease extension monthly after the last bill
 
-## Changeable language
-
-Language should be able to be changed, I've never done it before, but it probably involves every string beign parameriticized and whatnot. God that sounds like a drag.
-
 ## List
 
 1. Medium — Screens close before saves succeed, and write failures are unhandled.
