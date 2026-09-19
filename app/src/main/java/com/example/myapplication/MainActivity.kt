@@ -30,7 +30,6 @@ import com.example.myapplication.data.settings.appLocale
 import com.example.myapplication.navigation.AppNavigation
 import com.example.myapplication.ui.AppViewModelFactory
 import com.example.myapplication.ui.contract.ContractViewModel
-import com.example.myapplication.ui.contract.create.CreateContractViewModel
 import com.example.myapplication.ui.theme.MyApplicationTheme
 import java.util.Locale
 
@@ -45,16 +44,17 @@ class MainActivity : ComponentActivity() {
             val themeMode by settingsRepository.themeMode.collectAsStateWithLifecycle()
             val language by settingsRepository.language.collectAsStateWithLifecycle()
 
-            val factory = AppViewModelFactory(
-                propertyRepository = PropertyRepository(application.database.propertyDao()),
-                ownerRepository = OwnerRepository(application.database.ownerDao()),
-                serviceRepository = ServiceRepository(application.database.serviceDao()),
-                contractRepository = ContractRepository(application.database.contractDao(), application.database.billDao()),
-                billStore = BillRepository(application.database.billDao()),
-                settingsRepository = settingsRepository,
-            )
+            val factory = remember(application) {
+                AppViewModelFactory(
+                    propertyRepository = PropertyRepository(application.database.propertyDao()),
+                    ownerRepository = OwnerRepository(application.database.ownerDao()),
+                    serviceRepository = ServiceRepository(application.database.serviceDao()),
+                    contractRepository = ContractRepository(application.database),
+                    billStore = BillRepository(application.database.billDao()),
+                    settingsRepository = settingsRepository,
+                )
+            }
 
-            val createContractViewModel: CreateContractViewModel by viewModels { factory }
             val contractViewModel: ContractViewModel by viewModels { factory }
 
             LocalizedContent(language = language) {
@@ -64,7 +64,6 @@ class MainActivity : ComponentActivity() {
                         color = MaterialTheme.colorScheme.background,
                     ) {
                         AppNavigation(
-                            createContractViewModel = createContractViewModel,
                             contractViewModel = contractViewModel,
                             viewModelFactory = factory,
                             modifier = Modifier.fillMaxSize(),

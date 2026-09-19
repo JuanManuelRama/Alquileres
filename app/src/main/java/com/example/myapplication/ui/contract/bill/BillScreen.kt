@@ -106,7 +106,11 @@ fun BillScreen(
             }
 
             state.error?.let { error ->
-                Text(text = error, color = MaterialTheme.colorScheme.error)
+                Text(text = stringResource(when (error) {
+                    BillError.Load -> R.string.err_could_not_load_bills
+                    BillError.Save -> R.string.err_could_not_save_bill
+                    BillError.Payment -> R.string.err_payment_save_failed
+                }), color = MaterialTheme.colorScheme.error)
                 if (state.bill == null) {
                     TextButton(onClick = viewModel::retry) {
                         Text(stringResource(R.string.action_retry))

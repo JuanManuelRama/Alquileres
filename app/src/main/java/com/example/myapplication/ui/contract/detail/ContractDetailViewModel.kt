@@ -3,13 +3,15 @@ package com.example.myapplication.ui.contract.detail
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.repository.BillStore
-import com.example.myapplication.data.repository.ContractRepository
+import com.example.myapplication.data.repository.ContractDetailsStore
 import com.example.myapplication.model.Contract
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.asStateFlow
+import com.example.myapplication.ui.SaveStatus
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
@@ -21,8 +23,6 @@ sealed interface ContractDetailUiState {
     data class Ready(
         val contract: Contract,
         val paidMonths: Set<YearMonth>,
-        val isFinishing: Boolean = false,
-        val error: String? = null
     ) : ContractDetailUiState {
         val allBillsPaid: Boolean get() = contract.startingMonth <= contract.finishingMonth &&
             generateSequence(contract.startingMonth) { it.plusMonths(1) }
@@ -32,71 +32,62 @@ sealed interface ContractDetailUiState {
 
 class ContractDetailViewModel(
     private val contractId: Long,
-    private val contractRepository: ContractRepository,
+    private val contractRepository: ContractDetailsStore,
     billStore: BillStore
 ) : ViewModel() {
-    private data class FinishState(val saving: Boolean = false, val error: String? = null)
-    private val finishState = MutableStateFlow(FinishState())
+    private val _writeState = MutableStateFlow(ContractWriteState())
+    val writeState = _writeState.asStateFlow()
     val uiState: StateFlow<ContractDetailUiState> = combine(
         contractRepository.observeById(contractId),
         billStore.observePaidMonths(contractId),
-        finishState
-    ) { contract, paidMonths, action ->
+    ) { contract, paidMonths ->
         if (contract == null) ContractDetailUiState.NotFound
-        else ContractDetailUiState.Ready(contract, paidMonths, action.saving, action.error)
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = ContractDetailUiState.Loading
-    )
+        else ContractDetailUiState.Ready(contract, paidMonths)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ContractDetailUiState.Loading)
 
-    fun updateAdjustmentAmount(time: YearMonth, amount: BigDecimal?) {
-        viewModelScope.launch {
-            contractRepository.updateAdjustmentAmount(contractId, time, amount)
-        }
+    fun updateAdjustmentAmount(time: YearMonth, amount: BigDecimal?) = write(ContractWriteAction.Adjustment, time) {
+        contractRepository.updateAdjustmentAmount(contractId, time, amount)
     }
 
-    fun finishContract(onFinished: () -> Unit) {
+    fun finishContract() {
         val state = uiState.value as? ContractDetailUiState.Ready ?: return
         if (!state.allBillsPaid) return
-        completeContract(onFinished) { contractRepository.finish(contractId) }
+        write(ContractWriteAction.Finish) { contractRepository.finish(contractId) }
     }
 
-    fun cancelContract(onCancelled: () -> Unit, cancellationMonth: YearMonth = YearMonth.now()) {
-        if (uiState.value !is ContractDetailUiState.Ready) return
-        completeContract(onCancelled) { contractRepository.cancel(contractId, cancellationMonth) }
+    fun cancelContract(cancellationMonth: YearMonth = YearMonth.now()) = write(ContractWriteAction.Cancel) {
+        contractRepository.cancel(contractId, cancellationMonth)
     }
 
-    private fun completeContract(onCompleted: () -> Unit, action: suspend () -> Unit) {
-        if (finishState.value.saving) return
-        finishState.value = FinishState(saving = true)
+    fun deleteContract() = write(ContractWriteAction.Delete) { contractRepository.delete(contractId) }
+
+    fun clearWriteResult() {
+        if (_writeState.value.status != SaveStatus.Saving) _writeState.value = ContractWriteState()
+    }
+
+    private fun write(action: ContractWriteAction, month: YearMonth? = null, block: suspend () -> Unit) {
+        if (uiState.value !is ContractDetailUiState.Ready || _writeState.value.isBusy) return
+        _writeState.value = ContractWriteState(action, month, SaveStatus.Saving)
         viewModelScope.launch {
             try {
-                action()
-                onCompleted()
-                finishState.value = FinishState()
+                block()
+                _writeState.value = ContractWriteState(action, month, SaveStatus.Saved)
             } catch (error: CancellationException) {
+                _writeState.value = ContractWriteState()
                 throw error
             } catch (_: Exception) {
-                finishState.value = FinishState(error = "Could not finish the contract. Please try again.")
+                _writeState.value = ContractWriteState(action, month, SaveStatus.Failed)
             }
         }
     }
+}
 
-    fun deleteContract(onDeleted: () -> Unit) {
-        if (uiState.value !is ContractDetailUiState.Ready) return
-        if (finishState.value.saving) return
-        finishState.value = FinishState(saving = true)
-        viewModelScope.launch {
-            try {
-                contractRepository.delete(contractId)
-                onDeleted()
-                finishState.value = FinishState()
-            } catch (error: CancellationException) {
-                throw error
-            } catch (_: Exception) {
-                finishState.value = FinishState(error = "Could not delete the contract. Please try again.")
-            }
-        }
-    }
+enum class ContractWriteAction { Adjustment, Finish, Cancel, Delete }
+
+data class ContractWriteState(
+    val action: ContractWriteAction? = null,
+    val month: YearMonth? = null,
+    val status: SaveStatus = SaveStatus.Idle,
+) {
+    val isBusy: Boolean get() = status == SaveStatus.Saving || status == SaveStatus.Saved
 }

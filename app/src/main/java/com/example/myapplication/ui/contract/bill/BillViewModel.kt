@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.repository.BillStore
 import com.example.myapplication.model.Bill
+import com.example.myapplication.ui.SaveStatus
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,10 +16,11 @@ data class BillUiState(
     val month: YearMonth,
     val bills: List<Bill> = emptyList(),
     val isLoading: Boolean = true,
-    val isSaving: Boolean = false,
-    val saved: Boolean = false,
-    val error: String? = null
+    val saveStatus: SaveStatus = SaveStatus.Idle,
+    val error: BillError? = null
 ) {
+    val isSaving: Boolean get() = saveStatus == SaveStatus.Saving
+    val saved: Boolean get() = saveStatus == SaveStatus.Saved
     val bill: Bill? get() = bills.firstOrNull { it.month == month }
 }
 
@@ -48,7 +50,7 @@ class BillViewModel(
             } catch (error: CancellationException) {
                 throw error
             } catch (_: Exception) {
-                _uiState.value = _uiState.value.copy(isLoading = false, error = "Could not load bills. Please retry.")
+                _uiState.value = _uiState.value.copy(isLoading = false, error = BillError.Load)
             }
         }
     }
@@ -56,7 +58,7 @@ class BillViewModel(
     fun selectMonth(month: YearMonth) {
         val state = _uiState.value
         if (state.isLoading || state.isSaving || state.month == month || state.bills.none { it.month == month }) return
-        _uiState.value = state.copy(month = month, saved = false, error = null)
+        _uiState.value = state.copy(month = month, saveStatus = SaveStatus.Idle, error = null)
     }
 
     // Only an explicit, valid form submission writes to storage.
@@ -72,22 +74,25 @@ class BillViewModel(
         val original = state.bill ?: return
         if (state.isLoading || state.isSaving || original.isPaid || bill.isPaid || !bill.isValid ||
             bill.id != original.id || bill.contract.id != contractId || bill.month != state.month) return
-        _uiState.value = state.copy(isSaving = true, saved = false, error = null)
+        _uiState.value = state.copy(saveStatus = SaveStatus.Saving, error = null)
         viewModelScope.launch {
             try {
                 val saved = if (paymentDate == null) store.save(bill) else store.markPaid(bill, paymentDate)
                 _uiState.value = _uiState.value.copy(
                     bills = state.bills.map { if (it.id == saved.id) saved else it },
-                    isSaving = false, saved = true
+                    saveStatus = SaveStatus.Saved
                 )
             } catch (error: CancellationException) {
+                _uiState.value = _uiState.value.copy(saveStatus = SaveStatus.Idle)
                 throw error
             } catch (error: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    isSaving = false, error = if (paymentDate == null) "Could not save this bill. Please try Save bill again."
-                    else "Could not confirm payment. " + (error.message ?: "Please retry.")
+                    saveStatus = SaveStatus.Failed,
+                    error = if (paymentDate == null) BillError.Save else BillError.Payment
                 )
             }
         }
     }
 }
+
+enum class BillError { Load, Save, Payment }

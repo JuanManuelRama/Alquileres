@@ -1,8 +1,10 @@
 package com.example.myapplication.ui.contract.create
 
+import com.example.myapplication.ui.SaveStatus
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myapplication.data.repository.ContractRepository
+import com.example.myapplication.data.repository.ContractWriter
 import com.example.myapplication.data.repository.OwnerRepository
 import com.example.myapplication.data.repository.PropertyRepository
 import com.example.myapplication.data.repository.ServiceRepository
@@ -14,12 +16,15 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class CreateContractViewModel(
-    private val propertyRepository: PropertyRepository,
-    private val ownerRepository: OwnerRepository,
-    private val serviceRepository: ServiceRepository,
-    private val contractRepository: ContractRepository
+    propertyRepository: PropertyRepository,
+    ownerRepository: OwnerRepository,
+    serviceRepository: ServiceRepository,
+    private val contractRepository: ContractWriter
 ) : ViewModel() {
     val owners: StateFlow<List<Owner>> = ownerRepository.getAll()
         .stateIn(
@@ -42,46 +47,22 @@ class CreateContractViewModel(
             initialValue = emptyList()
         )
 
-    val contracts: StateFlow<List<Contract>> = contractRepository.getAll()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = emptyList()
-        )
+    private val _saveState = MutableStateFlow(SaveStatus.Idle)
+    val saveState = _saveState.asStateFlow()
 
-    fun addProperty(property: Property) {
+    fun saveContract(contract: Contract, renewingContractId: Long? = null) {
+        if (_saveState.value == SaveStatus.Saving || _saveState.value == SaveStatus.Saved) return
+        _saveState.value = SaveStatus.Saving
         viewModelScope.launch {
-            val owner = if (property.owner.id == 0L) {
-                ownerRepository.insert(property.owner)
-            } else {
-                property.owner
+            try {
+                contractRepository.insert(contract, renewingContractId)
+                _saveState.value = SaveStatus.Saved
+            } catch (error: CancellationException) {
+                _saveState.value = SaveStatus.Idle
+                throw error
+            } catch (_: Exception) {
+                _saveState.value = SaveStatus.Failed
             }
-            propertyRepository.insert(property.copy(owner = owner))
         }
-    }
-
-    suspend fun saveContract(contract: Contract, renewingContractId: Long? = null) {
-        val property = if (contract.property.id == 0L) {
-            val owner = if (contract.property.owner.id == 0L) {
-                ownerRepository.insert(contract.property.owner)
-            } else {
-                contract.property.owner
-            }
-            propertyRepository.insert(contract.property.copy(owner = owner))
-        } else {
-            contract.property
-        }
-
-        val services = contract.services.map { service ->
-            if (service.id == 0L) serviceRepository.insert(service) else service
-        }
-
-        contractRepository.insert(
-            contract.copy(
-                property = property,
-                services = services
-            ),
-            renewingContractId = renewingContractId
-        )
     }
 }

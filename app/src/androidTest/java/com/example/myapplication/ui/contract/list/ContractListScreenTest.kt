@@ -37,7 +37,7 @@ class ContractListScreenTest {
         }
         composeRule.onNodeWithText("Inactive contracts").assertIsDisplayed()
         composeRule.onNodeWithText("Inactive").assertIsSelected()
-        composeRule.onNodeWithText("Loading contracts...").assertIsDisplayed()
+        composeRule.onNodeWithText("Loading contracts…").assertIsDisplayed()
         composeRule.onNodeWithContentDescription("Create new contract").assertDoesNotExist()
         composeRule.runOnIdle { state = ContractListUiState.Inactive(emptyList()) }
         composeRule.onNodeWithText("No inactive contracts yet.").assertIsDisplayed()
@@ -59,7 +59,7 @@ class ContractListScreenTest {
                 )
             }
         }
-        composeRule.onNodeWithText("Loading contracts...").assertIsDisplayed()
+        composeRule.onNodeWithText("Loading contracts…").assertIsDisplayed()
         composeRule.onNodeWithText("A fresh start, on paper").assertDoesNotExist()
 
         val contract = Contract(
@@ -72,11 +72,11 @@ class ContractListScreenTest {
             state = ContractListUiState.Active(listOf(ContractListItem(contract, false, false, false)))
         }
         composeRule.onNodeWithText("Tenant: Ada").assertIsDisplayed()
-        composeRule.onNodeWithText("Loading contracts...").assertDoesNotExist()
+        composeRule.onNodeWithText("Loading contracts…").assertDoesNotExist()
         composeRule.onNodeWithText("A fresh start, on paper").assertDoesNotExist()
 
         composeRule.runOnIdle { state = ContractListUiState.Active(emptyList()) }
         composeRule.onNodeWithText("A fresh start, on paper").assertIsDisplayed()
-        composeRule.onNodeWithText("Loading contracts...").assertDoesNotExist()
+        composeRule.onNodeWithText("Loading contracts…").assertDoesNotExist()
     }
 }

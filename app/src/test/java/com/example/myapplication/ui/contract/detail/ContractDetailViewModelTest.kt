@@ -12,7 +12,7 @@ import com.example.myapplication.data.entity.OwnerEntity
 import com.example.myapplication.data.entity.PropertyEntity
 import com.example.myapplication.data.entity.PropertyWithOwner
 import com.example.myapplication.data.repository.BillStore
-import com.example.myapplication.data.repository.ContractRepository
+import com.example.myapplication.data.repository.ContractDetailsStore
 import com.example.myapplication.model.Address
 import com.example.myapplication.model.Tenant
 import kotlinx.coroutines.Dispatchers
@@ -32,6 +32,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -44,16 +45,6 @@ import kotlin.time.Duration.Companion.milliseconds
 class ContractDetailViewModelTest {
     private val contracts = TestContractDao()
     private val deletedBillContracts = mutableListOf<Long>()
-    private val unusedBills = java.lang.reflect.Proxy.newProxyInstance(
-        com.example.myapplication.data.dao.BillDao::class.java.classLoader,
-        arrayOf(com.example.myapplication.data.dao.BillDao::class.java)
-    ) { _, method, args ->
-        if (method.name == "deleteFutureBills") {
-            deletedBillContracts.add(args[0] as Long)
-            0
-        } else error("Unexpected bill operation: ${method.name}")
-    }
-        as com.example.myapplication.data.dao.BillDao
     private val bills = TestBillStore()
     private val viewModels = mutableListOf<ContractDetailViewModel>()
 
@@ -66,10 +57,23 @@ class ContractDetailViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun viewModel(id: Long) = ContractDetailViewModel(
-        id, ContractRepository(contracts, unusedBills), bills
-    ).also { viewModels.add(it) }
+    private val store = object : ContractDetailsStore {
+        override fun observeById(contractId: Long) = contracts.observeById(contractId).map { it?.toDomain() }
+        override suspend fun updateAdjustmentAmount(contractId: Long, time: YearMonth, amount: BigDecimal?) {
+            contracts.updateAdjustmentAmount(contractId, time, amount)
+        }
+        override suspend fun finish(contractId: Long) { contracts.finish(contractId) }
+        override suspend fun cancel(contractId: Long, cancellationMonth: YearMonth) {
+            contracts.finish(contractId)
+            contracts.shortenTerm(contractId, cancellationMonth)
+            deletedBillContracts.add(contractId)
+        }
+        override suspend fun delete(contractId: Long) { contracts.deleteContract(contractId) }
+    }
 
+    private fun viewModel(id: Long) = ContractDetailViewModel(
+        id, store, bills
+    ).also { viewModels.add(it) }
     @Test
     fun entriesObserveTheirOwnContractsAndBillsAndEditsUseTheirFixedId() = runTest {
         contracts.results[1L] = MutableStateFlow(contract(1L))
@@ -139,46 +143,42 @@ class ContractDetailViewModelTest {
     }
 
     @Test fun finishNeedsEveryMonthPaidWhileCancellationDoesNot() = runTest {
-        var finished = false
         contracts.results[1L] = MutableStateFlow(contract(1L))
         val model = viewModel(1L)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { model.uiState.collect {} }
         runCurrent()
-        model.finishContract(onFinished = { finished = true })
+        model.finishContract()
         runCurrent()
-        assertFalse(finished)
+        assertFalse(contracts.results.getValue(1L).value!!.contract.isFinished)
         val activeContract = (model.uiState.value as ContractDetailUiState.Ready).contract
         bills.results.getValue(1L).value = generateSequence(activeContract.startingMonth) { it.plusMonths(1) }
             .takeWhile { it <= activeContract.finishingMonth }.toList()
         runCurrent()
         assertTrue((model.uiState.value as ContractDetailUiState.Ready).allBillsPaid)
-        model.finishContract(onFinished = { finished = true })
+        model.finishContract()
         runCurrent()
-        assertTrue(finished)
+        assertTrue(contracts.results.getValue(1L).value!!.contract.isFinished)
         assertTrue(deletedBillContracts.isEmpty())
 
         contracts.results[2L] = MutableStateFlow(contract(2L))
         val other = viewModel(2L)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { other.uiState.collect {} }
         runCurrent()
-        var cancelled = false
-        other.cancelContract(onCancelled = { cancelled = true })
+        other.cancelContract()
         runCurrent()
-        assertTrue(cancelled)
         assertEquals(listOf(2L), deletedBillContracts)
         assertTrue((other.uiState.value as ContractDetailUiState.Ready).paidMonths.isEmpty())
     }
 
-    @Test fun deleteContractDeletesDataAndInvokesCallback() = runTest {
-        var deleted = false
+    @Test fun deleteContractDeletesData() = runTest {
         contracts.results[1L] = MutableStateFlow(contract(1L))
         val model = viewModel(1L)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { model.uiState.collect {} }
         runCurrent()
         assertTrue(model.uiState.value is ContractDetailUiState.Ready)
-        model.deleteContract { deleted = true }
+        model.deleteContract()
         runCurrent()
-        assertTrue(deleted)
+        assertNull(contracts.results[1L]?.value)
         assertEquals(ContractDetailUiState.NotFound, model.uiState.value)
     }
 

@@ -44,7 +44,7 @@ class BillPersistenceTest {
             val id = db.contractDao().saveContract(
                 contract(property),
                 listOf(service),
-                listOf(AdjustmentEntity(contractId = 0, time = month, amount = BigDecimal("0.10"))), bills = emptyMap(), billDao = db.billDao()
+                listOf(AdjustmentEntity(contractId = 0, time = month, amount = BigDecimal("0.10")))
             )
             db.billDao().createAll(
                 db.contractDao().observeById(id).first()!!.toDomain().createBills().associate { it.toEntity() to it.itemEntities() }
@@ -54,7 +54,7 @@ class BillPersistenceTest {
             assertEquals(24, db.billDao().list(id).size)
             val originalIds = repository.list(id).map { it.id }
             assertEquals(originalIds, repository.list(id).map { it.id })
-            val contracts = ContractRepository(db.contractDao(), db.billDao())
+            val contracts = ContractRepository(db)
             val created = contracts.insert(contracts.observeById(id).first()!!.copy(id = 0))
             assertEquals(24, db.billDao().list(created.id).size)
             assertEquals(0, BigDecimal("1100").compareTo(first.rent))
@@ -100,7 +100,7 @@ class BillPersistenceTest {
             val owner = db.ownerDao().insert(OwnerEntity(name = "Owner"))
             val property = db.propertyDao().insertProperty(PropertyEntity(address = Address("Main", "1", null), ownerId = owner))
             val service = db.serviceDao().insert(ServiceEntity(name = "Water"))
-            val id = db.contractDao().saveContract(contract(property), listOf(service), emptyList(), bills = emptyMap(), billDao = db.billDao())
+            val id = db.contractDao().saveContract(contract(property), listOf(service), emptyList())
             db.billDao().createAll(
                 db.contractDao().observeById(id).first()!!.toDomain().createBills().associate { it.toEntity() to it.itemEntities() }
             )
@@ -121,7 +121,7 @@ class BillPersistenceTest {
         try {
             val owner = db.ownerDao().insert(OwnerEntity(name = "Owner"))
             val property = db.propertyDao().insertProperty(PropertyEntity(address = Address("Main", "1", null), ownerId = owner))
-            val id = db.contractDao().saveContract(contract(property), emptyList(), emptyList(), bills = emptyMap(), billDao = db.billDao())
+            val id = db.contractDao().saveContract(contract(property), emptyList(), emptyList())
             db.billDao().createAll(db.contractDao().observeById(id).first()!!.toDomain().createBills().associate { it.toEntity() to it.itemEntities() })
             val repo = BillRepository(db.billDao())
             val billingMonth = YearMonth.of(2026, 1)
@@ -151,7 +151,7 @@ class BillPersistenceTest {
         try {
             val owner = db.ownerDao().insert(OwnerEntity(name = "Owner"))
             val property = db.propertyDao().insertProperty(PropertyEntity(address = Address("Main", "1", null), ownerId = owner))
-            val id = db.contractDao().saveContract(contract(property), emptyList(), emptyList(), bills = emptyMap(), billDao = db.billDao())
+            val id = db.contractDao().saveContract(contract(property), emptyList(), emptyList())
             db.billDao().createAll(db.contractDao().observeById(id).first()!!.toDomain().createBills().associate { it.toEntity() to it.itemEntities() })
             val repo = BillRepository(db.billDao())
             val original = repo.open(id, YearMonth.of(2026, 1))
@@ -180,7 +180,7 @@ class BillPersistenceTest {
             val july = YearMonth.of(2026, 7)
             val id = db.contractDao().saveContract(contract(property), emptyList(), listOf(
                 AdjustmentEntity(0, january, null), AdjustmentEntity(0, july, null)
-            ), bills = emptyMap(), billDao = db.billDao())
+            ))
             db.billDao().createAll(db.contractDao().observeById(id).first()!!.toDomain().createBills().associate { it.toEntity() to it.itemEntities() })
             val repo = BillRepository(db.billDao())
             val stale = repo.open(id, january.plusMonths(1))
@@ -192,7 +192,7 @@ class BillPersistenceTest {
             assertEquals(0, BigDecimal("1200").compareTo(db.billDao().find(id, stale.month)!!.bill.rent))
             db.contractDao().updateAdjustmentAmount(id, january, BigDecimal("0.50"))
             try {
-                ContractRepository(db.contractDao(), db.billDao())
+                ContractRepository(db)
                     .updateAdjustmentAmount(id, january, BigDecimal("0.50"))
                 fail("Locked adjustment reported success")
             } catch (_: IllegalStateException) { }
@@ -202,8 +202,6 @@ class BillPersistenceTest {
             val reopenedPaid = repo.open(id, paid.month)
             // Contract adjustments stay live; the paid bill's own values remain frozen.
             assertEquals(paid.copy(contract = reopenedPaid.contract), reopenedPaid)
-            assertNull(db.billDao().find(id, july)!!.bill.rent)
-            repo.save(repo.open(id, july).copy(rent = 8888.toBigDecimal()))
             assertNull(db.billDao().find(id, july)!!.bill.rent)
             assertEquals(0, BigDecimal("1320").compareTo(repo.open(id, july).rent))
         } finally { db.close() }

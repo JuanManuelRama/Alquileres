@@ -30,17 +30,20 @@
 - Start registering lease extension monthly after the last bill
 - Finish and finish early should have different functions, they are clearly separate stuff
 
+## Language (again)
+
+- There is a bug on language that some stuff like the create new service label isn't properly translated
+
 ## List
 
-1. Medium — Screens close before saves succeed, and write failures are unhandled.
-   /C:/Users/user/Desktop/MyApplication/app/src/main/java/com/example/myapplication/ui/contract/create/CreateContractScreen.kt:107 starts saving and
-   immediately navigates back. Payment creation follows  the same pattern. The ViewModel coroutines provide no error handling or success state. A database
-   exception can terminate the app after the draft has disappeared. Expose saving/success/error state, prevent duplicate submissions, and navigate only after successful persistence.
+1. Medium — Adjustments with no amount cannot be edited.
+/C:/Users/user/Desktop/MyApplication/app/src/main/java/com/example/myapplication/ui/contract/detail/AdjustmentCard.kt:59 nests the edit button inside adjustment.amount != null. Leaving the optional fixed hike blank creates null amounts, so those rows never expose their editor even when editable is true.
+Render the edit action independently of whether an amount exists.
 
-2. Medium — Creating a complete contract is not atomic.
-   /C:/Users/user/Desktop/MyApplication/app/src/main/java/com/example/myapplication/ui/contract/create/CreateContractViewModel.kt:72 separately inserts the  owner, property, services, and contract. The DAO transaction covers only the final contract and its relations.
-   Failure partway through leaves partially created records; retrying can duplicate them. Move the entire operation behind one database transaction.
+2. Adjustment saves lack error handling. /C:/Users/user/Desktop/MyApplication/app/src/main/java/com/example/myapplication/ui/contract/detail/
+ContractDetailViewModel.kt:53 launches the write without catching failures, while the editor closes immediately. A rejected update can become an uncaught exception and lose the draft.
 
-3. Medium — Adjustments with no amount cannot be edited.
-   /C:/Users/user/Desktop/MyApplication/app/src/main/java/com/example/myapplication/ui/contract/detail/AdjustmentCard.kt:59 nests the edit button inside adjustment.amount != null. Leaving the optional fixed hike blank creates null amounts, so those rows never expose their editor even when editable is true.
-   Render the edit action independently of whether an amount exists.
+3. Finish/delete retain UI callbacks during async work. /C:/Users/user/Desktop/MyApplication/app/src/main/java/com/example/myapplication/ui/contract/detail/
+ContractDetailViewModel.kt:70 can invoke callbacks from the old screen after rotation. Exposing completion state, as contract creation does, would let the current screen handle navigation.
+
+4. Observed database flows lack error handling. The list, detail and creation ViewModels use stateIn without handling upstream failures. A read failure can terminate observation without showing a recoverable error.

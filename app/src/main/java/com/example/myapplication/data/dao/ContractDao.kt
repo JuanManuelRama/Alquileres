@@ -6,8 +6,6 @@ import androidx.room3.Query
 import androidx.room3.Transaction
 import com.example.myapplication.data.entity.AdjustmentEntity
 import com.example.myapplication.data.entity.BasicContract
-import com.example.myapplication.data.entity.BillEntity
-import com.example.myapplication.data.entity.BillItemEntity
 import com.example.myapplication.data.entity.ContractEntity
 import com.example.myapplication.data.entity.ContractServiceCrossRef
 import com.example.myapplication.data.entity.ContractWithRelations
@@ -83,17 +81,6 @@ interface ContractDao {
     @Query("DELETE FROM Adjustment WHERE contractId = :contractId AND time > :cancellationMonth")
     suspend fun deleteFutureAdjustments(contractId: Long, cancellationMonth: YearMonth): Int
 
-    @Transaction
-    suspend fun cancel(contractId: Long, billDao: BillDao, cancellationMonth: YearMonth = YearMonth.now()): Int {
-        val updated = finish(contractId)
-        if (updated > 0) {
-            shortenTerm(contractId, cancellationMonth)
-            billDao.deleteFutureBills(contractId, cancellationMonth)
-            deleteFutureAdjustments(contractId, cancellationMonth)
-        }
-        return updated
-    }
-
     @Query("DELETE FROM Contract WHERE id = :contractId")
     suspend fun deleteContract(contractId: Long): Int
 
@@ -114,18 +101,11 @@ interface ContractDao {
     suspend fun saveContract(
         contract: ContractEntity,
         serviceIds: List<Long>,
-        adjustments: List<AdjustmentEntity>,
-        bills: Map<BillEntity, List<BillItemEntity>>,
-        billDao: BillDao,
-        renewingContractId: Long? = null
+        adjustments: List<AdjustmentEntity>
     ): Long {
-        if (renewingContractId != null) {
-            check(finish(renewingContractId) == 1) { "Original contract no longer exists" }
-        }
         val contractId = insertContract(contract)
         insertContractService(serviceIds.map { ContractServiceCrossRef(contractId, it) } )
         insertAdjustments(adjustments.map { it.copy(contractId = contractId) })
-        billDao.createAll(bills.mapKeys { (bill, _ ) -> bill.copy(contractId = contractId) } )
         return contractId
     }
 

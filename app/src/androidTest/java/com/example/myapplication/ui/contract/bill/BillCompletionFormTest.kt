@@ -106,7 +106,7 @@ class BillCompletionFormTest {
         composeRule.onNodeWithText("-").performTextReplacement("55.555")
         composeRule.onNodeWithText("Mark as paid").assertIsNotEnabled()
         composeRule.onNodeWithText("55.555").performTextReplacement("55.50")
-        composeRule.onNodeWithText("1055.50").assertExists()
+        composeRule.onNodeWithText("1,055.5").assertExists()
         composeRule.onNodeWithText("Save bill").performClick()
         composeRule.runOnIdle {
             assertEquals(BigDecimal("55.50"), saved!!.items.single().amount)

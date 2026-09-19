@@ -16,9 +16,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +30,7 @@ import androidx.compose.ui.window.Dialog
 import com.example.myapplication.R
 import com.example.myapplication.model.Adjustment
 import com.example.myapplication.model.Contract
+import com.example.myapplication.ui.SaveStatus
 import com.example.myapplication.ui.components.form.Cancel
 import com.example.myapplication.ui.components.form.Form
 import com.example.myapplication.ui.components.form.Validate
@@ -47,10 +49,21 @@ fun AdjustmentCard(
     contract: Contract,
     modifier: Modifier = Modifier,
     editable: Boolean = false,
+    enabled: Boolean = true,
+    saveStatus: SaveStatus = SaveStatus.Idle,
+    onSaveHandled: () -> Unit = {},
     onAmountChange: (BigDecimal) -> Unit
 ) {
     val dates = rememberDateFormatters()
-    var showEditor by remember { mutableStateOf(false) }
+    var showEditor by rememberSaveable(adjustment.time.toString()) { mutableStateOf(false) }
+    var percentage by rememberSaveable(adjustment.time.toString()) { mutableStateOf("") }
+    val saving = saveStatus == SaveStatus.Saving || saveStatus == SaveStatus.Saved
+    LaunchedEffect(saveStatus) {
+        if (saveStatus == SaveStatus.Saved) {
+            showEditor = false
+            onSaveHandled()
+        }
+    }
     Card(modifier = modifier) {
         Row(
             modifier = Modifier
@@ -77,7 +90,12 @@ fun AdjustmentCard(
                     )
                     if (editable) {
                         IconButton(
-                            onClick = { showEditor = true },
+                            enabled = enabled,
+                            onClick = {
+                                percentage = adjustment.amount?.multiply(BigDecimal(100))
+                                    ?.setScale(4, RoundingMode.HALF_UP)?.stripTrailingZeros()?.toPlainString().orEmpty()
+                                showEditor = true
+                            },
                             modifier = Modifier
                                 .offset(y = (-7).dp)
                                 .size(22.dp)
@@ -101,38 +119,31 @@ fun AdjustmentCard(
     }
 
     if (showEditor && editable) {
-        var percentage by remember(adjustment) {
-            mutableStateOf(
-                adjustment.amount
-                    ?.multiply(BigDecimal(100))
-                    ?.setScale(4, RoundingMode.HALF_UP)
-                    ?.stripTrailingZeros()
-                    ?.toPlainString()
-                    .orEmpty()
-            )
-        }
-
-        Dialog(onDismissRequest = { showEditor = false }) {
+        Dialog(onDismissRequest = { if (!saving) { showEditor = false; onSaveHandled() } }) {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(
                     modifier = Modifier.padding(24.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Text(stringResource(R.string.title_edit_hike), style = MaterialTheme.typography.headlineSmall)
+                    if (saveStatus == SaveStatus.Failed) {
+                        Text(stringResource(R.string.err_could_not_save_adjustment), color = MaterialTheme.colorScheme.error)
+                    }
                     Form(
-                        submitText = stringResource(R.string.action_save_hike),
+                        enabled = !saving,
+                        submitText = stringResource(if (saving) R.string.action_saving else R.string.action_save_hike),
                         onSubmit = {
                             onAmountChange(percentage.toBigDecimal().divide(BigDecimal(100)))
-                            showEditor = false
                         },
-                        cancel = Cancel(text = stringResource(R.string.action_cancel), onClick = { showEditor = false } )
+                        cancel = Cancel(text = stringResource(R.string.action_cancel), onClick = { showEditor = false; onSaveHandled() } )
                     ) {
                         Item(
                             field = stringResource(R.string.label_hike),
                             value = percentage,
+                            modifiable = !saving,
                             keyboardOptions = KeyboardOptions(keyboardType =  KeyboardType.Decimal),
                             validate = { Validate(it).isBigDecimal().isPositive().limitDecimals(4) },
-                            onValueChange = { percentage = it }
+                            onValueChange = { if (!saving) percentage = it }
                         )
                     }
                 }

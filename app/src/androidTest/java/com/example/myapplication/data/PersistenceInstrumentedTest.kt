@@ -93,7 +93,7 @@ class PersistenceInstrumentedTest {
             rent = BigDecimal("1000"), startingMonth = date.minusMonths(6), finishingMonth = date.plusMonths(6)
         )
         val firstId = database.contractDao().saveContract(
-            contract, emptyList(), listOf(AdjustmentEntity(contractId = 0, time = date, amount = null)), bills = emptyMap(), billDao = database.billDao()
+            contract, emptyList(), listOf(AdjustmentEntity(contractId = 0, time = date, amount = null))
         )
         val secondId = database.contractDao().insertContract(contract)
         assertNull(database.contractDao().observeById(-1L).first())
@@ -163,8 +163,6 @@ class PersistenceInstrumentedTest {
             adjustments = listOf(
                 AdjustmentEntity(contractId = 0, time = adjustmentDate, amount = BigDecimal("0.10")),
             ),
-            bills = emptyMap(),
-            billDao = database.billDao(),
         )
 
         val result = database.contractDao().getAllContracts().first().single()

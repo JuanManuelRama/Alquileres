@@ -63,6 +63,7 @@ fun ContractCreator(
     cancel: Cancel? = null,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    isSaving: Boolean = false,
 ) {
     val context = LocalContext.current
 
@@ -85,7 +86,7 @@ fun ContractCreator(
 
     Form(
         enabled = enabled,
-        submitText = stringResource(R.string.action_create_contract),
+        submitText = stringResource(if (isSaving) R.string.action_saving else R.string.action_create_contract),
         onSubmit = {
             val property = checkNotNull(inputs.selectedProperty)
             val startingMonth = checkNotNull(inputs.startMonth)

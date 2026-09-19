@@ -1,5 +1,10 @@
 package com.example.myapplication.ui.contract.detail
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.example.myapplication.ui.SaveStatus
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,43 +53,57 @@ fun ContractDetailScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val write by viewModel.writeState.collectAsStateWithLifecycle()
+    val busy = write.isBusy
+    val onBack = { if (!busy) onBackClick() }
+    BackHandler(onBack = onBack)
+    LaunchedEffect(write) {
+        if (write.status == SaveStatus.Saved && write.action != ContractWriteAction.Adjustment) {
+            if (write.action != ContractWriteAction.Delete) onFinished()
+            onBackClick()
+        }
+    }
+    val writeError = if (write.status == SaveStatus.Failed) stringResource(when (write.action) {
+        ContractWriteAction.Adjustment -> R.string.err_could_not_save_adjustment
+        ContractWriteAction.Cancel -> R.string.err_could_not_cancel_contract
+        ContractWriteAction.Delete -> R.string.err_could_not_delete_contract
+        else -> R.string.err_could_not_finish_contract
+    }) else null
     val cardModifier = Modifier.fillMaxWidth()
 
     var showMenu by remember { mutableStateOf(false) }
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    var showFinishDialog by remember { mutableStateOf(false) }
-    var isFinishAction by remember { mutableStateOf(false) }
+    var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
+    var showFinishDialog by rememberSaveable { mutableStateOf(false) }
+    var isFinishAction by rememberSaveable { mutableStateOf(false) }
 
     val state = uiState as? ContractDetailUiState.Ready
 
     if (showFinishDialog && state != null && !isInactive) {
         AlertDialog(
-            onDismissRequest = { showFinishDialog = false },
+            onDismissRequest = { if (!busy) { showFinishDialog = false; viewModel.clearWriteResult() } },
             title = { Text(stringResource(if (isFinishAction) R.string.contract_finish_title else R.string.contract_cancel_title)) },
             text = {
-                Text(stringResource(R.string.contract_finish_message))
+                Column {
+                    Text(stringResource(R.string.contract_finish_message))
+                    writeError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                }
             },
             confirmButton = {
                 TextButton(
-                    enabled = !state.isFinishing,
+                    enabled = !busy,
                     onClick = {
-                        val onCompleted = {
-                            showFinishDialog = false
-                            onFinished()
-                            onBackClick()
-                        }
-                        if (isFinishAction) viewModel.finishContract(onCompleted)
-                        else viewModel.cancelContract(onCompleted)
+                        if (isFinishAction) viewModel.finishContract()
+                        else viewModel.cancelContract()
                     }
                 ) {
                     Text(
-                        text = stringResource(if (isFinishAction) R.string.action_finish_contract else R.string.action_cancel_contract),
+                        text = stringResource(if (busy) R.string.action_saving else if (isFinishAction) R.string.action_finish_contract else R.string.action_cancel_contract),
                         color = MaterialTheme.colorScheme.error
                     )
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showFinishDialog = false } ) {
+                TextButton(enabled = !busy, onClick = { showFinishDialog = false; viewModel.clearWriteResult() }) {
                     Text(stringResource(R.string.action_cancel))
                 }
             }
@@ -92,29 +111,27 @@ fun ContractDetailScreen(
     }
     if (showDeleteDialog && state != null) {
         AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
+            onDismissRequest = { if (!busy) { showDeleteDialog = false; viewModel.clearWriteResult() } },
             title = { Text(stringResource(R.string.contract_delete_title)) },
             text = {
-                Text(stringResource(R.string.contract_delete_message))
+                Column {
+                    Text(stringResource(R.string.contract_delete_message))
+                    writeError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                }
             },
             confirmButton = {
                 TextButton(
-                    enabled = !state.isFinishing,
-                    onClick = {
-                        viewModel.deleteContract {
-                            showDeleteDialog = false
-                            onBackClick()
-                        }
-                    }
+                    enabled = !busy,
+                    onClick = viewModel::deleteContract
                 ) {
                     Text(
-                        text = stringResource(R.string.action_delete_contract),
+                        text = stringResource(if (busy) R.string.action_saving else R.string.action_delete_contract),
                         color = MaterialTheme.colorScheme.error
                     )
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
+                TextButton(enabled = !busy, onClick = { showDeleteDialog = false; viewModel.clearWriteResult() }) {
                     Text(stringResource(R.string.action_cancel))
                 }
             }
@@ -128,13 +145,13 @@ fun ContractDetailScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.title_contract_details)) },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(onClick = onBack, enabled = !busy) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 actions = {
                     Box {
-                        IconButton(onClick = { showMenu = true }) {
+                        IconButton(onClick = { showMenu = true }, enabled = !busy) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
                                 contentDescription = stringResource(R.string.cd_more_options)
@@ -146,7 +163,7 @@ fun ContractDetailScreen(
                         ) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.action_cancel_contract)) },
-                                enabled = state != null && !isInactive && !state.isFinishing,
+                                enabled = state != null && !isInactive && !busy,
                                 onClick = {
                                     showMenu = false
                                     isFinishAction = false
@@ -155,6 +172,7 @@ fun ContractDetailScreen(
                             )
                             DropdownMenuItem(
                                 text = { Text(text = stringResource(R.string.action_delete_contract), color = MaterialTheme.colorScheme.error) },
+                                enabled = state != null && !busy,
                                 onClick = {
                                     showMenu = false
                                     showDeleteDialog = true
@@ -182,21 +200,23 @@ fun ContractDetailScreen(
             if (isInactive) {
                 Text(stringResource(R.string.contract_status_inactive), style = MaterialTheme.typography.titleMedium)
             }
-            state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            if (!showFinishDialog && !showDeleteDialog && write.action != ContractWriteAction.Adjustment) {
+                writeError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            }
             if (!isInactive && state.allBillsPaid) {
                 Text(stringResource(R.string.contract_all_bills_paid_message))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(
-                        enabled = !state.isFinishing,
+                        enabled = !busy,
                         onClick = {
                             isFinishAction = true
                             showFinishDialog = true
                         },
                         modifier = Modifier.weight(1f)
-                    ) { Text(if (state.isFinishing) stringResource(R.string.action_finishing) else stringResource(R.string.action_finish_contract)) }
+                    ) { Text(if (busy) stringResource(R.string.action_finishing) else stringResource(R.string.action_finish_contract)) }
                     Button(
                         onClick = onRenewContractClick,
-                        enabled = !state.isFinishing,
+                        enabled = !busy,
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(stringResource(R.string.action_renew_contract))
@@ -236,7 +256,10 @@ fun ContractDetailScreen(
                             adjustment = adjustment,
                             contract = contract,
                             modifier = cardModifier,
-                            editable = !isInactive && !state.isFinishing && !hasAffectedPaidBill,
+                            editable = !isInactive && !hasAffectedPaidBill,
+                            enabled = !busy,
+                            saveStatus = if (write.action == ContractWriteAction.Adjustment && write.month == adjustment.time) write.status else SaveStatus.Idle,
+                            onSaveHandled = viewModel::clearWriteResult,
                             onAmountChange = { amount ->
                                 viewModel.updateAdjustmentAmount(adjustment.time, amount)
                             }
@@ -251,7 +274,7 @@ fun ContractDetailScreen(
             ) {
                 Button(
                     onClick = { onPrepareBillClick(contract) },
-                    enabled = !state.isFinishing,
+                    enabled = !busy,
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(text = stringResource(R.string.action_view_bills))
