@@ -10,11 +10,8 @@ import com.example.myapplication.R
 import io.michaelrocks.libphonenumber.android.NumberParseException
 import io.michaelrocks.libphonenumber.android.PhoneNumberUtil
 
-enum class MessageSender(
-    val id: String,
-    val displayName: String
-) {
-    WhatsApp("WHATSAPP", "WhatsApp") {
+enum class MessageSender{
+    WhatsApp {
         override fun isAvailable(context: Context): Boolean {
             return whatsAppPackage(context) != null
         }
@@ -46,7 +43,7 @@ enum class MessageSender(
         }
     },
 
-    Sms("SMS", "SMS") {
+    Sms {
         override fun isAvailable(context: Context): Boolean = true
 
         override fun sendMessage(context: Context, rawPhone: String, message: String) {
@@ -65,10 +62,6 @@ enum class MessageSender(
 
     abstract fun isAvailable(context: Context): Boolean
     abstract fun sendMessage(context: Context, rawPhone: String, message: String)
-
-    companion object {
-        fun fromId(id: String?): MessageSender = entries.firstOrNull { it.id == id } ?: WhatsApp
-    }
 }
 
 private fun whatsAppPackage(context: Context): String? =

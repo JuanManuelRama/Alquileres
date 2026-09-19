@@ -28,11 +28,11 @@
 
 - Renew contract after registering the last bill
 - Start registering lease extension monthly after the last bill
-- Finish and finish early should have different functions, they are clearly separate stuff
 
 ## Language (again)
 
 - There is a bug on language that some stuff like the create new service label isn't properly translated
+- Default message server should depend on locale
 
 ## List
 

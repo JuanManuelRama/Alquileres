@@ -68,8 +68,12 @@ class DefaultSettingsRepository(context: Context) : SettingsRepository {
     }
 
     private fun loadMessageSender(): MessageSender {
-        val savedId = prefs.getString(KEY_MESSAGE_SENDER, MessageSender.WhatsApp.id)
-        return MessageSender.fromId(savedId)
+        val savedName = prefs.getString(KEY_MESSAGE_SENDER, MessageSender.WhatsApp.name)
+        return try {
+            MessageSender.valueOf(savedName ?: MessageSender.WhatsApp.name)
+        } catch (_: Exception) {
+            MessageSender.WhatsApp
+        }
     }
 
     override fun setThemeMode(mode: ThemeMode) {
@@ -83,7 +87,7 @@ class DefaultSettingsRepository(context: Context) : SettingsRepository {
     }
 
     override fun setMessageSender(messageSender: MessageSender) {
-        prefs.edit { putString(KEY_MESSAGE_SENDER, messageSender.id) }
+        prefs.edit { putString(KEY_MESSAGE_SENDER, messageSender.name) }
         updateSettings { it.copy(messageSender = messageSender) }
     }
 
