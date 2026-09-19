@@ -1,6 +1,5 @@
 package com.example.myapplication.ui.contract.bill
 
-import com.example.myapplication.ui.util.rememberDateFormatters
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,6 +27,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
 import com.example.myapplication.model.Bill
+import com.example.myapplication.ui.util.rememberDateFormatters
 import java.time.YearMonth
 
 /** Displays a finite collection of bill cards supplied by the caller. */

@@ -4,14 +4,14 @@ import com.example.myapplication.model.Address
 import com.example.myapplication.model.Owner
 import com.example.myapplication.model.Property
 import com.example.myapplication.model.Service
+import com.example.myapplication.ui.components.picker.PickerInputs
 import com.example.myapplication.ui.contract.create.ContractInputs
+import com.example.myapplication.ui.owner.OwnerInputs
+import com.example.myapplication.ui.property.PropertyInputs
+import com.example.myapplication.ui.service.ServiceInputs
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import com.example.myapplication.ui.components.picker.PickerInputs
-import com.example.myapplication.ui.property.PropertyInputs
-import com.example.myapplication.ui.owner.OwnerInputs
-import com.example.myapplication.ui.service.ServiceInputs
 import org.junit.Test
 import java.time.YearMonth
 

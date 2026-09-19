@@ -25,7 +25,11 @@ class AppViewModelFactory(
     private val settingsRepository: SettingsRepository,
 ) : ViewModelProvider.Factory {
     fun billFactory(contractId: Long): ViewModelProvider.Factory = viewModelFactory {
-        initializer { BillViewModel(contractId, billStore) }
+        initializer { BillViewModel(
+            contractId = contractId,
+            store = billStore,
+            settingsRepository = settingsRepository
+        ) }
     }
 
     fun contractDetailFactory(contractId: Long): ViewModelProvider.Factory = viewModelFactory {

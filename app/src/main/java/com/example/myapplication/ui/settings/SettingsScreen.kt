@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
@@ -33,16 +34,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
 import com.example.myapplication.data.settings.AppLanguage
 import com.example.myapplication.data.settings.AppSettings
 import com.example.myapplication.data.settings.ThemeMode
 import com.example.myapplication.message.MessageSender
-import com.example.myapplication.ui.theme.MyApplicationTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -156,7 +156,7 @@ fun SettingsScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     Text(
-                        text = "Message Provider",
+                        text = stringResource(R.string.label_message_provider),
                         style = MaterialTheme.typography.titleSmall,
                     )
 
@@ -169,13 +169,27 @@ fun SettingsScreen(
                                 onClick = { onMessageSenderSelected(messager) },
                                 shape = SegmentedButtonDefaults.itemShape(
                                     index = index,
-                                    count = ThemeMode.entries.size,
+                                    count = MessageSender.entries.size,
                                 ),
+                                icon = {
+                                    SegmentedButtonDefaults.Icon(active = messager == settings.messageSender) {
+                                        Icon(
+                                            painter = painterResource(
+                                                when (messager) {
+                                                    MessageSender.WhatsApp -> R.drawable.ic_whatsapp
+                                                    MessageSender.Sms -> R.drawable.ic_sms
+                                                }
+                                            ),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(SegmentedButtonDefaults.IconSize)
+                                        )
+                                    }
+                                }
                             ) {
                                 Text(
                                     text = when (messager) {
-                                        MessageSender.WhatsApp -> stringResource(R.string.theme_system)
-                                        MessageSender.Sms -> stringResource(R.string.theme_light)
+                                        MessageSender.WhatsApp -> stringResource(R.string.message_sender_whatsapp)
+                                        MessageSender.Sms -> stringResource(R.string.message_sender_sms)
                                     },
                                 )
                             }

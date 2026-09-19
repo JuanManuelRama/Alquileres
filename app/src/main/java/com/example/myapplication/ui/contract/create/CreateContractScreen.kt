@@ -1,7 +1,5 @@
 package com.example.myapplication.ui.contract.create
 
-import com.example.myapplication.ui.SaveStatus
-
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,6 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myapplication.R
+import com.example.myapplication.ui.SaveStatus
 import com.example.myapplication.ui.components.form.DiscardChangesDialog
 
 @OptIn(ExperimentalMaterial3Api::class)

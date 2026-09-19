@@ -1,7 +1,5 @@
 package com.example.myapplication.ui.contract.create
 
-import com.example.myapplication.ui.SaveStatus
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.repository.ContractWriter
@@ -12,13 +10,14 @@ import com.example.myapplication.model.Contract
 import com.example.myapplication.model.Owner
 import com.example.myapplication.model.Property
 import com.example.myapplication.model.Service
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
+import com.example.myapplication.ui.SaveStatus
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 class CreateContractViewModel(
     propertyRepository: PropertyRepository,

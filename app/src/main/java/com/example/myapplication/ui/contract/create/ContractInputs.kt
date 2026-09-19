@@ -1,16 +1,16 @@
 package com.example.myapplication.ui.contract.create
 
-import com.example.myapplication.model.Property
 import com.example.myapplication.model.Contract
+import com.example.myapplication.model.Property
 import com.example.myapplication.model.Service
 import com.example.myapplication.model.YearMonthSerializer
 import com.example.myapplication.ui.components.picker.PickerInputs
 import com.example.myapplication.ui.property.PropertyInputs
 import com.example.myapplication.ui.service.ServiceInputs
 import kotlinx.serialization.Serializable
+import java.math.RoundingMode
 import java.time.YearMonth
 import java.time.temporal.ChronoUnit
-import java.math.RoundingMode
 
 @Serializable
 data class ContractInputs(

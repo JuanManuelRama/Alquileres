@@ -31,15 +31,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myapplication.R
 import com.example.myapplication.message.BillMessageFormatter
-import com.example.myapplication.message.MessageSender
-import com.example.myapplication.ui.util.rememberDateFormatters
 import com.example.myapplication.ui.components.form.DiscardChangesDialog
+import com.example.myapplication.ui.util.rememberDateFormatters
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BillScreen(
     viewModel: BillViewModel,
-    messageSender: MessageSender,
     onBackClick: () -> Unit,
     isInactive: Boolean = false,
     modifier: Modifier = Modifier
@@ -47,6 +45,7 @@ fun BillScreen(
     val context = LocalContext.current
     val dates = rememberDateFormatters()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val messageSender by viewModel.messageSender.collectAsStateWithLifecycle()
     var changedBillIds by rememberSaveable { mutableStateOf(emptyList<Long>()) }
     var confirmingDiscard by rememberSaveable { mutableStateOf(false) }
     val onBack = {

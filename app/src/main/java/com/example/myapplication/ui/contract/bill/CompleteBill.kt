@@ -1,6 +1,5 @@
 package com.example.myapplication.ui.contract.bill
 
-import com.example.myapplication.ui.util.rememberDateFormatters
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -49,6 +48,7 @@ import com.example.myapplication.ui.components.form.check
 import com.example.myapplication.ui.components.form.isBigDecimal
 import com.example.myapplication.ui.components.form.limitDecimals
 import com.example.myapplication.ui.util.getCurrencySymbol
+import com.example.myapplication.ui.util.rememberDateFormatters
 import com.example.myapplication.ui.util.toMoney
 import kotlinx.serialization.builtins.ListSerializer
 import java.math.BigDecimal

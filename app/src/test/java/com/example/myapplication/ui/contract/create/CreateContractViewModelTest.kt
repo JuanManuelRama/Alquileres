@@ -1,16 +1,30 @@
 package com.example.myapplication.ui.contract.create
 
-import com.example.myapplication.ui.SaveStatus
-
 import androidx.lifecycle.viewModelScope
-
-import com.example.myapplication.data.repository.*
-import com.example.myapplication.data.dao.*
-import com.example.myapplication.model.*
-import kotlinx.coroutines.*
+import com.example.myapplication.data.dao.OwnerDao
+import com.example.myapplication.data.dao.PropertyDao
+import com.example.myapplication.data.dao.ServiceDao
+import com.example.myapplication.data.repository.ContractWriter
+import com.example.myapplication.data.repository.OwnerRepository
+import com.example.myapplication.data.repository.PropertyRepository
+import com.example.myapplication.data.repository.ServiceRepository
+import com.example.myapplication.model.Address
+import com.example.myapplication.model.Contract
+import com.example.myapplication.model.Owner
+import com.example.myapplication.model.Property
+import com.example.myapplication.model.Tenant
+import com.example.myapplication.ui.SaveStatus
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.*
-import org.junit.Assert.*
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.math.BigDecimal
 import java.time.YearMonth

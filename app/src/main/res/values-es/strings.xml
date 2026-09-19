@@ -166,6 +166,8 @@
     <string name="theme_dark">Oscuro</string>
     <string name="label_app_language">Idioma de la aplicación</string>
     <string name="title_choose_language">Elegir idioma</string>
+    <string name="label_message_provider">Proveedor de mensajes</string>
+    <string name="message_sender_sms">SMS</string>
 
     <!-- Validations and Errors -->
     <string name="validation_invalid_decimal">debe ser un número decimal válido</string>

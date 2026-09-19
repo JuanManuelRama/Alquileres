@@ -166,6 +166,11 @@
     <string name="theme_dark">Dark</string>
     <string name="label_app_language">App Language</string>
     <string name="title_choose_language">Choose Language</string>
+    <string name="label_message_provider">Message Provider</string>
+    <string name="message_sender_sms">SMS</string>
+
+    <!-- Do Not Translate -->
+    <string name="message_sender_whatsapp" translatable="false">WhatsApp</string>
 
     <!-- Validations and Errors -->
     <string name="validation_invalid_decimal">must be a valid decimal number</string>

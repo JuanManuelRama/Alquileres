@@ -1,7 +1,13 @@
 package com.example.myapplication.ui.contract.create
 
-import com.example.myapplication.model.*
-import org.junit.Assert.*
+import com.example.myapplication.model.Address
+import com.example.myapplication.model.Adjustment
+import com.example.myapplication.model.Contract
+import com.example.myapplication.model.Owner
+import com.example.myapplication.model.Property
+import com.example.myapplication.model.Service
+import com.example.myapplication.model.Tenant
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.math.BigDecimal
 import java.time.YearMonth

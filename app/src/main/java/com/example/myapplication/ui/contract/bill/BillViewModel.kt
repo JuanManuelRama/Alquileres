@@ -3,10 +3,13 @@ package com.example.myapplication.ui.contract.bill
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.repository.BillStore
+import com.example.myapplication.data.repository.SettingsRepository
+import com.example.myapplication.message.MessageSender
 import com.example.myapplication.model.Bill
 import com.example.myapplication.ui.SaveStatus
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -27,8 +30,12 @@ data class BillUiState(
 class BillViewModel(
     private val contractId: Long,
     private val store: BillStore,
-    initialMonth: YearMonth = YearMonth.now()
+    initialMonth: YearMonth = YearMonth.now(),
+    settingsRepository: SettingsRepository? = null,
 ) : ViewModel() {
+    val messageSender: StateFlow<MessageSender> = settingsRepository?.messageSender
+        ?: MutableStateFlow(MessageSender.WhatsApp).asStateFlow()
+
     private val _uiState = MutableStateFlow(BillUiState(initialMonth))
     val uiState = _uiState.asStateFlow()
 
@@ -85,7 +92,7 @@ class BillViewModel(
             } catch (error: CancellationException) {
                 _uiState.value = _uiState.value.copy(saveStatus = SaveStatus.Idle)
                 throw error
-            } catch (error: Exception) {
+            } catch (_: Exception) {
                 _uiState.value = _uiState.value.copy(
                     saveStatus = SaveStatus.Failed,
                     error = if (paymentDate == null) BillError.Save else BillError.Payment

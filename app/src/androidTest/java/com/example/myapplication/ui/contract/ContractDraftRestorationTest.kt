@@ -8,28 +8,26 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSerializable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performScrollTo
-import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.performTextReplacement
 import androidx.test.platform.app.InstrumentationRegistry
 import com.example.myapplication.R
-import com.example.myapplication.model.Contract
-import com.example.myapplication.model.Tenant
-import com.example.myapplication.model.Service
-import com.example.myapplication.ui.contract.create.renewalInputs
-import java.math.BigDecimal
-import java.time.YearMonth
 import com.example.myapplication.model.Address
+import com.example.myapplication.model.Contract
 import com.example.myapplication.model.Owner
 import com.example.myapplication.model.Property
+import com.example.myapplication.model.Service
+import com.example.myapplication.model.Tenant
 import com.example.myapplication.ui.components.picker.PickerInputs
 import com.example.myapplication.ui.contract.create.ContractCreator
 import com.example.myapplication.ui.contract.create.ContractInputs
+import com.example.myapplication.ui.contract.create.renewalInputs
 import com.example.myapplication.ui.owner.OwnerInputs
 import com.example.myapplication.ui.property.PropertyInputs
 import com.example.myapplication.ui.service.ServiceInputs
@@ -37,6 +35,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import java.math.BigDecimal
+import java.time.YearMonth
 
 class ContractDraftRestorationTest {
     @get:Rule val composeRule = createComposeRule()

@@ -28,9 +28,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.example.myapplication.ui.util.toMoney
 import com.example.myapplication.R
 import com.example.myapplication.model.Contract
+import com.example.myapplication.ui.util.toMoney
 import java.time.YearMonth
 
 data class ContractListItem(

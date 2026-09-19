@@ -43,7 +43,6 @@ class MainActivity : ComponentActivity() {
             val settingsRepository = application.settingsRepository
             val themeMode by settingsRepository.themeMode.collectAsStateWithLifecycle()
             val language by settingsRepository.language.collectAsStateWithLifecycle()
-            val messageSender by settingsRepository.messageSender.collectAsStateWithLifecycle()
 
             val factory = remember(application) {
                 AppViewModelFactory(
