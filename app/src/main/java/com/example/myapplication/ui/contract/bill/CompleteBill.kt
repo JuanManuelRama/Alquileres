@@ -10,10 +10,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -111,10 +111,16 @@ internal fun BillCompletionForm(
     val totalLabel = stringResource(R.string.label_total)
 
     Form(
-        showActions = !isFrozen && onSendMessage != null,
-        submitText = stringResource(R.string.action_send_message),
-        onSubmit = {
-            onSendMessage?.invoke(completedBill())
+        showActions = !isFrozen,
+        submitText = stringResource(R.string.action_mark_as_paid),
+        onSubmit = { confirmingPayment = true },
+        cancel = onSendMessage?.let { sendMessage ->
+            Cancel(
+                text = stringResource(R.string.action_send_message),
+                onClick = { sendMessage(completedBill()) },
+                requiresValidForm = true,
+                icon = Icons.AutoMirrored.Filled.Send
+            )
         }
     ) {
         Content {
@@ -269,13 +275,6 @@ internal fun BillCompletionForm(
 
         if (!isFrozen) {
             Content {
-                Button(
-                    onClick = { confirmingPayment = true },
-                    enabled = isValid,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(stringResource(R.string.action_mark_as_paid))
-                }
                 if (confirmingPayment && isValid) {
                     PaymentConfirmation(
                         bill = completedBill(),

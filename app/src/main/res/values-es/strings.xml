@@ -144,7 +144,7 @@
     <string name="cd_add_bill_item">Agregar concepto</string>
     <string name="action_add_extra_item">Agregar concepto adicional</string>
     <string name="label_total">Total</string>
-    <string name="action_mark_as_paid">Marcar como pagada</string>
+    <string name="action_mark_as_paid">Registrar pago</string>
     <string name="action_send_message">Enviar mensaje</string>
     <string name="bill_confirm_payment_title">¿Confirmar pago?</string>
     <string name="bill_confirm_payment_message">Se guardarán estos montos, se marcará como pagada y se bloqueará esta factura permanentemente. No podrás editarla después.</string>
