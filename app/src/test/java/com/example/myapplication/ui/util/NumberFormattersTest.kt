@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.util
 
+import androidx.compose.ui.text.AnnotatedString
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.math.BigDecimal
@@ -52,5 +53,17 @@ class NumberFormattersTest {
 
         assertEquals("12,5", val1.toPercentage(Locale.forLanguageTag("es")))
         assertEquals("12,3456", val3.toPercentage(Locale.forLanguageTag("es")))
+    }
+
+    @Test
+    fun numberVisualTransformationFormatsCleanNumbersAndPreservesInvalidTextUnchanged() {
+        val transformationUS = NumberVisualTransformation(Locale.US)
+
+        // Valid numbers get formatted with thousands separators
+        assertEquals("1,234,567.89", transformationUS.filter(AnnotatedString("1234567.89")).text.text)
+
+        // Invalid numbers with letters or multiple decimals are rendered as-is so nothing is hidden
+        assertEquals("123a456", transformationUS.filter(androidx.compose.ui.text.AnnotatedString("123a456")).text.text)
+        assertEquals("1.2.3", transformationUS.filter(androidx.compose.ui.text.AnnotatedString("1.2.3")).text.text)
     }
 }

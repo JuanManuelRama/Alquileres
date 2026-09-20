@@ -56,8 +56,10 @@ fun BigDecimal.toPercentage(locale: Locale = Locale.getDefault()): String {
 }
 
 /**
- * A [VisualTransformation] that formats numeric input strings (e.g., "1234.56" or "1234,56")
+ * A [VisualTransformation] that formats valid numeric input strings (e.g., "1234.56" or "1234,56")
  * with locale-aware thousands grouping separators (e.g., "1,234.56" or "1.234,56").
+ * If the input contains invalid non-numeric characters, multiple decimals, or misplaced signs,
+ * the raw text is rendered as-is so nothing is hidden from the user.
  */
 class NumberVisualTransformation(
     private val locale: Locale = Locale.getDefault()
@@ -69,15 +71,25 @@ class NumberVisualTransformation(
         val symbols = DecimalFormatSymbols.getInstance(locale)
         val groupingSep = symbols.groupingSeparator
         val decimalSep = symbols.decimalSeparator
+
+        // Render raw text as-is if it contains invalid characters, multiple decimals, or misplaced minus
+        val decimalCount = raw.count { it == '.' || it == ',' }
+        val hasInvalidChars = raw.any { !it.isDigit() && it != '.' && it != ',' && it != '-' }
+        val misplacedMinus = raw.lastIndexOf('-') > 0
+
+        if (hasInvalidChars || decimalCount > 1 || misplacedMinus) {
+            return TransformedText(text, OffsetMapping.Identity)
+        }
+
         val isNegative = raw.startsWith("-")
+        val cleanRaw = if (isNegative) raw.substring(1) else raw
 
-        val parts = raw.split('.', ',')
-        val intPart = parts[0].removePrefix("-").filter { it.isDigit() }
-        val fracPart = parts.getOrNull(1)
+        val decimalIndex = cleanRaw.indexOfFirst { it == '.' || it == ',' }
+        val intPart = if (decimalIndex == -1) cleanRaw else cleanRaw.substring(0, decimalIndex)
+        val fracPart = if (decimalIndex == -1) null else cleanRaw.substring(decimalIndex + 1)
+        val typedDecimalSep = if (decimalIndex != -1) cleanRaw[decimalIndex] else null
 
-        val formatted = buildString {
-            if (isNegative) append('-')
-
+        val formattedInt = buildString {
             intPart.forEachIndexed { index, digit ->
                 val remainder = intPart.length - index
                 if (index > 0 && remainder % 3 == 0) {
@@ -85,8 +97,12 @@ class NumberVisualTransformation(
                 }
                 append(digit)
             }
+        }
 
-            if (parts.size > 1) {
+        val formatted = buildString {
+            if (isNegative) append('-')
+            append(formattedInt)
+            if (typedDecimalSep != null) {
                 append(decimalSep)
                 fracPart?.let { append(it) }
             }
@@ -94,30 +110,34 @@ class NumberVisualTransformation(
 
         val offsetMapping = object : OffsetMapping {
             override fun originalToTransformed(offset: Int): Int {
-                val originalSub = raw.take(offset)
-                val isSubNegative = originalSub.startsWith("-")
-                val digitsBefore = originalSub.count { it.isDigit() }
-                val hasDecimal = originalSub.contains('.') || originalSub.contains(',')
+                val sub = raw.take(offset.coerceIn(0, raw.length))
+                val subIsNeg = sub.startsWith("-")
+                val subHasDec = sub.contains('.') || sub.contains(',')
 
-                // Calculate groups added
-                val groups = if (digitsBefore > 3) (digitsBefore - 1) / 3 else 0
+                val subIntDigits = if (subHasDec) {
+                    val subClean = if (subIsNeg) sub.substring(1) else sub
+                    subClean.substringBefore('.').substringBefore(',').count { it.isDigit() }
+                } else sub.count { it.isDigit() }
 
-                var transformedOffset = digitsBefore + groups
-                if (isSubNegative) transformedOffset += 1
-                if (hasDecimal) transformedOffset += 1 // for the decimal separator
+                val groups = if (subIntDigits > 3) (subIntDigits - 1) / 3 else 0
 
-                // Add characters belonging to the fractional part
-                if (hasDecimal) {
-                    val fracSub = originalSub.substringAfter('.').substringAfter(',')
-                    transformedOffset += fracSub.length
-                }
+                var transformedOffset = sub.count { it.isDigit() } + groups
+                if (subIsNeg) transformedOffset += 1
+                if (subHasDec) transformedOffset += 1
 
                 return transformedOffset.coerceAtMost(formatted.length)
             }
 
             override fun transformedToOriginal(offset: Int): Int {
-                return formatted.take(offset).count { it.isDigit() || it == '-' || it == decimalSep }
-                    .coerceAtMost(raw.length)
+                val subFmt = formatted.take(offset.coerceIn(0, formatted.length))
+                val subFmtDigits = subFmt.count { it.isDigit() }
+                val subFmtIsNeg = subFmt.startsWith("-")
+                val subFmtHasDec = subFmt.contains(decimalSep)
+
+                var orig = subFmtDigits
+                if (subFmtIsNeg) orig += 1
+                if (subFmtHasDec) orig += 1
+                return orig.coerceAtMost(raw.length)
             }
         }
         return TransformedText(AnnotatedString(formatted), offsetMapping)
