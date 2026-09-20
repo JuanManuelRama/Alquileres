@@ -7,6 +7,10 @@ import org.junit.Test
 import java.math.BigDecimal
 
 class ValidationsTest {
+    val bigDecimalValidation = 1
+    val positiveValidation = 2
+    val invalidCharsValidation = 3
+    val isLongValidation = 4
     @Test
     fun mapTransformsValidValue() {
         assertEquals(Validation.Valid(3), Validate("abc").map("bad") { it.length })
@@ -21,18 +25,27 @@ class ValidationsTest {
     fun invalidResultShortCircuitsLaterOperations() {
         var invoked = false
         val result = Validate("bad")
-            .isLong("invalid")
+            .isLong(isLongValidation)
             .map("unused") { invoked = true; it }
 
-        assertEquals(Validation.Invalid("invalid"), result)
+        assertEquals(Validation.Invalid(isLongValidation), result)
         assertFalse(invoked)
     }
 
     @Test
     fun decimalAndPositiveValidatorsCompose() {
-        assertEquals(Validation.Valid(BigDecimal("12.50")), Validate("12.50").isBigDecimal("must be a valid decimal number").isPositive("must be positive"))
-        assertEquals(Validation.Invalid("must be positive"), Validate("0").isBigDecimal("must be a valid decimal number").isPositive("must be positive"))
-        assertEquals(Validation.Invalid("must be a valid decimal number"), Validate("abc").isBigDecimal("must be a valid decimal number").isPositive("must be positive"))
+        assertEquals(Validation.Valid(BigDecimal("12.50")), Validate("12.50").isBigDecimal(bigDecimalValidation).isPositive(positiveValidation))
+        assertEquals(Validation.Invalid(positiveValidation), Validate("0").isBigDecimal(bigDecimalValidation).isPositive(positiveValidation))
+        assertEquals(Validation.Invalid(bigDecimalValidation), Validate("abc").isBigDecimal(bigDecimalValidation).isPositive(positiveValidation))
+    }
+
+    @Test
+    fun noInvalidCharsRejectsLineSkipsTabsAndControlChars() {
+        assertEquals(Validation.Valid("John Doe"), Validate("John Doe").noInvalidChars(invalidCharsValidation))
+        assertEquals(Validation.Invalid(invalidCharsValidation), Validate("Line 1\nLine 2").noInvalidChars(invalidCharsValidation))
+        assertEquals(Validation.Invalid(invalidCharsValidation), Validate("Tab\tSpace").noInvalidChars(invalidCharsValidation))
+        assertEquals(Validation.Invalid(invalidCharsValidation), Validate("Carriage\rReturn").noInvalidChars(invalidCharsValidation))
+        assertEquals(Validation.Invalid(invalidCharsValidation), Validate("Zero\u200BWidth").noInvalidChars(invalidCharsValidation))
     }
 
     @Test

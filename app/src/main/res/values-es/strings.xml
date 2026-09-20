@@ -175,6 +175,8 @@
     <string name="validation_must_be_positive">debe ser positivo</string>
     <string name="validation_must_be_unique">debe ser único</string>
     <string name="validation_max_decimals">no puede tener más de %1$d decimales</string>
+    <string name="validation_max_length">no puede tener más de %1$d caracteres</string>
+    <string name="validation_invalid_characters">contiene caracteres no válidos</string>
     <string name="validation_end_month_after_start">debe ser igual o posterior al mes de inicio</string>
     <string name="validation_hike_requires_adjustment_time">no puede tener aumentos sin frecuencia de ajuste</string>
     <string name="validation_payment_date_future">La fecha de pago no puede ser futura</string>

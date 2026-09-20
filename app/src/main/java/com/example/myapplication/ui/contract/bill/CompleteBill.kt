@@ -47,6 +47,8 @@ import com.example.myapplication.ui.components.form.Validate
 import com.example.myapplication.ui.components.form.check
 import com.example.myapplication.ui.components.form.isBigDecimal
 import com.example.myapplication.ui.components.form.limitDecimals
+import com.example.myapplication.ui.components.form.maxLen
+import com.example.myapplication.ui.components.form.noInvalidChars
 import com.example.myapplication.ui.util.getCurrencySymbol
 import com.example.myapplication.ui.util.rememberDateFormatters
 import com.example.myapplication.ui.util.rememberNumberVisualTransformation
@@ -81,9 +83,11 @@ internal fun BillCompletionForm(
     }
     SideEffect { onChangesChanged(!isFrozen && items != initialItems) }
     var confirmingPayment by remember(bill.id) { mutableStateOf(false) }
-    val invalidDecimalError = stringResource(R.string.validation_invalid_decimal)
-    val maxDecimalsTwo = stringResource(R.string.validation_max_decimals, 2)
-    val amountsValid = items.all { it.description.isNotBlank() && Validate(it.amount).isBigDecimal(invalidDecimalError).limitDecimals(2, maxDecimalsTwo).isValid }
+    val amountsValid = items.all {
+        it.description.isNotBlank() &&
+        Validate(it.description).noInvalidChars().maxLen(50).isValid &&
+        Validate(it.amount).maxLen(12).isBigDecimal().limitDecimals(2).isValid
+    }
     val total = bill.rent + items.sumOf { it.amount.toBigDecimalOrNull() ?: BigDecimal.ZERO }
 
     fun completedBill() = bill.copy(
@@ -206,6 +210,7 @@ internal fun BillCompletionForm(
                                     showLabel = false,
                                     modifiable = !isSaving,
                                     modifier = Modifier.weight(1f).semantics { contentDescription = itemNameLabel },
+                                    validate = { Validate(it).noInvalidChars().maxLen(50) },
                                     onValueChange = { description ->
                                         if (!isSaving) {
                                             items = items.map {
@@ -228,7 +233,7 @@ internal fun BillCompletionForm(
                             textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.End),
                             showLabel = false,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.DecimalSigned),
-                            validate = { Validate(it).isBigDecimal(invalidDecimalError).limitDecimals(2, maxDecimalsTwo) },
+                            validate = { Validate(it).isBigDecimal().limitDecimals(2) },
                             visualTransformation = rememberNumberVisualTransformation(),
                             onValueChange = { amount ->
                                 if (!isSaving && !isFrozen) {

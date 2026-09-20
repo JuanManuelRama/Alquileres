@@ -37,6 +37,7 @@ import com.example.myapplication.ui.components.form.Validate
 import com.example.myapplication.ui.components.form.isBigDecimal
 import com.example.myapplication.ui.components.form.isPositive
 import com.example.myapplication.ui.components.form.limitDecimals
+import com.example.myapplication.ui.components.form.maxLen
 import com.example.myapplication.ui.util.rememberDateFormatters
 import com.example.myapplication.ui.util.toMoneyWithCurrency
 import com.example.myapplication.ui.util.toPercentage
@@ -129,9 +130,6 @@ fun AdjustmentCard(
                     if (saveStatus == SaveStatus.Failed) {
                         Text(stringResource(R.string.err_could_not_save_adjustment), color = MaterialTheme.colorScheme.error)
                     }
-                    val invalidDecimalError = stringResource(R.string.validation_invalid_decimal)
-                    val positiveError = stringResource(R.string.validation_must_be_positive)
-                    val maxDecimalsFour = stringResource(R.string.validation_max_decimals, 4)
                     Form(
                         enabled = !saving,
                         submitText = stringResource(if (saving) R.string.action_saving else R.string.action_save_hike),
@@ -145,7 +143,7 @@ fun AdjustmentCard(
                             value = percentage,
                             modifiable = !saving,
                             keyboardOptions = KeyboardOptions(keyboardType =  KeyboardType.Decimal),
-                            validate = { Validate(it).isBigDecimal(invalidDecimalError).isPositive(positiveError).limitDecimals(4, maxDecimalsFour) },
+                            validate = { Validate(it).maxLen(6).isBigDecimal().isPositive().limitDecimals(4) },
                             onValueChange = { if (!saving) percentage = it }
                         )
                     }

@@ -15,6 +15,8 @@ import com.example.myapplication.ui.components.form.Cancel
 import com.example.myapplication.ui.components.form.Form
 import com.example.myapplication.ui.components.form.Validate
 import com.example.myapplication.ui.components.form.doesntExist
+import com.example.myapplication.ui.components.form.maxLen
+import com.example.myapplication.ui.components.form.noInvalidChars
 
 @Composable
 fun OwnerCreator(
@@ -28,7 +30,6 @@ fun OwnerCreator(
     val existingNames = remember(owners) { owners.map { it.name }.toSet() }
 
     val fullNameLabel = stringResource(R.string.label_full_name)
-    val uniqueError = stringResource(R.string.validation_must_be_unique)
 
     Form(
         submitText = stringResource(R.string.action_create),
@@ -50,7 +51,7 @@ fun OwnerCreator(
                 capitalization = KeyboardCapitalization.Words),
             modifier = Modifier.semantics { ContentType.PersonFullName },
             onValueChange = { onInputsChanged(inputs.copy(name = it)) },
-            validate = { Validate(it).doesntExist(existingNames, uniqueError) }
+            validate = { Validate(it).noInvalidChars().maxLen(100).doesntExist(existingNames) }
         )
     }
 }

@@ -18,6 +18,9 @@ import com.example.myapplication.model.Owner
 import com.example.myapplication.model.Property
 import com.example.myapplication.ui.components.form.Cancel
 import com.example.myapplication.ui.components.form.Form
+import com.example.myapplication.ui.components.form.Validate
+import com.example.myapplication.ui.components.form.maxLen
+import com.example.myapplication.ui.components.form.noInvalidChars
 import com.example.myapplication.ui.components.picker.PickerInputs
 import com.example.myapplication.ui.owner.OwnerCreator
 import com.example.myapplication.ui.owner.OwnerInputs
@@ -58,7 +61,8 @@ fun PropertyCreator(
                 keyboardType = KeyboardType.Text,
                 capitalization = KeyboardCapitalization.Words
             ),
-            modifier = Modifier.semantics { ContentType.AddressStreet }
+            modifier = Modifier.semantics { ContentType.AddressStreet },
+            validate = { Validate(it).noInvalidChars().maxLen(100) }
         )
         Content {
             Row(
@@ -69,14 +73,16 @@ fun PropertyCreator(
                     field = stringResource(R.string.label_number),
                     value = inputs.number,
                     onValueChange = { onInputsChanged(inputs.copy(number = it)) },
-                    modifier = Modifier.weight(1f).semantics { ContentType.AddressAuxiliaryDetails }
+                    modifier = Modifier.weight(1f).semantics { ContentType.AddressAuxiliaryDetails },
+                    validate = { Validate(it).noInvalidChars().maxLen(20) }
                 )
                 Item(
                     field = stringResource(R.string.label_unit),
                     value = inputs.unit,
                     mandatory = false,
                     onValueChange = { onInputsChanged(inputs.copy(unit = it)) },
-                    modifier = Modifier.weight(1f).semantics { ContentType.AddressAuxiliaryDetails }
+                    modifier = Modifier.weight(1f).semantics { ContentType.AddressAuxiliaryDetails },
+                    validate = { Validate(it).noInvalidChars().maxLen(20) }
                 )
             }
         }

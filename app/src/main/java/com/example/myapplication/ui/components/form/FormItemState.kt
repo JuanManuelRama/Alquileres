@@ -1,25 +1,45 @@
 package com.example.myapplication.ui.components.form
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.VisualTransformation
 import com.example.myapplication.ui.components.picker.PickerInputs
 import java.time.LocalDate
 import java.time.YearMonth
 
-data class Error(val isError: Boolean, val message: String) {
+data class Error(
+    val isError: Boolean,
+    val message: String = "",
+    val validationError: ValidationError? = null
+) {
     companion object {
         val None: Error = Error(false, "")
         val Simple: Error = Error(true, "")
-        fun MessageError(msg: String): Error = Error(true, msg)
+        fun MessageError(msg: String): Error = Error(true, message = msg, validationError = ValidationError.Text(msg))
+        fun ResourceError(@StringRes resId: Int, vararg args: Any): Error = Error(true, validationError = ValidationError.Resource(resId, args.toList()))
     }
 
-    val hasMessage: Boolean = message.isNotBlank()
+    val hasMessage: Boolean = validationError != null || message.isNotBlank()
 }
-fun Validation<*>.toFormError(): Error = fold(
+
+@Composable
+fun Error.renderMessage(): String = when (val err = validationError) {
+    null -> message
+    is ValidationError.Text -> err.message
+    is ValidationError.Resource -> stringResource(err.resId, *err.args.toTypedArray())
+}
+
+fun Validation<*>.toFormError(): Error = foldError(
     onValid = { Error.None },
-    onInvalid = { Error.MessageError(it) }
+    onInvalid = { err ->
+        when (err) {
+            is ValidationError.Text -> Error.MessageError(err.message)
+            is ValidationError.Resource -> Error(true, validationError = err)
+        }
+    }
 )
 
 sealed interface FormItemState {

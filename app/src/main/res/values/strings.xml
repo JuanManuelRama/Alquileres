@@ -178,6 +178,8 @@
     <string name="validation_must_be_positive">must be positive</string>
     <string name="validation_must_be_unique">must be unique</string>
     <string name="validation_max_decimals">mustn\'t have more than %1$d decimal places</string>
+    <string name="validation_max_length">mustn\'t have more than %1$d characters</string>
+    <string name="validation_invalid_characters">contains invalid characters</string>
     <string name="validation_end_month_after_start">must be on or after starting month</string>
     <string name="validation_hike_requires_adjustment_time">can\'t have hikes without adjustment time</string>
     <string name="validation_payment_date_future">Payment date cannot be in the future</string>

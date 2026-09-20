@@ -10,6 +10,8 @@ import com.example.myapplication.ui.components.form.Cancel
 import com.example.myapplication.ui.components.form.Form
 import com.example.myapplication.ui.components.form.Validate
 import com.example.myapplication.ui.components.form.doesntExist
+import com.example.myapplication.ui.components.form.maxLen
+import com.example.myapplication.ui.components.form.noInvalidChars
 
 @Composable
 fun ServiceCreator(
@@ -21,9 +23,6 @@ fun ServiceCreator(
     modifier: Modifier = Modifier,
 ) {
     val serviceNames = remember(services) { services.map { it.name }.toSet() }
-
-    val serviceNameLabel = stringResource(R.string.label_service_name)
-    val uniqueError = stringResource(R.string.validation_must_be_unique)
 
     Form(
         submitText = stringResource(R.string.action_create),
@@ -38,9 +37,9 @@ fun ServiceCreator(
         modifier = modifier,
     ) {
         Item(
-            field = serviceNameLabel,
+            field = stringResource(R.string.label_service_name),
             value = inputs.name,
-            validate = { Validate(it).doesntExist(serviceNames, uniqueError) },
+            validate = { Validate(it).noInvalidChars().maxLen(50).doesntExist(serviceNames) },
             onValueChange = { onInputsChanged(inputs.copy(name = it)) }
         )
     }

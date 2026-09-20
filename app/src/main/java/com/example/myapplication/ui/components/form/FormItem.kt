@@ -76,7 +76,7 @@ private fun TextFormItemContent(
         ),
         singleLine = true,
         isError = error.hasMessage,
-        supportingText = { Text(error.message) },
+        supportingText = { Text(error.renderMessage()) },
         modifier = modifier
     )
 }
@@ -100,7 +100,7 @@ private fun <T> PickerFormItemContent(
         label = item.displayLabel,
         placeholder = item.placeholder,
         isError = error.hasMessage,
-        supportingText = error.message
+        supportingText = error.renderMessage()
     )
 }
 
@@ -124,7 +124,7 @@ private fun <T> MultiPickerFormItemContent(
         label = item.displayLabel,
         placeholder = item.placeholder,
         isError = error.hasMessage,
-        supportingText = error.message
+        supportingText = error.renderMessage()
     )
 }
 
@@ -166,7 +166,7 @@ private fun DateFormItemContent(item: DateFormItemState, error: Error, modifier:
         onValueChange = { },
         label = { Text(item.displayLabel) },
         isError = error.hasMessage,
-        supportingText = { Text(error.message) },
+        supportingText = { Text(error.renderMessage()) },
         modifier = modifier.clickable { showDatePicker = true },
         readOnly = true,
         enabled = false,
