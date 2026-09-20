@@ -129,6 +129,7 @@ fun BillScreen(
                         bill = bill,
                         isInactive = isInactive,
                         isSaving = state.isSaving,
+                        paymentFailed = state.error == BillError.Payment,
                         onSubmit = viewModel::save,
                         onMarkPaid = viewModel::markPaid,
                         onSendMessage = { draft ->

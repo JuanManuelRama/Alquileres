@@ -29,6 +29,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSerializable
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,7 +66,8 @@ internal fun BillCompletionForm(
     onMarkPaid: (Bill, LocalDate) -> Unit,
     isInactive: Boolean = false,
     onChangesChanged: (Boolean) -> Unit = {},
-    onSendMessage: ((Bill) -> Unit)? = null
+    onSendMessage: ((Bill) -> Unit)? = null,
+    paymentFailed: Boolean = false,
 ) {
     val dates = rememberDateFormatters()
     val isFrozen = isInactive || bill.isPaid
@@ -82,7 +84,7 @@ internal fun BillCompletionForm(
         mutableStateOf(initialItems)
     }
     SideEffect { onChangesChanged(!isFrozen && items != initialItems) }
-    var confirmingPayment by remember(bill.id) { mutableStateOf(false) }
+    var confirmingPayment by rememberSaveable(bill.id, bill.isPaid) { mutableStateOf(false) }
     val amountsValid = items.all {
         it.description.isNotBlank() &&
         Validate(it.description).noInvalidChars().maxLen(50).isValid &&
@@ -100,11 +102,12 @@ internal fun BillCompletionForm(
     if (confirmingPayment && !isFrozen && amountsValid) {
         PaymentConfirmation(
             bill = completedBill(),
+            isSaving = isSaving,
+            paymentFailed = paymentFailed,
             onConfirm = { date ->
-                confirmingPayment = false
-                onMarkPaid(completedBill(), date)
+                if (!isSaving) onMarkPaid(completedBill(), date)
             },
-            onDismiss = { confirmingPayment = false }
+            onDismiss = { if (!isSaving) confirmingPayment = false }
         )
     }
 
@@ -331,27 +334,36 @@ internal fun BillCompletionForm(
 @Composable
 private fun PaymentConfirmation(
     bill: Bill,
+    isSaving: Boolean,
+    paymentFailed: Boolean,
     onConfirm: (LocalDate) -> Unit,
     onDismiss: () -> Unit
 ) {
     val dates = rememberDateFormatters()
-    var paymentDate by remember { mutableStateOf<LocalDate?>(LocalDate.now()) }
+    var paymentDay by rememberSaveable(bill.id) { mutableStateOf<Long?>(LocalDate.now().toEpochDay()) }
+    val paymentDate = paymentDay?.let(LocalDate::ofEpochDay)
     val futureDateError = stringResource(R.string.validation_payment_date_future)
     AlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = { if (!isSaving) onDismiss() },
         title = { Text(stringResource(R.string.bill_confirm_payment_title)) },
         text = {
             Form(
-                submitText = stringResource(R.string.action_confirm_payment),
-                onSubmit = { paymentDate?.let(onConfirm) },
+                enabled = !isSaving,
+                submitText = stringResource(if (isSaving) R.string.action_saving else R.string.action_confirm_payment),
+                onSubmit = { if (!isSaving) paymentDate?.let(onConfirm) },
                 cancel = Cancel(text = stringResource(R.string.action_cancel), onClick = onDismiss)
             ) {
                 Content {
                     val monthText = dates.month(bill.month)
                     Text("$monthText - ${bill.total.toMoney()}")
                     Text(stringResource(R.string.bill_confirm_payment_message))
+                    if (paymentFailed) {
+                        Text(stringResource(R.string.err_payment_save_failed), color = MaterialTheme.colorScheme.error)
+                    }
                 }
-                DateItem(
+                if (isSaving) Content {
+                    Text("${stringResource(R.string.label_payment_date)}: ${paymentDate?.let(dates::date).orEmpty()}")
+                } else DateItem(
                     label = stringResource(R.string.label_payment_date),
                     value = paymentDate,
                     validate = { date ->
@@ -359,7 +371,7 @@ private fun PaymentConfirmation(
                             it != null && !it.isAfter(LocalDate.now())
                         }
                     },
-                    onValueChange = { paymentDate = it }
+                    onValueChange = { if (!isSaving) paymentDay = it?.toEpochDay() }
                 )
             }
         },
