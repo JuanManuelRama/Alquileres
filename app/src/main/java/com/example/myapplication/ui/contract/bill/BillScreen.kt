@@ -39,7 +39,7 @@ import com.example.myapplication.ui.util.rememberDateFormatters
 fun BillScreen(
     viewModel: BillViewModel,
     onBackClick: () -> Unit,
-    isInactive: Boolean = false,
+    isInactive: Boolean,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -79,8 +79,7 @@ fun BillScreen(
                 title = { Text(stringResource(R.string.bill_screen_title)) },
                 navigationIcon = {
                     IconButton(
-                        onClick = onBack,
-                        enabled = !state.isSaving
+                        onClick = onBack
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -110,7 +109,7 @@ fun BillScreen(
                     BillError.Save -> R.string.err_could_not_save_bill
                     BillError.Payment -> R.string.err_payment_save_failed
                 }), color = MaterialTheme.colorScheme.error)
-                if (state.bill == null) {
+                if (state.bill == null || error == BillError.Save) {
                     TextButton(onClick = viewModel::retry) {
                         Text(stringResource(R.string.action_retry))
                     }
@@ -122,13 +121,13 @@ fun BillScreen(
                 BillCards(
                     bills = state.bills,
                     selectedMonth = state.month,
-                    enabled = !state.isSaving,
                     onSelect = viewModel::selectMonth
                 ) {
                     BillCompletionForm(
                         bill = bill,
                         isInactive = isInactive,
                         isSaving = state.isSaving,
+                        isPaying = state.isPaying,
                         paymentFailed = state.error == BillError.Payment,
                         onSubmit = viewModel::save,
                         onMarkPaid = viewModel::markPaid,

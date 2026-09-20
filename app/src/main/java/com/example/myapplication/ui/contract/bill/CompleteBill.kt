@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
@@ -19,11 +18,11 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -64,14 +63,15 @@ internal fun BillCompletionForm(
     isSaving: Boolean,
     onSubmit: (Bill) -> Unit,
     onMarkPaid: (Bill, LocalDate) -> Unit,
-    isInactive: Boolean = false,
-    onChangesChanged: (Boolean) -> Unit = {},
+    isInactive: Boolean,
+    onChangesChanged: (Boolean) -> Unit,
+    paymentFailed: Boolean,
     onSendMessage: ((Bill) -> Unit)? = null,
-    paymentFailed: Boolean = false,
+    isPaying: Boolean,
 ) {
     val dates = rememberDateFormatters()
     val isFrozen = isInactive || bill.isPaid
-    val initialItems = rememberSerializable(bill, serializer = ListSerializer(BillItemInput.serializer())) {
+    val initialItems = rememberSerializable(bill.id, bill.isPaid, serializer = ListSerializer(BillItemInput.serializer())) {
         bill.items.map { item ->
             BillItemInput(
                 description = item.description,
@@ -80,16 +80,20 @@ internal fun BillCompletionForm(
             )
         }
     }
-    var items by rememberSerializable(bill) {
+    var items by rememberSerializable(bill.id, bill.isPaid) {
         mutableStateOf(initialItems)
     }
-    SideEffect { onChangesChanged(!isFrozen && items != initialItems) }
-    var confirmingPayment by rememberSaveable(bill.id, bill.isPaid) { mutableStateOf(false) }
-    val amountsValid = items.all {
-        it.description.isNotBlank() &&
-        Validate(it.description).noInvalidChars().maxLen(50).isValid &&
-        Validate(it.amount).maxLen(12).isBigDecimal().limitDecimals(2).isValid
+    val draftItems = items.map { it.toBillItem() }
+    val draftValid = items.all { it.isValidForSaving }
+    val hasChanges = !isFrozen && (!draftValid || draftItems != bill.items)
+    var observedItems by remember { mutableStateOf<List<BillItemInput>?>(null) }
+    SideEffect { onChangesChanged(hasChanges) }
+    LaunchedEffect(items, isFrozen) {
+        val edited = observedItems != null && observedItems != items
+        observedItems = items
+        if (!isFrozen && (hasChanges || edited) && draftValid) onSubmit(bill.copy(items = draftItems))
     }
+    var confirmingPayment by rememberSaveable(bill.id, bill.isPaid) { mutableStateOf(false) }
     val total = bill.rent + items.sumOf { it.amount.toBigDecimalOrNull() ?: BigDecimal.ZERO }
 
     fun completedBill() = bill.copy(
@@ -99,20 +103,6 @@ internal fun BillCompletionForm(
     )
 
 
-    if (confirmingPayment && !isFrozen && amountsValid) {
-        PaymentConfirmation(
-            bill = completedBill(),
-            isSaving = isSaving,
-            paymentFailed = paymentFailed,
-            onConfirm = { date ->
-                if (!isSaving) onMarkPaid(completedBill(), date)
-            },
-            onDismiss = { if (!isSaving) confirmingPayment = false }
-        )
-    }
-
-    val saveText = stringResource(R.string.action_save_bill)
-    val savingText = stringResource(R.string.action_saving)
     val rentLabel = stringResource(R.string.label_rent)
     val itemNameLabel = stringResource(R.string.label_item_name)
     val extraAmountLabel = stringResource(R.string.label_extra_amount)
@@ -121,13 +111,10 @@ internal fun BillCompletionForm(
     val totalLabel = stringResource(R.string.label_total)
 
     Form(
-        showActions = false,
-        enabled = !isSaving,
-        submitText = if (isSaving) savingText else saveText,
+        showActions = !isFrozen && onSendMessage != null,
+        submitText = stringResource(R.string.action_send_message),
         onSubmit = {
-            if (!isSaving && !isFrozen && amountsValid) {
-                onSubmit(completedBill())
-            }
+            onSendMessage?.invoke(completedBill())
         }
     ) {
         Content {
@@ -194,8 +181,7 @@ internal fun BillCompletionForm(
                                 horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
                                 IconButton(
-                                    onClick = { if (!isSaving) items = items.filterNot { it.key == item.key } },
-                                    enabled = !isSaving,
+                                    onClick = { items = items.filterNot { it.key == item.key } },
                                     modifier = Modifier
                                         .size(28.dp)
                                         .semantics { contentDescription = removeExtraCd }
@@ -211,14 +197,12 @@ internal fun BillCompletionForm(
                                     field = itemNameLabel,
                                     value = item.description,
                                     showLabel = false,
-                                    modifiable = !isSaving,
+                                    mandatory = true,
                                     modifier = Modifier.weight(1f).semantics { contentDescription = itemNameLabel },
                                     validate = { Validate(it).noInvalidChars().maxLen(50) },
                                     onValueChange = { description ->
-                                        if (!isSaving) {
-                                            items = items.map {
-                                                if (it.key == item.key) it.copy(description = description) else it
-                                            }
+                                        items = items.map {
+                                            if (it.key == item.key) it.copy(description = description) else it
                                         }
                                     }
                                 )
@@ -231,18 +215,17 @@ internal fun BillCompletionForm(
                                 contentDescription = if (item.isExtra) extraAmountLabel else item.description
                             },
                             value = item.amount,
-                            modifiable = !isFrozen && !isSaving,
+                            modifiable = !isFrozen,
                             prefix = { Text(getCurrencySymbol()) },
                             textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.End),
                             showLabel = false,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.DecimalSigned),
-                            validate = { Validate(it).isBigDecimal().limitDecimals(2) },
+                            validate = { Validate(it).maxLen(12).isBigDecimal().limitDecimals(2) },
                             visualTransformation = rememberNumberVisualTransformation(),
                             onValueChange = { amount ->
-                                if (!isSaving && !isFrozen) {
-                                    items = items.map {
+                                items = items.map {
                                         if (it.key == item.key) it.copy(amount = amount) else it
-                                    }
+
                                 }
                             }
                         )
@@ -254,8 +237,7 @@ internal fun BillCompletionForm(
         if (!isFrozen) {
             Content {
                 TextButton(
-                    onClick = { if (!isSaving) items = items + BillItemInput("", "", true) },
-                    enabled = !isSaving,
+                    onClick = { items = items + BillItemInput("", "", true) },
                     modifier = Modifier.semantics { contentDescription = addBillItemCd }
                 ) {
                     Icon(
@@ -289,42 +271,21 @@ internal fun BillCompletionForm(
             Content {
                 Button(
                     onClick = { confirmingPayment = true },
-                    enabled = amountsValid && !isSaving,
+                    enabled = isValid,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(stringResource(R.string.action_mark_as_paid))
                 }
-            }
-        }
-        if(!isFrozen) {
-            Content {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (onSendMessage != null) {
-                        OutlinedButton(
-                            onClick = {
-                                if (amountsValid && !isSaving) onSendMessage(completedBill())
-                            },
-                            enabled = amountsValid && !isSaving && bill.contract.tenant.phone.isNotBlank()
-                        ) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.Send,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(Modifier.width(6.dp))
-                            Text(stringResource(R.string.action_send_message))
-                        }
-                    }
-                    Button(
-                        onClick = {
-                            if (amountsValid && !isSaving) onSubmit(completedBill())
+                if (confirmingPayment && isValid) {
+                    PaymentConfirmation(
+                        bill = completedBill(),
+                        isSaving = isPaying,
+                        paymentFailed = paymentFailed,
+                        onConfirm = { date ->
+                            if (!isSaving) onMarkPaid(completedBill(), date)
                         },
-                        enabled = amountsValid && !isSaving
-                    ) { Text(if (isSaving) savingText else saveText) }
+                        onDismiss = { if (!isSaving) confirmingPayment = false }
+                    )
                 }
             }
         }

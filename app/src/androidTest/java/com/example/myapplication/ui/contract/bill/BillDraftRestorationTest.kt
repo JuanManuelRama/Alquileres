@@ -29,7 +29,7 @@ class BillDraftRestorationTest {
     @get:Rule val composeRule = createComposeRule()
 
     @Test
-    fun switchingAndRestoringRetainsBothDraftsWithoutSavingToStorage() {
+    fun switchingAndRestoringRetainsInvalidDraftsWithoutSavingToStorage() {
         val month = YearMonth.of(2026, 9)
         val contract = Contract(
             property = Property(Address("Street", "12", null), Owner("Owner", 1), 1),
@@ -62,24 +62,25 @@ class BillDraftRestorationTest {
         composeRule.runOnIdle { assertFalse(changed.getValue(1)) }
         restoration.emulateSavedInstanceStateRestore()
         composeRule.runOnIdle { assertFalse(changed.getValue(1)) }
-        composeRule.onNodeWithText("12").performTextReplacement("55.")
+        composeRule.onNodeWithText("12").performTextReplacement("55.555")
         composeRule.runOnIdle { assertTrue(changed.getValue(1)) }
         composeRule.onNodeWithText("Next").performClick()
         composeRule.onNodeWithText("24").performTextReplacement("-")
         composeRule.onNodeWithText("Previous").performClick()
-        composeRule.onNodeWithText("55.").assertExists()
+        composeRule.onNodeWithText("55.555").assertExists()
 
         restoration.emulateSavedInstanceStateRestore()
 
-        composeRule.onNodeWithText("55.").assertExists()
+        composeRule.onNodeWithText("55.555").assertExists()
         composeRule.runOnIdle { assertTrue(changed.getValue(1)) }
         composeRule.onNodeWithText("Next").performClick()
         composeRule.onNodeWithText("-").assertExists()
         composeRule.runOnIdle { assertTrue(changed.getValue(2)) }
         composeRule.onNodeWithText("Previous").performClick()
-        composeRule.onNodeWithText("55.").assertExists()
-        composeRule.onNodeWithText("55.").performTextReplacement("12")
-        composeRule.runOnIdle { assertFalse(changed.getValue(1)) }
+        composeRule.onNodeWithText("55.555").assertExists()
         composeRule.runOnIdle { assertEquals(0, saves) }
+        composeRule.onNodeWithText("55.555").performTextReplacement("12")
+        composeRule.runOnIdle { assertFalse(changed.getValue(1)) }
+        composeRule.runOnIdle { assertEquals(1, saves) }
     }
 }

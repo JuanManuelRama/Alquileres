@@ -30,7 +30,7 @@ import java.time.YearMonth
 class BillCompletionFormTest {
     @get:Rule val composeRule = createComposeRule()
 
-    @Test fun extraRowsAreDraftsUntilSaveOrPaymentAndCanBeRemoved() {
+    @Test fun extraRowsAutosaveAndCanBeRemoved() {
         val month = YearMonth.of(2026, 9)
         val contract = Contract(
             property = Property(Address("Street", "12", null), Owner("Owner", 1), 1),
@@ -50,7 +50,7 @@ class BillCompletionFormTest {
             }
         }
         composeRule.onNodeWithContentDescription("Add bill item").performScrollTo().performClick()
-        composeRule.onNodeWithText("Save bill").assertIsNotEnabled()
+        composeRule.onNodeWithText("Save bill").assertDoesNotExist()
         composeRule.onNodeWithText("Send message").assertIsNotEnabled()
         composeRule.onNodeWithText("Mark as paid").assertIsNotEnabled()
         composeRule.onNodeWithContentDescription("Item name").performTextReplacement("Repairs")
@@ -62,18 +62,17 @@ class BillCompletionFormTest {
         composeRule.onNodeWithText("Refund").assertExists()
         composeRule.onNodeWithText("989.75").assertExists()
         composeRule.runOnIdle {
-            assertEquals(null, saved)
+            assertEquals(listOf(BillItem("Refund", BigDecimal("-10.25"), true)), saved!!.items)
             assertEquals(null, paid)
             assertEquals(emptyList<BillItem>(), bill.items)
         }
         composeRule.onNodeWithText("Send message").performScrollTo().performClick()
         composeRule.runOnIdle {
-            assertEquals(null, saved)
+            assertEquals(listOf(BillItem("Refund", BigDecimal("-10.25"), true)), saved!!.items)
             val messageBill = checkNotNull(sent)
             assertEquals(bill.contract.tenant, messageBill.contract.tenant)
             assertEquals(listOf(BillItem("Refund", BigDecimal("-10.25"), true)), messageBill.items)
         }
-        composeRule.onNodeWithText("Save bill").performScrollTo().performClick()
         composeRule.runOnIdle {
             assertEquals(listOf(BillItem("Refund", BigDecimal("-10.25"), true)), saved!!.items)
         }
@@ -82,7 +81,7 @@ class BillCompletionFormTest {
         composeRule.runOnIdle { assertEquals(saved!!.items, paid!!.items) }
     }
 
-    @Test fun amountKeepsIntermediateTextAndConvertsOnlyOnSubmission() {
+    @Test fun amountKeepsIntermediateTextAndAutosavesValidInput() {
         val contract = Contract(
             property = Property(Address("Street", "12", null), Owner("Owner", 1), 1),
             tenant = Tenant("Tenant", "123"), rent = BigDecimal("1000"),
@@ -101,13 +100,12 @@ class BillCompletionFormTest {
         composeRule.onNodeWithText("55.").assertExists().performTextInput("5")
         composeRule.onNodeWithText("55.5").assertExists().performTextReplacement("-")
         composeRule.onNodeWithText("-").assertExists()
-        composeRule.onNodeWithText("Save bill").assertIsNotEnabled()
+        composeRule.onNodeWithText("Save bill").assertDoesNotExist()
         composeRule.onNodeWithText("Mark as paid").assertIsNotEnabled()
         composeRule.onNodeWithText("-").performTextReplacement("55.555")
         composeRule.onNodeWithText("Mark as paid").assertIsNotEnabled()
         composeRule.onNodeWithText("55.555").performTextReplacement("55.50")
         composeRule.onNodeWithText("1,055.5").assertExists()
-        composeRule.onNodeWithText("Save bill").performClick()
         composeRule.runOnIdle {
             assertEquals(BigDecimal("55.50"), saved!!.items.single().amount)
             assertEquals(BigDecimal("12"), bill.items.single().amount)

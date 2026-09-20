@@ -7,6 +7,17 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class BillItemInputTest {
+    @Test fun emptyFieldsAreOptionalButPopulatedFieldsMustBeValid() {
+        assertTrue(BillItemInput("", "", true).isValidForSaving)
+        assertTrue(BillItemInput("Water", "", false).isValidForSaving)
+        assertTrue(BillItemInput("", "-25.50", true).isValidForSaving)
+        listOf("-", "abc", "1.234", "1234567890123", " ").forEach {
+            org.junit.Assert.assertFalse(BillItemInput("Water", it, false).isValidForSaving)
+        }
+        org.junit.Assert.assertFalse(BillItemInput("Bad\nname", "", true).isValidForSaving)
+        org.junit.Assert.assertFalse(BillItemInput("a".repeat(51), "", true).isValidForSaving)
+        assertEquals(null, BillItemInput("Water", "", false).toBillItem().amount)
+    }
     @Test fun restoredBaselineAndDraftCompareByValueWithMatchingKeys() {
         val baseline = listOf(BillItemInput("Water", "12", false))
         fun restore(rows: List<BillItemInput>): List<BillItemInput> {

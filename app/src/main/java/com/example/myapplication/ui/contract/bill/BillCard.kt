@@ -35,7 +35,6 @@ import java.time.YearMonth
 fun BillCards(
     bills: List<Bill>,
     selectedMonth: YearMonth,
-    enabled: Boolean,
     onSelect: (YearMonth) -> Unit,
     content: @Composable () -> Unit
 ) {
@@ -46,7 +45,7 @@ fun BillCards(
 
     var showBillPicker by remember { mutableStateOf(false) }
 
-    if (showBillPicker && enabled) {
+    if (showBillPicker) {
         val currentSuffix = stringResource(R.string.bill_current_suffix)
         AlertDialog(
             onDismissRequest = { showBillPicker = false },
@@ -91,20 +90,19 @@ fun BillCards(
         ) {
             TextButton(
                 onClick = { onSelect(bills[index - 1].month) },
-                enabled = enabled && index > 0
+                enabled = index > 0
             ) {
                 Text(stringResource(R.string.action_previous))
             }
             TextButton(
                 onClick = { showBillPicker = true },
-                enabled = enabled,
                 modifier = Modifier.weight(1f)
             ) {
                 Text(dates.month(selectedMonth))
             }
             TextButton(
                 onClick = { onSelect(bills[index + 1].month) },
-                enabled = enabled && index < bills.lastIndex
+                enabled = index < bills.lastIndex
             ) {
                 Text(stringResource(R.string.action_next))
             }

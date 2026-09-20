@@ -45,7 +45,7 @@ class BillViewModelTest {
     }
     private fun model(id: Long = 1) = BillViewModel(id, store, month).also { models.add(it) }
 
-    @Test fun formEditsAndNavigationNeverWriteUntilSubmitted() = runTest {
+    @Test fun unchangedBillsDoNotWriteAndSavedEditsSurviveNavigation() = runTest {
         val vm = model()
         runCurrent()
         val input = vm.uiState.value.bill!!.copy(
@@ -75,10 +75,59 @@ class BillViewModelTest {
         runCurrent()
         val bill = vm.uiState.value.bill!!
         vm.save(bill)
-        vm.save(bill.copy(items = listOf(BillItem("Water", null))))
+        vm.save(bill.copy(items = listOf(BillItem("Water", BigDecimal("1.234")))))
+        vm.save(bill.copy(items = listOf(BillItem("Bad\nname", null))))
         vm.save(bill.copy(id = 999, items = emptyList()))
         runCurrent()
         assertTrue(store.writes.isEmpty())
+    }
+
+    @Test fun emptyAndPartialRowsAreSavedButCannotBePaid() = runTest {
+        val vm = model()
+        runCurrent()
+        val draft = vm.uiState.value.bill!!.copy(items = listOf(
+            BillItem("Water", null), BillItem("", null, true), BillItem("", BigDecimal("25"), true)
+        ))
+        vm.save(draft)
+        runCurrent()
+        assertEquals(draft.items, store.writes.single().items)
+        vm.markPaid(draft, LocalDate.now())
+        runCurrent()
+        assertFalse(vm.uiState.value.bill!!.isPaid)
+        assertEquals(1, store.writes.size)
+    }
+
+    @Test fun editsDuringSaveKeepLatestIncludingRevertingToOriginal() = runTest {
+        val vm = model()
+        runCurrent()
+        val original = vm.uiState.value.bill!!
+        val gate = CompletableDeferred<Unit>()
+        store.gate = gate
+        vm.save(original.copy(items = listOf(BillItem("Water", BigDecimal("25")))))
+        runCurrent()
+        vm.save(original.copy(items = listOf(BillItem("Water", BigDecimal("50")))))
+        vm.save(original)
+        gate.complete(Unit)
+        runCurrent()
+        assertEquals(2, store.writes.size)
+        assertEquals(original.items, store.writes.last().items)
+        assertTrue(vm.uiState.value.saved)
+    }
+
+    @Test fun failedAutosaveCanBeRetriedWithoutReenteringInput() = runTest {
+        val vm = model()
+        runCurrent()
+        val draft = vm.uiState.value.bill!!.copy(items = listOf(BillItem("Extra", null, true)))
+        store.failSave = true
+        vm.save(draft)
+        runCurrent()
+        vm.selectMonth(month.plusMonths(1))
+        assertEquals(month, vm.uiState.value.month)
+        store.failSave = false
+        vm.retry()
+        runCurrent()
+        assertEquals(draft.items, store.writes.single().items)
+        assertTrue(vm.uiState.value.saved)
     }
 
     @Test fun failedSubmissionLeavesSavedBillUntouchedAndCanBeResubmitted() = runTest {
