@@ -44,9 +44,9 @@ fun PropertyCreator(
             onCreated(
                 Property(
                     address = Address(
-                        street = inputs.street,
-                        number = inputs.number,
-                        unit = inputs.unit
+                        street = inputs.street.trim(),
+                        number = inputs.number.trim(),
+                        unit = inputs.unit.trim().ifBlank { null }
                     ),
                     owner = owner
                 )) },

@@ -29,7 +29,7 @@ fun ServiceCreator(
         onSubmit = {
             onCreated(
                 Service(
-                    name = inputs.name
+                    name = inputs.name.trim()
                 )
             )
         },

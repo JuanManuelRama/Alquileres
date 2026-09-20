@@ -36,7 +36,7 @@ fun OwnerCreator(
         onSubmit = {
             onCreated(
                 Owner(
-                    name = inputs.name
+                    name = inputs.name.trim()
                 )
             )
         },

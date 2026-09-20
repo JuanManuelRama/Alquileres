@@ -94,7 +94,7 @@ fun ContractCreator(
             val finishingMonth = checkNotNull(inputs.endMonth)
             val contract = Contract(
                 property = property,
-                tenant = Tenant(name = inputs.tenantName, phone = phoneNumberDigits(inputs.tenantPhone)),
+                tenant = Tenant(name = inputs.tenantName.trim(), phone = phoneNumberDigits(inputs.tenantPhone)),
                 rent = inputs.rent.toBigDecimal(),
                 startingMonth = startingMonth,
                 finishingMonth = finishingMonth,
