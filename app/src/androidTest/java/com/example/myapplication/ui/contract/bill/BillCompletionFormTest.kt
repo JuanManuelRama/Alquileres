@@ -45,7 +45,17 @@ class BillCompletionFormTest {
         composeRule.setContent {
             MaterialTheme {
                 Column(Modifier.verticalScroll(rememberScrollState())) {
-                    BillCompletionForm(bill, false, { saved = it }, { value, _ -> paid = value }, onSendMessage = { sent = it })
+                    BillCompletionForm(
+                        bill = bill,
+                        isSaving = false,
+                        onSubmit = { saved = it },
+                        onMarkPaid = { value, _ -> paid = value },
+                        isInactive = false,
+                        onChangesChanged = {},
+                        paymentFailed = false,
+                        onSendMessage = { sent = it },
+                        isPaying = false
+                    )
                 }
             }
         }
@@ -93,7 +103,16 @@ class BillCompletionFormTest {
         var saved: Bill? = null
         composeRule.setContent {
             MaterialTheme {
-                BillCompletionForm(bill, false, { saved = it }, { _, _ -> })
+                BillCompletionForm(
+                    bill = bill,
+                    isSaving = false,
+                    onSubmit = { saved = it },
+                    onMarkPaid = { _, _ -> },
+                    isInactive = false,
+                    onChangesChanged = {},
+                    paymentFailed = false,
+                    isPaying = false
+                )
             }
         }
         composeRule.onNodeWithText("12").performTextReplacement("55.")

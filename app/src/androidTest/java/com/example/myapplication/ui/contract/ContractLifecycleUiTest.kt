@@ -71,7 +71,18 @@ class ContractLifecycleUiTest {
             listOf(BillItem("Water", null), BillItem("Refund", BigDecimal("-10"), true)), 0)
         var writes = 0
         composeRule.setContent {
-            MaterialTheme { BillCompletionForm(bill, false, { writes++ }, { _, _ -> writes++ }, isInactive = true) }
+            MaterialTheme {
+                BillCompletionForm(
+                    bill = bill,
+                    isSaving = false,
+                    onSubmit = { writes++ },
+                    onMarkPaid = { _, _ -> writes++ },
+                    isInactive = true,
+                    onChangesChanged = {},
+                    paymentFailed = false,
+                    isPaying = false
+                )
+            }
         }
         composeRule.onNodeWithText("Unpaid").assertExists()
         composeRule.onNodeWithText("Save bill").assertDoesNotExist()

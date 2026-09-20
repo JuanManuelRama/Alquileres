@@ -47,13 +47,19 @@ class BillDraftRestorationTest {
         restoration.setContent {
             var selected by rememberSaveable { mutableStateOf(0) }
             MaterialTheme {
-                BillCards(bills, bills[selected].month, true, { selectedMonth ->
+                BillCards(bills, bills[selected].month, { selectedMonth ->
                     selected = bills.indexOfFirst { it.month == selectedMonth }
                 }) {
                     val bill = bills[selected]
                     BillCompletionForm(
-                        bill, false, { saves++ }, { _, _ -> saves++ },
-                        onChangesChanged = { changed[bill.id] = it }
+                        bill = bill,
+                        isSaving = false,
+                        onSubmit = { saves++ },
+                        onMarkPaid = { _, _ -> saves++ },
+                        isInactive = false,
+                        onChangesChanged = { changed[bill.id] = it },
+                        paymentFailed = false,
+                        isPaying = false
                     )
                 }
             }
