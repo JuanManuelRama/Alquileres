@@ -18,7 +18,7 @@ import java.time.YearMonth
 interface ContractDao {
     @Query("""
         SELECT c.*,
-            p.id AS property_id, p.ownerId AS property_ownerId,
+            p.id AS property_id, p.ownerId AS property_ownerId, p.isActive AS property_isActive,
             p.addr_street AS property_addr_street,
             p.addr_number AS property_addr_number,
             p.addr_unit AS property_addr_unit,
@@ -43,7 +43,7 @@ interface ContractDao {
 
     @Query("""
         SELECT c.*,
-            p.id AS property_id, p.ownerId AS property_ownerId,
+            p.id AS property_id, p.ownerId AS property_ownerId, p.isActive AS property_isActive,
             p.addr_street AS property_addr_street,
             p.addr_number AS property_addr_number,
             p.addr_unit AS property_addr_unit,

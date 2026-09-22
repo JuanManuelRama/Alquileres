@@ -192,4 +192,18 @@
     <string name="err_could_not_confirm_payment">Could not confirm payment. </string>
     <string name="err_could_not_finish_contract">Could not finish the contract. Please try again.</string>
     <string name="err_could_not_delete_contract">Could not delete the contract. Please try again.</string>
+    <string name="title_properties">Properties</string>
+    <string name="property_active">Active</string>
+    <string name="property_inactive">Inactive</string>
+    <string name="property_actions">Actions for %1$s</string>
+    <string name="action_deactivate_property">Deactivate</string>
+    <string name="action_reactivate_property">Reactivate</string>
+    <string name="property_has_active_contracts">Finish all active contracts before deactivating this property.</string>
+    <string name="delete_property_title">Delete property?</string>
+    <string name="delete_property_message">Permanently delete %1$s and all associated contracts (%2$d), bills, and adjustments? This cannot be undone.</string>
+    <string name="edit_property_title">Edit property</string>
+    <string name="edit_property_hint">Changes to the address and owner also appear on associated contracts.</string>
+    <string name="empty_properties">No properties yet. Create a property when building a contract.</string>
+    <string name="err_loading_properties">Could not load properties.</string>
+    <string name="err_property_change">Could not save the change. The property may have been deleted or have active contracts. Please try again.</string>
 </resources>

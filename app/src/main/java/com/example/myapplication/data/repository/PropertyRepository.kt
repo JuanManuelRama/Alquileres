@@ -7,6 +7,18 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class PropertyRepository(private val dao: PropertyDao) {
+    fun observeManagement() = dao.observeManagement()
+
+    fun getActive(): Flow<List<Property>> = dao.observeActive().map { list -> list.map { it.toDomain() } }
+
+    suspend fun update(property: Property) = dao.saveDetails(property.id, property.address, property.owner.toEntity())
+
+    suspend fun setActive(id: Long, active: Boolean) {
+        check(dao.setActive(id, active) == 1) { "Property is missing or has active contracts" }
+    }
+
+    suspend fun delete(id: Long) = dao.deleteWithContracts(id)
+
     fun getAll(): Flow<List<Property>> {
         return dao.getAllPropertiesWithOwners().map { list ->
             list.map { it.toDomain() }

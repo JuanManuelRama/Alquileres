@@ -53,7 +53,11 @@ class ContractRepository(private val database: AppDatabase) : ContractWriter, Co
             } else draftOwner
             val draftProperty = contract.property.copy(owner = owner)
             draftProperty.copy(id = propertyDao.insertProperty(draftProperty.toEntity()))
-        } else contract.property
+        } else {
+            val persisted = checkNotNull(propertyDao.getById(contract.property.id)) { "Property no longer exists" }.toDomain()
+            check(persisted.isActive) { "Property is inactive" }
+            persisted
+        }
         val services = contract.services.map { service ->
             if (service.id == 0L) service.copy(id = serviceDao.insert(service.toEntity())) else service
         }

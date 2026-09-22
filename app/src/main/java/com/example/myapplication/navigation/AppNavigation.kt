@@ -23,6 +23,7 @@ import com.example.myapplication.ui.contract.detail.ContractDetailScreen
 import com.example.myapplication.ui.contract.list.ContractListScreen
 import com.example.myapplication.ui.settings.SettingsScreen
 import com.example.myapplication.ui.settings.SettingsViewModel
+import com.example.myapplication.ui.property.PropertyListScreen
 
 @Composable
 fun AppNavigation(
@@ -55,10 +56,26 @@ fun AppNavigation(
                         onContractClick = { backStack.pushFrom(key, ContractDetail(it.id, route.isInactive)) },
                         addContractClick = { backStack.pushFrom(key, AddPropiedad) },
                         onSettingsClick = { backStack.pushFrom(key, Settings) },
+                        onPropertiesClick = {
+                            val index = backStack.indexOf(route)
+                            if (index >= 0) backStack[index] = PropertyList
+                        },
                         onTabSelected = { inactiveState ->
                             if (inactiveState != route.isInactive) {
                                 val index = backStack.indexOf(route)
                                 if (index >= 0) backStack[index] = ContractList(inactiveState)
+                            }
+                        },
+                    )
+                }
+                is PropertyList -> NavEntry(route) {
+                    PropertyListScreen(
+                        viewModel = viewModel(factory = viewModelFactory),
+                        onSettingsClick = { backStack.pushFrom(key, Settings) },
+                        onTabSelected = { tab ->
+                            val index = backStack.indexOf(route)
+                            if (index >= 0 && tab != RootTab.Properties) {
+                                backStack[index] = ContractList(isInactive = tab == RootTab.Inactive)
                             }
                         },
                     )

@@ -33,12 +33,15 @@ fun PropertyCreator(
     onCreated: (Property) -> Unit,
     cancel: Cancel? = null,
     modifier: Modifier = Modifier,
+    submitText: String = stringResource(R.string.action_create),
+    enabled: Boolean = true,
 ) {
 
     val cancelText = stringResource(R.string.action_cancel)
 
     Form(
-        submitText = stringResource(R.string.action_create),
+        submitText = submitText,
+        enabled = enabled,
         onSubmit = {
             val owner = checkNotNull(inputs.selectedOwner)
             onCreated(

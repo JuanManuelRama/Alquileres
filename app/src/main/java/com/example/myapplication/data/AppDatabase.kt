@@ -31,12 +31,18 @@ import com.example.myapplication.data.entity.ServiceEntity
         BillEntity::class,
         BillItemEntity::class
     ],
-    version = 20,
+    version = 21,
     exportSchema = false
 )
 @ColumnTypeConverters(Converters::class)
 abstract class AppDatabase: RoomDatabase() {
     companion object {
+        val MIGRATION_20_21 = object : Migration(20, 21) {
+            override suspend fun migrate(connection: SQLiteConnection) {
+                connection.execSQL("ALTER TABLE Property ADD COLUMN isActive INTEGER NOT NULL DEFAULT 1")
+            }
+        }
+
         val MIGRATION_19_20 = object : Migration(19, 20) {
             override suspend fun migrate(connection: SQLiteConnection) {
                 connection.execSQL("""

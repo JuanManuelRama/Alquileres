@@ -32,7 +32,7 @@ class CreateContractViewModel(
             initialValue = emptyList()
         )
 
-    val properties: StateFlow<List<Property>> = propertyRepository.getAll()
+    val properties: StateFlow<List<Property>> = propertyRepository.getActive()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),

@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 data class Property(
     val address: Address,
     val owner: Owner,
+    val isActive: Boolean = true,
     val id: Long = 0L
 
 ) {

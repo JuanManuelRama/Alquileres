@@ -15,6 +15,7 @@ import com.example.myapplication.ui.contract.bill.BillViewModel
 import com.example.myapplication.ui.contract.create.CreateContractViewModel
 import com.example.myapplication.ui.contract.detail.ContractDetailViewModel
 import com.example.myapplication.ui.settings.SettingsViewModel
+import com.example.myapplication.ui.property.PropertyListViewModel
 
 class AppViewModelFactory(
     private val propertyRepository: PropertyRepository,
@@ -43,6 +44,9 @@ class AppViewModelFactory(
     ): T {
         @Suppress("UNCHECKED_CAST")
         return when {
+            modelClass.isAssignableFrom(PropertyListViewModel::class.java) -> {
+                PropertyListViewModel(propertyRepository, ownerRepository) as T
+            }
             modelClass.isAssignableFrom(CreateContractViewModel::class.java) -> {
                 CreateContractViewModel(
                     propertyRepository = propertyRepository,
