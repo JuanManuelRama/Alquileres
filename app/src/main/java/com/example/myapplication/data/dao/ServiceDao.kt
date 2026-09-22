@@ -13,4 +13,12 @@ interface ServiceDao {
 
     @Insert
     suspend fun insert(service: ServiceEntity): Long
+
+    @Query("""
+      DELETE FROM Service
+      WHERE id NOT IN (
+          SELECT serviceId FROM ContractServiceCrossRef
+      )
+    """)
+    suspend fun deleteUnreferenced()
 }

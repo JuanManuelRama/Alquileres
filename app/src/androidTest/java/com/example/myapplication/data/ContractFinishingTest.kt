@@ -182,4 +182,46 @@ class ContractFinishingTest {
             assertEquals(listOf(YearMonth.of(2026, 1), YearMonth.of(2026, 2), YearMonth.of(2026, 3)), remainingBills.map { it.bill.billingMonth })
         } finally { db.close() }
     }
+
+    @Test fun repositoryDeletionRemovesAllUnreferencedServicesAndPreservesSharedServices() = runTest {
+        val db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
+        try {
+            val repository = com.example.myapplication.data.repository.ContractRepository(db)
+            val originalId = seed(db)
+            val original = repository.observeById(originalId).first()!!
+            val first = repository.insert(original.copy(
+                id = 0,
+                services = listOf(
+                    com.example.myapplication.model.Service("Water"),
+                    com.example.myapplication.model.Service("Gas"),
+                ),
+            ))
+            val shared = first.services.first()
+            val second = repository.insert(original.copy(id = 0, services = listOf(shared)))
+            db.serviceDao().insert(ServiceEntity(name = "Unrelated"))
+            val properties = db.propertyDao().getAllPropertiesWithOwners().first()
+            val owners = db.ownerDao().getAll().first()
+
+            // Even a finished contract keeps its service references alive.
+            repository.finish(second.id)
+            repository.delete(first.id)
+            assertNull(repository.observeById(first.id).first())
+            assertTrue(db.billDao().list(first.id).isEmpty())
+            assertEquals(listOf(shared.id), db.serviceDao().getAll().first().map { it.id })
+            assertEquals(listOf(shared), repository.observeById(second.id).first()!!.services)
+
+            repository.delete(second.id)
+            assertTrue(db.serviceDao().getAll().first().isEmpty())
+            assertEquals(properties, db.propertyDao().getAllPropertiesWithOwners().first())
+            assertEquals(owners, db.ownerDao().getAll().first())
+
+            // Contracts without services still delete normally; missing contracts still fail.
+            db.serviceDao().insert(ServiceEntity(name = "Unused"))
+            repository.delete(originalId)
+            assertTrue(db.serviceDao().getAll().first().isEmpty())
+            val retained = db.serviceDao().insert(ServiceEntity(name = "Retained after failure"))
+            assertTrue(runCatching { repository.delete(originalId) }.isFailure)
+            assertEquals(listOf(retained), db.serviceDao().getAll().first().map { it.id })
+        } finally { db.close() }
+    }
 }

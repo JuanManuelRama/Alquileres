@@ -87,8 +87,11 @@ class ContractRepository(private val database: AppDatabase) : ContractWriter, Co
     }
 
     override suspend fun delete(contractId: Long) {
-        check(dao.deleteContract(contractId) == 1) {
-            "Could not delete this contract."
+        database.withWriteTransaction {
+            check(dao.deleteContract(contractId) == 1) {
+                "Could not delete this contract."
+            }
+            serviceDao.deleteUnreferenced()
         }
     }
 }
