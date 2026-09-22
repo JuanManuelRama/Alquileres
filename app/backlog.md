@@ -26,7 +26,6 @@
 
 ## End of Contract
 
-- Renew contract after registering the last bill
 - Start registering lease extension monthly after the last bill
 
 ## Language (again)

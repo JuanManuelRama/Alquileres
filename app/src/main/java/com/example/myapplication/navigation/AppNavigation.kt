@@ -31,8 +31,6 @@ fun AppNavigation(
     modifier: Modifier = Modifier,
 ) {
     val backStack = rememberNavBackStack(ContractList(isInactive = false))
-    val back: () -> Unit = { backStack.removeLastOrNull() }
-
     NavDisplay(
         backStack = backStack,
         modifier = modifier,
@@ -43,8 +41,9 @@ fun AppNavigation(
             rememberSaveableStateHolderNavEntryDecorator(),
             rememberViewModelStoreNavEntryDecorator(),
         ),
-        onBack = back,
+        onBack = { backStack.lastOrNull()?.let { backStack.popFrom(it) } },
         entryProvider = { key ->
+            val back: () -> Unit = { backStack.popFrom(key) }
             when (val route = key as Route) {
                 is ContractList -> NavEntry(route) {
                     val flow = if (route.isInactive) contractViewModel.inactiveListState
@@ -53,9 +52,9 @@ fun AppNavigation(
 
                     ContractListScreen(
                         state = listState,
-                        onContractClick = { backStack.add(ContractDetail(it.id, route.isInactive)) },
-                        addContractClick = { backStack.add(AddPropiedad) },
-                        onSettingsClick = { backStack.add(Settings) },
+                        onContractClick = { backStack.pushFrom(key, ContractDetail(it.id, route.isInactive)) },
+                        addContractClick = { backStack.pushFrom(key, AddPropiedad) },
+                        onSettingsClick = { backStack.pushFrom(key, Settings) },
                         onTabSelected = { inactiveState ->
                             if (inactiveState != route.isInactive) {
                                 val index = backStack.indexOf(route)
@@ -88,7 +87,7 @@ fun AppNavigation(
                     }
                     ContractDetailScreen(
                         viewModel = viewModel(factory = detailFactory),
-                        onPrepareBillClick = { backStack.add(PrepareBill(it.id, route.isInactive)) },
+                        onPrepareBillClick = { backStack.pushFrom(key, PrepareBill(it.id, route.isInactive)) },
                         isInactive = route.isInactive,
                         onFinished = {
                             val index = backStack.indexOf(route)
@@ -97,7 +96,7 @@ fun AppNavigation(
                         },
                         onBackClick = back,
                         onRenewContractClick = {
-                            backStack.add(RenewContract(route.contractId))
+                            backStack.pushFrom(key, RenewContract(route.contractId))
                         },
                     )
                 }
@@ -111,8 +110,7 @@ fun AppNavigation(
                         createViewModel = viewModel(factory = viewModelFactory),
                         onBackClick = back,
                         afterCreate = {
-                            back()
-                            back()
+                            backStack.popFrom(key, count = 2)
                         },
                     )
                 }
@@ -130,4 +128,17 @@ fun AppNavigation(
             }
         },
     )
+}
+
+
+internal fun <T> MutableList<T>.popFrom(expectedTop: T, count: Int = 1) {
+    if (lastOrNull() != expectedTop) return
+    repeat(count.coerceIn(0, (size - 1).coerceAtLeast(0))) {
+        removeAt(lastIndex)
+    }
+}
+
+internal fun <T> MutableList<T>.pushFrom(expectedTop: T, destination: T) {
+    if (lastOrNull() != expectedTop) return
+    add(destination)
 }
