@@ -119,7 +119,6 @@ class PropertyManagementTest {
             contracts.finish(second.id)
             val other = contracts.insert(draft("Other").copy(services = first.services))
             db.contractDao().insertAdjustments(listOf(AdjustmentEntity(first.id, first.startingMonth, BigDecimal.ZERO)))
-            val owners = db.ownerDao().getAll().first()
             properties.delete(first.property.id)
             assertEquals(listOf(other.id), contracts.getAll().first().map { it.id })
             assertTrue(db.billDao().list(first.id).isEmpty())
@@ -127,8 +126,30 @@ class PropertyManagementTest {
             assertEquals(2, db.billDao().list(other.id).size)
             assertEquals(listOf(other.property.id), properties.getAll().first().map { it.id })
             assertEquals(first.services.map { it.id }, db.serviceDao().getAll().first().map { it.id })
-            assertEquals(owners, db.ownerDao().getAll().first())
+            assertEquals(listOf(other.property.owner.id), db.ownerDao().getAll().first().map { it.id })
             assertTrue(runCatching { properties.delete(first.property.id) }.isFailure)
+        } finally { db.close() }
+    }
+
+    @Test fun deletionKeepsSharedOwnersUntilTheirLastPropertyIsDeleted() = runTest {
+        val db = database()
+        try {
+            val properties = PropertyRepository(db)
+            val first = properties.insert(Property(Address("Main", "1", null), Owner("Shared")))
+            val second = properties.insert(Property(Address("Other", "2", null), first.owner))
+            properties.setActive(second.id, false)
+            db.ownerDao().insert(com.example.myapplication.data.entity.OwnerEntity(name = "Unused"))
+
+            properties.delete(first.id)
+            assertEquals(listOf(first.owner.id), db.ownerDao().getAll().first().map { it.id })
+            assertEquals(second, properties.getAll().first().single())
+
+            properties.delete(second.id)
+            assertTrue(db.ownerDao().getAll().first().isEmpty())
+
+            val retained = db.ownerDao().insert(com.example.myapplication.data.entity.OwnerEntity(name = "Retained after failure"))
+            assertTrue(runCatching { properties.delete(second.id) }.isFailure)
+            assertEquals(listOf(retained), db.ownerDao().getAll().first().map { it.id })
         } finally { db.close() }
     }
 

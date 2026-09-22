@@ -22,9 +22,8 @@ interface PropertyDao {
     @Query("SELECT * FROM Property WHERE isActive = 1")
     fun observeActive(): Flow<List<PropertyWithOwner>>
 
-    @Transaction
-    @Query("SELECT * FROM Property WHERE id = :id")
-    suspend fun getById(id: Long): PropertyWithOwner?
+    @Query("SELECT EXISTS(SELECT 1 FROM Property WHERE id = :id AND isActive = 1)")
+    suspend fun isActive(id: Long): Boolean
 
     @Transaction
     @Query("""

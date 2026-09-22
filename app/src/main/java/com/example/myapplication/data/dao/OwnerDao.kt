@@ -12,4 +12,7 @@ interface OwnerDao {
     fun getAll(): Flow<List<OwnerEntity>>
     @Insert
     suspend fun insert(owner: OwnerEntity): Long
+
+    @Query("DELETE FROM Owner WHERE id NOT IN (SELECT ownerId FROM Property)")
+    suspend fun deleteUnreferenced()
 }

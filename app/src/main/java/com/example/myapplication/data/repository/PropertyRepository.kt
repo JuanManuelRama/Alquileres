@@ -40,6 +40,7 @@ class PropertyRepository(private val db: AppDatabase) : PropertyReader {
             db.contractDao().deleteByProperty(id)
             check(dao.deleteProperty(id) == 1)
             db.serviceDao().deleteUnreferenced()
+            ownerDao.deleteUnreferenced()
         }
     }
 
