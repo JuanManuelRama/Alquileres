@@ -206,4 +206,12 @@
     <string name="empty_properties">No properties yet. Create a property when building a contract.</string>
     <string name="err_loading_properties">Could not load properties.</string>
     <string name="err_property_change">Could not save the change. The property may have been deleted or have active contracts. Please try again.</string>
+    <string name="search_properties">Search properties</string>
+    <string name="filter_property_status">All property statuses</string>
+    <string name="filter_active_properties">Active properties</string>
+    <string name="filter_inactive_properties">Inactive properties</string>
+    <string name="filter_property_contracts">Any contract status</string>
+    <string name="filter_with_active_contracts">With active contracts</string>
+    <string name="filter_without_active_contracts">Without active contracts</string>
+    <string name="no_matching_properties">No properties match these filters.</string>
 </resources>

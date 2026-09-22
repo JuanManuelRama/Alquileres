@@ -1,26 +1,19 @@
 package com.example.myapplication.ui.contract.list
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -44,6 +37,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
 import com.example.myapplication.model.Owner
+import com.example.myapplication.ui.components.filter.ListSearchField
+import com.example.myapplication.ui.components.filter.OwnerFilterChip
 import com.example.myapplication.ui.util.rememberDateFormatters
 import java.time.Month
 import java.time.YearMonth
@@ -57,7 +52,7 @@ internal fun ContractListFilters(
     modifier: Modifier = Modifier
 ) {
     val dates = rememberDateFormatters()
-    var ownersExpanded by remember { mutableStateOf(false) }
+
     var showStartPicker by remember { mutableStateOf(false) }
     var showFinishPicker by remember { mutableStateOf(false) }
 
@@ -89,29 +84,10 @@ internal fun ContractListFilters(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        OutlinedTextField(
-            value = state.query,
-            onValueChange = { state.query = it },
-            placeholder = { Text(stringResource(R.string.action_search_placeholder_contracts)) },
-            singleLine = true,
-            shape = RoundedCornerShape(16.dp),
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = stringResource(R.string.cd_search_icon)
-                )
-            },
-            trailingIcon = {
-                if (state.query.isNotEmpty()) {
-                    IconButton(onClick = { state.query = "" }) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = stringResource(R.string.cd_clear_search)
-                        )
-                    }
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
+        ListSearchField(
+            query = state.query,
+            onQueryChanged = { state.query = it },
+            placeholder = stringResource(R.string.action_search_placeholder_contracts),
         )
 
         FlowRow(
@@ -227,55 +203,7 @@ internal fun ContractListFilters(
                 )
             }
 
-            Box {
-                val ownersLabel = stringResource(R.string.filter_owners)
-                val ownerLabel = stringResource(R.string.filter_owner)
-                FilterChip(
-                    selected = state.ownerId != null,
-                    onClick = { ownersExpanded = true },
-                    label = {
-                        Text(
-                            if (state.ownerId == null) ownersLabel
-                            else owners.firstOrNull { it.id == state.ownerId }?.name ?: ownerLabel
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null,
-                            modifier = Modifier.size(FilterChipDefaults.IconSize)
-                        )
-                    },
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.ArrowDropDown,
-                            contentDescription = null,
-                            modifier = Modifier.size(FilterChipDefaults.IconSize)
-                        )
-                    }
-                )
-                DropdownMenu(
-                    expanded = ownersExpanded,
-                    onDismissRequest = { ownersExpanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.filter_all_owners)) },
-                        onClick = {
-                            state.ownerId = null
-                            ownersExpanded = false
-                        }
-                    )
-                    owners.forEach { owner ->
-                        DropdownMenuItem(
-                            text = { Text(owner.name) },
-                            onClick = {
-                                state.ownerId = owner.id
-                                ownersExpanded = false
-                            }
-                        )
-                    }
-                }
-            }
+            OwnerFilterChip(state.ownerId, owners, onOwnerSelected = { state.ownerId = it })
 
             if (state.hasActiveFilters) {
                 TextButton(

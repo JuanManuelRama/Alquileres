@@ -44,6 +44,11 @@ fun PropertyListScreen(
     var selection by rememberSerializable { mutableStateOf(PropertySelection()) }
     var deletingId by rememberSaveable { mutableStateOf<Long?>(null) }
     val ready = state as? PropertyListState.Ready
+    var filters by rememberSerializable { mutableStateOf(PropertyListFilterState()) }
+    val owners = remember(ready?.rows) {
+        ready?.rows.orEmpty().map { it.property.owner }.distinctBy { it.id }.sortedBy { it.name.lowercase() }
+    }
+    val filteredRows = ready?.rows.orEmpty().filter(filters::matches)
     LaunchedEffect(status) {
         if (status == SaveStatus.Saved) {
             selection = PropertySelection()
@@ -108,7 +113,15 @@ fun PropertyListScreen(
                     if (current.rows.isEmpty()) Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(stringResource(R.string.empty_properties), Modifier.padding(24.dp))
                     } else LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(current.rows, key = { it.property.id }) { row ->
+                        item(key = "filters") {
+                            PropertyListFilters(filters, { filters = it }, owners, Modifier.fillMaxWidth())
+                        }
+                        if (filteredRows.isEmpty()) {
+                            item(key = "no_matches") {
+                                Text(stringResource(R.string.no_matching_properties), Modifier.padding(vertical = 16.dp))
+                            }
+                        }
+                        items(filteredRows, key = { it.property.id }) { row ->
                             PropertyRow(row, busy,
                                 onEdit = { viewModel.resetStatus(); selection = PropertySelection(row.property) },
                                 onDelete = { viewModel.resetStatus(); deletingId = row.property.id },
