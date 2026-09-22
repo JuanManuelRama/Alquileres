@@ -28,7 +28,7 @@ import java.time.YearMonth
 class PropertyListScreenTest {
     @get:Rule val rule = createComposeRule()
     private val db = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext(), AppDatabase::class.java).build()
-    private val properties = PropertyRepository(db.propertyDao())
+    private val properties = PropertyRepository(db)
     private val contracts = ContractRepository(db)
     private lateinit var model: PropertyListViewModel
     private fun text(id: Int) = InstrumentationRegistry.getInstrumentation().targetContext.getString(id)
@@ -77,11 +77,11 @@ class PropertyListScreenTest {
         show()
         menu()
         rule.onNodeWithText(text(R.string.action_deactivate_property)).assertIsEnabled().performClick()
-        rule.waitUntil(5_000) { (model.state.value as? PropertyListState.Ready)?.rows?.single()?.details?.property?.isActive == false && model.saveStatus.value == SaveStatus.Idle }
+        rule.waitUntil(5_000) { (model.state.value as? PropertyListState.Ready)?.rows?.single()?.isActive == false && model.saveStatus.value == SaveStatus.Idle }
         assertTrue(runBlocking { properties.getActive().first().isEmpty() })
         menu()
         rule.onNodeWithText(text(R.string.action_reactivate_property)).performClick()
-        rule.waitUntil(5_000) { (model.state.value as? PropertyListState.Ready)?.rows?.single()?.details?.property?.isActive == true }
+        rule.waitUntil(5_000) { (model.state.value as? PropertyListState.Ready)?.rows?.single()?.isActive == true }
         assertEquals(contract.property.id, runBlocking { properties.getActive().first().single().id })
     }
 
@@ -103,7 +103,7 @@ class PropertyListScreenTest {
         rule.onNodeWithText(text(R.string.action_save)).performScrollTo().assertIsNotEnabled()
         rule.onAllNodes(hasSetTextAction())[0].performScrollTo().performTextReplacement("Corrected")
         rule.onNodeWithText(text(R.string.action_save)).performScrollTo().performClick()
-        rule.waitUntil(5_000) { (model.state.value as? PropertyListState.Ready)?.rows?.single()?.details?.property?.address?.street == "Corrected" }
+        rule.waitUntil(5_000) { (model.state.value as? PropertyListState.Ready)?.rows?.single()?.property?.address?.street == "Corrected" }
         assertEquals("Corrected", runBlocking { contracts.observeById(contract.id).first()!!.property.address.street })
     }
 }

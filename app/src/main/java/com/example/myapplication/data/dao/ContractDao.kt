@@ -84,6 +84,9 @@ interface ContractDao {
     @Query("DELETE FROM Contract WHERE id = :contractId")
     suspend fun deleteContract(contractId: Long): Int
 
+    @Query("DELETE FROM Contract WHERE propertyId = :propertyId")
+    suspend fun deleteByProperty(propertyId: Long): Int
+
     @Query("""
         UPDATE Adjustment
         SET amount = :amount

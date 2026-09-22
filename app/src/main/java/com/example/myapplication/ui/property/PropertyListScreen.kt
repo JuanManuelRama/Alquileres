@@ -20,7 +20,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myapplication.R
-import com.example.myapplication.data.entity.ManagedProperty
 import com.example.myapplication.model.Owner
 import com.example.myapplication.model.Property
 import com.example.myapplication.navigation.RootNavigationBar
@@ -61,19 +60,19 @@ fun PropertyListScreen(
         )
         return
     }
-    val deleting = ready?.rows?.find { it.details.property.id == deletingId }
+    val deleting = ready?.rows?.find { it.property.id == deletingId }
     if (deleting != null) {
         AlertDialog(
             onDismissRequest = { if (!busy) { deletingId = null; viewModel.resetStatus() } },
             title = { Text(stringResource(R.string.delete_property_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(stringResource(R.string.delete_property_message, deleting.details.toDomain().toString(), deleting.contractCount))
+                    Text(stringResource(R.string.delete_property_message, deleting.property.toString()))
                     if (status == SaveStatus.Failed) PropertyMutationError()
                 }
             },
             confirmButton = {
-                TextButton(enabled = !busy, onClick = { viewModel.delete(deleting.details.property.id) }) {
+                TextButton(enabled = !busy, onClick = { viewModel.delete(deleting.property.id) }) {
                     Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
                 }
             },
@@ -109,11 +108,11 @@ fun PropertyListScreen(
                     if (current.rows.isEmpty()) Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(stringResource(R.string.empty_properties), Modifier.padding(24.dp))
                     } else LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(current.rows, key = { it.details.property.id }) { row ->
+                        items(current.rows, key = { it.property.id }) { row ->
                             PropertyRow(row, busy,
-                                onEdit = { viewModel.resetStatus(); selection = PropertySelection(row.details.toDomain()) },
-                                onDelete = { viewModel.resetStatus(); deletingId = row.details.property.id },
-                                onSetActive = { viewModel.setActive(row.details.property.id, !row.details.property.isActive) },
+                                onEdit = { viewModel.resetStatus(); selection = PropertySelection(row.property) },
+                                onDelete = { viewModel.resetStatus(); deletingId = row.property.id },
+                                onSetActive = { viewModel.setActive(row.property.id, !row.isActive) },
                             )
                         }
                     }
@@ -124,16 +123,16 @@ fun PropertyListScreen(
 }
 
 @Composable
-private fun PropertyRow(row: ManagedProperty, busy: Boolean, onEdit: () -> Unit, onDelete: () -> Unit, onSetActive: () -> Unit) {
-    val property = row.details.toDomain()
+private fun PropertyRow(row: PropertyListItem, busy: Boolean, onEdit: () -> Unit, onDelete: () -> Unit, onSetActive: () -> Unit) {
+    val property = row.property
     var expanded by remember { mutableStateOf(false) }
     Card(Modifier.fillMaxWidth()) {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(property.toString(), style = MaterialTheme.typography.titleMedium)
                 Text(property.owner.name, style = MaterialTheme.typography.bodyMedium)
-                Surface(shape = MaterialTheme.shapes.small, color = if (property.isActive) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant) {
-                    Text(stringResource(if (property.isActive) R.string.property_active else R.string.property_inactive), Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelMedium)
+                Surface(shape = MaterialTheme.shapes.small, color = if (row.isActive) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant) {
+                    Text(stringResource(if (row.isActive) R.string.property_active else R.string.property_inactive), Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelMedium)
                 }
             }
             Box {
@@ -143,11 +142,11 @@ private fun PropertyRow(row: ManagedProperty, busy: Boolean, onEdit: () -> Unit,
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                     DropdownMenuItem(text = { Text(stringResource(R.string.action_edit)) }, onClick = { expanded = false; onEdit() })
                     DropdownMenuItem(
-                        text = { Text(stringResource(if (property.isActive) R.string.action_deactivate_property else R.string.action_reactivate_property)) },
-                        enabled = !property.isActive || row.activeContractCount == 0,
+                        text = { Text(stringResource(if (row.isActive) R.string.action_deactivate_property else R.string.action_reactivate_property)) },
+                        enabled = !row.isActive || !row.hasActiveContracts,
                         onClick = { expanded = false; onSetActive() },
                     )
-                    if (property.isActive && row.activeContractCount > 0) {
+                    if (row.isActive && row.hasActiveContracts) {
                         Text(stringResource(R.string.property_has_active_contracts), Modifier.widthIn(max = 280.dp).padding(horizontal = 12.dp, vertical = 8.dp), style = MaterialTheme.typography.bodySmall)
                     }
                     DropdownMenuItem(text = { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) }, onClick = { expanded = false; onDelete() })

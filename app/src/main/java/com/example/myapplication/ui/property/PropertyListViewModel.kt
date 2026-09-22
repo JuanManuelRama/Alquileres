@@ -2,7 +2,6 @@ package com.example.myapplication.ui.property
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.myapplication.data.entity.ManagedProperty
 import com.example.myapplication.data.repository.OwnerRepository
 import com.example.myapplication.data.repository.PropertyRepository
 import com.example.myapplication.model.Owner
@@ -18,7 +17,7 @@ import kotlinx.coroutines.launch
 sealed interface PropertyListState {
     data object Loading : PropertyListState
     data object Failed : PropertyListState
-    data class Ready(val rows: List<ManagedProperty>, val owners: List<Owner>) : PropertyListState
+    data class Ready(val rows: List<PropertyListItem>, val owners: List<Owner>) : PropertyListState
 }
 
 class PropertyListViewModel(
@@ -39,7 +38,10 @@ class PropertyListViewModel(
         observation = viewModelScope.launch {
             try {
                 combine(repository.observeManagement(), ownerRepository.getAll()) { rows, owners ->
-                    PropertyListState.Ready(rows, owners)
+                    PropertyListState.Ready(
+                        rows.map { it.details.toDomain().listItem(it.isActive, it.hasActiveContracts) },
+                        owners,
+                    )
                 }.collect { _state.value = it }
             } catch (error: CancellationException) {
                 throw error

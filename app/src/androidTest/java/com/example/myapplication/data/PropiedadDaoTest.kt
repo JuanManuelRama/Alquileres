@@ -31,7 +31,7 @@ class PropertyRepositoryTest {
             .allowMainThreadQueries()
             .build()
 
-        propertyRepository = PropertyRepository(database.propertyDao())
+        propertyRepository = PropertyRepository(database)
     }
 
     @After

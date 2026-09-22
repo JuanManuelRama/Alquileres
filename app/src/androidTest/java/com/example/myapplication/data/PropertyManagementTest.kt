@@ -17,6 +17,27 @@ import java.time.YearMonth
 import java.util.UUID
 
 class PropertyManagementTest {
+    @Test fun insertSavesNewOwnersReusesExistingOwnersAndRollsBackFailures() = runTest {
+        val db = database()
+        try {
+            val properties = PropertyRepository(db)
+            val first = properties.insert(Property(Address("Main", "1", null), Owner("Owner")))
+            assertTrue(first.id > 0)
+            assertTrue(first.owner.id > 0)
+            assertEquals(first, properties.getAll().first().single())
+            val second = properties.insert(Property(Address("Other", "2", null), first.owner))
+            assertEquals(first.owner, second.owner)
+            assertEquals(1, db.ownerDao().getAll().first().size)
+            // A duplicate property ID fails after inserting its draft owner; both writes must roll back.
+            assertTrue(runCatching { properties.insert(first.copy(owner = Owner("Rollback"))) }.isFailure)
+            assertEquals(1, db.ownerDao().getAll().first().size)
+            assertEquals(2, properties.getAll().first().size)
+            properties.update(second.copy(owner = first.owner, address = Address("Updated", "3", null)))
+            assertEquals(1, db.ownerDao().getAll().first().size)
+            assertEquals("Updated", properties.getAll().first().single { it.id == second.id }.address.street)
+        } finally { db.close() }
+    }
+
     private val context: Context = ApplicationProvider.getApplicationContext()
     private fun database() = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()
     private fun draft(street: String = "Main") = Contract(
@@ -29,20 +50,20 @@ class PropertyManagementTest {
         val db = database()
         try {
             val contracts = ContractRepository(db)
-            val properties = PropertyRepository(db.propertyDao())
+            val properties = PropertyRepository(db)
             val first = contracts.insert(draft())
             val second = contracts.insert(first.copy(id = 0))
-            assertEquals(2, properties.observeManagement().first().single().activeContractCount)
+            assertTrue(properties.observeManagement().first().single().hasActiveContracts)
             assertTrue(runCatching { properties.setActive(first.property.id, false) }.isFailure)
             contracts.finish(first.id)
             assertTrue(runCatching { properties.setActive(first.property.id, false) }.isFailure)
             contracts.finish(second.id)
             properties.setActive(first.property.id, false)
             assertTrue(properties.getActive().first().isEmpty())
-            assertFalse(properties.getAll().first().single().isActive)
+            assertFalse(properties.observeManagement().first().single().isActive)
             assertEquals(2, contracts.observeInactive().first().size)
             assertEquals(2, db.billDao().list(first.id).size)
-            assertEquals(0, properties.observeManagement().first().single().activeContractCount)
+            assertFalse(properties.observeManagement().first().single().hasActiveContracts)
             properties.setActive(first.property.id, true)
             assertEquals(first.property.id, properties.getActive().first().single().id)
         } finally { db.close() }
@@ -52,7 +73,7 @@ class PropertyManagementTest {
         val db = database()
         try {
             val contracts = ContractRepository(db)
-            val properties = PropertyRepository(db.propertyDao())
+            val properties = PropertyRepository(db)
             val contract = contracts.insert(draft())
             contracts.finish(contract.id)
             properties.setActive(contract.property.id, false)
@@ -61,7 +82,7 @@ class PropertyManagementTest {
             assertEquals(contract.property.id, edited.id)
             assertEquals(Address("Corrected", "42", "B"), edited.address)
             assertEquals("New owner", edited.owner.name)
-            assertFalse(edited.isActive)
+            assertFalse(properties.observeManagement().first().single().isActive)
             assertEquals(2, db.ownerDao().getAll().first().size)
             assertEquals(edited, contracts.observeInactive().first().single().property)
             assertTrue(runCatching { properties.update(edited.copy(id = -1, owner = Owner("Rollback"))) }.isFailure)
@@ -73,7 +94,7 @@ class PropertyManagementTest {
         val db = database()
         try {
             val contracts = ContractRepository(db)
-            val properties = PropertyRepository(db.propertyDao())
+            val properties = PropertyRepository(db)
             val original = contracts.insert(draft())
             contracts.finish(original.id)
             properties.setActive(original.property.id, false)
@@ -92,7 +113,7 @@ class PropertyManagementTest {
         val db = database()
         try {
             val contracts = ContractRepository(db)
-            val properties = PropertyRepository(db.propertyDao())
+            val properties = PropertyRepository(db)
             val first = contracts.insert(draft())
             val second = contracts.insert(first.copy(id = 0, services = first.services + Service("Gas")))
             contracts.finish(second.id)
@@ -123,7 +144,7 @@ class PropertyManagementTest {
             val migrated = Room.databaseBuilder(context, AppDatabase::class.java, name)
                 .addMigrations(AppDatabase.MIGRATION_20_21).build()
             try {
-                assertEquals(contract.property, PropertyRepository(migrated.propertyDao()).getActive().first().single())
+                assertEquals(contract.property, PropertyRepository(migrated).getActive().first().single())
                 assertEquals(contract.id, ContractRepository(migrated).getAll().first().single().id)
                 assertEquals(2, migrated.billDao().list(contract.id).size)
             } finally { migrated.close() }

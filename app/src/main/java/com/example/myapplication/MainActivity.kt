@@ -46,7 +46,7 @@ class MainActivity : ComponentActivity() {
 
             val factory = remember(application) {
                 AppViewModelFactory(
-                    propertyRepository = PropertyRepository(application.database.propertyDao()),
+                    propertyRepository = PropertyRepository(application.database),
                     ownerRepository = OwnerRepository(application.database.ownerDao()),
                     serviceRepository = ServiceRepository(application.database.serviceDao()),
                     contractRepository = ContractRepository(application.database),

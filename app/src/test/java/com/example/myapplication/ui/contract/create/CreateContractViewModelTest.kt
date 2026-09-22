@@ -2,11 +2,10 @@ package com.example.myapplication.ui.contract.create
 
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.dao.OwnerDao
-import com.example.myapplication.data.dao.PropertyDao
 import com.example.myapplication.data.dao.ServiceDao
 import com.example.myapplication.data.repository.ContractWriter
 import com.example.myapplication.data.repository.OwnerRepository
-import com.example.myapplication.data.repository.PropertyRepository
+import com.example.myapplication.data.repository.PropertyReader
 import com.example.myapplication.data.repository.ServiceRepository
 import com.example.myapplication.model.Address
 import com.example.myapplication.model.Contract
@@ -50,7 +49,9 @@ class CreateContractViewModelTest {
                 }
             }
             val model = CreateContractViewModel(
-                PropertyRepository(readDao<PropertyDao>()), OwnerRepository(readDao<OwnerDao>()),
+                object : PropertyReader {
+                    override fun getActive() = flowOf(emptyList<Property>())
+                }, OwnerRepository(readDao<OwnerDao>()),
                 ServiceRepository(readDao<ServiceDao>()), writer
             )
             modelToClear = model

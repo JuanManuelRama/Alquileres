@@ -197,7 +197,7 @@
     <string name="action_reactivate_property">Reactivar</string>
     <string name="property_has_active_contracts">Finalizá todos los contratos activos antes de desactivar esta propiedad.</string>
     <string name="delete_property_title">¿Eliminar propiedad?</string>
-    <string name="delete_property_message">¿Eliminar permanentemente %1$s y todos sus contratos (%2$d), facturas y ajustes? Esta acción no se puede deshacer.</string>
+    <string name="delete_property_message">¿Eliminar permanentemente %1$s y todos sus contratos, facturas y ajustes? Esta acción no se puede deshacer.</string>
     <string name="edit_property_title">Editar propiedad</string>
     <string name="edit_property_hint">Los cambios de dirección y propietario también se muestran en los contratos asociados.</string>
     <string name="empty_properties">Todavía no hay propiedades. Podés crear una al crear un contrato.</string>

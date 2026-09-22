@@ -188,6 +188,13 @@ class ContractDetailViewModelTest {
             state.value = null
             return 1
         }
+
+        override suspend fun deleteByProperty(propertyId: Long): Int {
+            val state = results.values.firstOrNull { it.value?.property?.property?.id == propertyId } ?: return 0
+            state.value = null
+            return 1
+        }
+
         override suspend fun shortenTerm(contractId: Long, month: YearMonth): Int {
             val state = results.getValue(contractId)
             val current = state.value ?: return 0

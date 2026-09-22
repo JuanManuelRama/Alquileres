@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.repository.ContractWriter
 import com.example.myapplication.data.repository.OwnerRepository
-import com.example.myapplication.data.repository.PropertyRepository
+import com.example.myapplication.data.repository.PropertyReader
 import com.example.myapplication.data.repository.ServiceRepository
 import com.example.myapplication.model.Contract
 import com.example.myapplication.model.Owner
@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class CreateContractViewModel(
-    propertyRepository: PropertyRepository,
+    propertyRepository: PropertyReader,
     ownerRepository: OwnerRepository,
     serviceRepository: ServiceRepository,
     private val contractRepository: ContractWriter

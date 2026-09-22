@@ -32,7 +32,6 @@ data class PropertyEntity(
         address = address,
         owner = owner.toDomain(),
         id = id,
-        isActive = isActive
     )
 }
 
@@ -41,6 +40,5 @@ fun Property.toEntity(): PropertyEntity {
         address = address,
         ownerId = owner.id,
         id = id,
-        isActive = isActive
     )
 }

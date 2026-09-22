@@ -1,23 +1,47 @@
 package com.example.myapplication.data.repository
 
+import androidx.room3.withWriteTransaction
+import com.example.myapplication.data.AppDatabase
+import com.example.myapplication.data.dao.OwnerDao
 import com.example.myapplication.data.dao.PropertyDao
 import com.example.myapplication.data.entity.toEntity
 import com.example.myapplication.model.Property
+import com.example.myapplication.model.Owner
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class PropertyRepository(private val dao: PropertyDao) {
+interface PropertyReader {
+    fun getActive(): Flow<List<Property>>
+}
+
+class PropertyRepository(private val db: AppDatabase) : PropertyReader {
+    private val dao: PropertyDao = db.propertyDao()
+    private val ownerDao: OwnerDao = db.ownerDao()
     fun observeManagement() = dao.observeManagement()
 
-    fun getActive(): Flow<List<Property>> = dao.observeActive().map { list -> list.map { it.toDomain() } }
+    override fun getActive(): Flow<List<Property>> = dao.observeActive().map { list -> list.map { it.toDomain() } }
 
-    suspend fun update(property: Property) = dao.saveDetails(property.id, property.address, property.owner.toEntity())
+    suspend fun update(property: Property) {
+        db.withWriteTransaction {
+            val owner = saveOwner(property.owner)
+            val address = property.address
+            check(dao.updateDetails(property.id, address.street, address.number, address.unit, owner.id) == 1) {
+                "Property no longer exists"
+            }
+        }
+    }
 
     suspend fun setActive(id: Long, active: Boolean) {
         check(dao.setActive(id, active) == 1) { "Property is missing or has active contracts" }
     }
 
-    suspend fun delete(id: Long) = dao.deleteWithContracts(id)
+    suspend fun delete(id: Long) {
+        db.withWriteTransaction {
+            db.contractDao().deleteByProperty(id)
+            check(dao.deleteProperty(id) == 1)
+            db.serviceDao().deleteUnreferenced()
+        }
+    }
 
     fun getAll(): Flow<List<Property>> {
         return dao.getAllPropertiesWithOwners().map { list ->
@@ -25,8 +49,12 @@ class PropertyRepository(private val dao: PropertyDao) {
         }
     }
 
-    suspend fun insert(property: Property): Property {
-        val id = dao.insertProperty(property.toEntity())
-        return property.copy(id = id)
+    suspend fun insert(property: Property): Property = db.withWriteTransaction {
+        val saved = property.copy(owner = saveOwner(property.owner))
+        val id = dao.insertProperty(saved.toEntity())
+        saved.copy(id = id)
     }
+
+    private suspend fun saveOwner(owner: Owner): Owner =
+        if (owner.id == 0L) owner.copy(id = ownerDao.insert(owner.toEntity())) else owner
 }
