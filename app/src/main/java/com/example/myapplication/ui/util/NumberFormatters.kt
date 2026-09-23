@@ -2,6 +2,7 @@ package com.example.myapplication.ui.util
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
@@ -145,6 +146,8 @@ class NumberVisualTransformation(
 }
 
 @Composable
-fun rememberNumberVisualTransformation(locale: Locale = Locale.getDefault()): VisualTransformation {
+fun rememberNumberVisualTransformation(
+    locale: Locale = LocalConfiguration.current.locales[0]
+): VisualTransformation {
     return remember(locale) { NumberVisualTransformation(locale) }
 }

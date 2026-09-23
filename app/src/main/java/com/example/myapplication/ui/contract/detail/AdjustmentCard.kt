@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.contract.detail
 
 import com.example.myapplication.ui.util.toInputBigDecimal
+import com.example.myapplication.ui.util.rememberNumberVisualTransformation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -120,6 +121,8 @@ fun AdjustmentCard(
         }
     }
 
+    // Capture the app configuration before the dialog creates its own composition.
+    val numberTransformation = rememberNumberVisualTransformation()
     if (showEditor && editable) {
         Dialog(onDismissRequest = { if (!saving) { showEditor = false; onSaveHandled() } }) {
             Card(modifier = Modifier.fillMaxWidth()) {
@@ -142,6 +145,7 @@ fun AdjustmentCard(
                         Item(
                             field = stringResource(R.string.label_hike),
                             value = percentage,
+                            visualTransformation = numberTransformation,
                             modifiable = !saving,
                             keyboardOptions = KeyboardOptions(keyboardType =  KeyboardType.Decimal),
                             validate = { Validate(it).maxLen(6).isBigDecimal().isPositive().limitDecimals(4) },

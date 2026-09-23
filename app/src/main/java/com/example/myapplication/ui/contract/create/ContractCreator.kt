@@ -264,6 +264,7 @@ fun ContractCreator(
                 Item(
                     field = stringResource(R.string.label_fixed_hike),
                     value = inputs.fixedHike,
+                    visualTransformation = rememberNumberVisualTransformation(),
                     mandatory = false,
                     keyboardOptions = KeyboardOptions(keyboardType =  KeyboardType.Decimal),
                     validate = { Validate(it).isBigDecimal().limitDecimals(4)
