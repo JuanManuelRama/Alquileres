@@ -91,6 +91,7 @@ fun PropertyCreator(
         }
         PickerItem(
             label = stringResource(R.string.label_owner),
+            createNewLabel = stringResource(R.string.picker_create_owner),
             items = owners,
             selectedItem = inputs.selectedOwner,
             pickerInputs = inputs.ownerPicker,

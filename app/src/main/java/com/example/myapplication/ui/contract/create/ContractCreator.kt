@@ -113,6 +113,7 @@ fun ContractCreator(
     ) {
         PickerItem(
             label = stringResource(R.string.label_property),
+            createNewLabel = stringResource(R.string.picker_create_property),
             items = properties,
             selectedItem = inputs.selectedProperty,
             pickerInputs = inputs.propertyPicker,
@@ -190,6 +191,7 @@ fun ContractCreator(
         )
         MultiPickerItem(
             label = stringResource(R.string.label_services),
+            createNewLabel = stringResource(R.string.picker_create_service),
             items = services,
             selectedItems = inputs.selectedServices,
             pickerInputs = inputs.servicePicker,

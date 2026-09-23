@@ -43,8 +43,10 @@
     <string name="action_keep_editing">Seguir editando</string>
 
     <!-- Entity Picker -->
-    <string name="cd_clear_selection">Limpiar selección de %1$s</string>
-    <string name="picker_create_new">Crear nuevo %1$s</string>
+    <string name="cd_clear_selection">Limpiar selección </string>
+    <string name="picker_create_property">Crear nueva propiedad</string>
+    <string name="picker_create_owner">Crear nuevo propietario</string>
+    <string name="picker_create_service">Crear nuevo servicio</string>
 
     <!-- Contract List -->
     <string name="title_active_contracts">Contratos activos</string>

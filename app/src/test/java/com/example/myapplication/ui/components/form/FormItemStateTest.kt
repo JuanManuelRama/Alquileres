@@ -23,14 +23,14 @@ class FormItemStateTest {
             keyboardOptions = KeyboardOptions.Default
         ),
         PickerFormItemState(
-            label = "Field", items = listOf("value"),
+            label = "Field", createNewLabel = "Create new value", items = listOf("value"),
             selectedItem = if (empty) null else "value",
             mandatory = mandatory, validate = validate,
             onItemSelected = {}, onItemCreated = {}, itemLabel = { it },
             createContent = { _, _ -> }
         ),
         MultiPickerFormItemState(
-            label = "Field", items = listOf("value"),
+            label = "Field", createNewLabel = "Create new value", items = listOf("value"),
             selectedItems = if (empty) emptyList() else listOf("value"),
             mandatory = mandatory, validate = validate,
             onItemsChanged = {}, onItemCreated = {}, itemLabel = { it },

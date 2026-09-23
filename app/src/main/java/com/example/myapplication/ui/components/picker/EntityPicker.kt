@@ -51,6 +51,7 @@ fun <T> EntityPicker(
     createContent: @Composable (onCreated: (T) -> Unit, onCancel: () -> Unit) -> Unit,
     modifier: Modifier = Modifier,
     label: String,
+    createNewLabel: String,
     placeholder: String = stringResource(R.string.action_search_placeholder),
     isError: Boolean = false,
     supportingText: String? = null,
@@ -100,6 +101,7 @@ fun <T> EntityPicker(
                 .fillMaxWidth()
                 .bringIntoViewRequester(bringIntoViewRequester),
             label = label,
+            createNewLabel = createNewLabel,
             placeholder = placeholder,
             isError = isError,
             supportingText = supportingText
@@ -148,6 +150,7 @@ private fun <T> EntitySelection(
     itemSearchText: (T) -> String,
     modifier: Modifier,
     label: String,
+    createNewLabel: String,
     placeholder: String,
     isError: Boolean,
     supportingText: String?,
@@ -173,8 +176,6 @@ private fun <T> EntitySelection(
             )
         }
     }
-
-    val cleanLabel = remember(label) { label.removeSuffix(" *") }
 
     Column(modifier) {
         Text(
@@ -220,7 +221,7 @@ private fun <T> EntitySelection(
                         }) {
                             Icon(
                                 Icons.Default.Close,
-                                contentDescription = stringResource(R.string.cd_clear_selection, cleanLabel)
+                                contentDescription = stringResource(R.string.cd_clear_selection)
                             )
                         }
                     } else {
@@ -254,7 +255,7 @@ private fun <T> EntitySelection(
 
                 DropdownMenuItem(
                     text = {
-                        Text(stringResource(R.string.picker_create_new, cleanLabel))
+                        Text(createNewLabel)
                     },
                     leadingIcon = {
                         Icon(

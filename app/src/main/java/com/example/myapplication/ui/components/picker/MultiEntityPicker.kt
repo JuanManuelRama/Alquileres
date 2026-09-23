@@ -29,6 +29,7 @@ fun <T> MultiEntityPicker(
     createContent: @Composable (onCreated: (T) -> Unit, onCancel: () -> Unit) -> Unit,
     modifier: Modifier = Modifier,
     label: String,
+    createNewLabel: String,
     placeholder: String = stringResource(R.string.action_search_placeholder),
     isError: Boolean = false,
     supportingText: String? = null,
@@ -58,6 +59,7 @@ fun <T> MultiEntityPicker(
             onPickerInputsChanged = onPickerInputsChanged,
             modifier = Modifier.fillMaxWidth(),
             label = label,
+            createNewLabel = createNewLabel,
             placeholder = placeholder,
             isError = isError,
             supportingText = supportingText

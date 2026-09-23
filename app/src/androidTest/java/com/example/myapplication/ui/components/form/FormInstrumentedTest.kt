@@ -61,7 +61,7 @@ class FormInstrumentedTest {
                     }
                     if (multiple) {
                         MultiPickerItem(
-                            label = "Services", items = listOf("Water"), selectedItems = selections,
+                            label = "Services", createNewLabel = "Create new service", items = listOf("Water"), selectedItems = selections,
                             itemLabel = { it }, createContent = { _, _ -> },
                             placeholder = "Find service",
                             onItemsChanged = { selections = it }, onItemCreated = {}
@@ -69,7 +69,7 @@ class FormInstrumentedTest {
                         Item("Later", "", onValueChange = {})
                     } else {
                         PickerItem(
-                            label = "Owner", items = listOf("Ada"), selectedItem = querySelection,
+                            label = "Owner", createNewLabel = "Create new owner", items = listOf("Ada"), selectedItem = querySelection,
                             itemLabel = { it }, createContent = { _, _ -> },
                             placeholder = "Find owner",
                             onItemSelected = { querySelection = it }, onItemCreated = {}
@@ -233,12 +233,12 @@ class FormInstrumentedTest {
                         Column {
                             DateItem("Date", date, onValueChange = { date = it })
                             PickerItem(
-                                label = "Choice", items = listOf("A"), selectedItem = selected,
+                                label = "Choice", createNewLabel = "Create new choice", items = listOf("A"), selectedItem = selected,
                                 itemLabel = { it }, createContent = { _, _ -> },
                                 onItemSelected = { selected = it }, onItemCreated = {}
                             )
                             MultiPickerItem(
-                                label = "Choices", items = listOf("A"), selectedItems = selections,
+                                label = "Choices", createNewLabel = "Create new choice", items = listOf("A"), selectedItems = selections,
                                 itemLabel = { it }, createContent = { _, _ -> },
                                 onItemsChanged = { selections = it }, onItemCreated = {}
                             )
