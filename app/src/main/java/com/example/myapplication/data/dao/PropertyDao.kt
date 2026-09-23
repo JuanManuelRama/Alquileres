@@ -4,9 +4,9 @@ import androidx.room3.Dao
 import androidx.room3.Insert
 import androidx.room3.Query
 import androidx.room3.Transaction
+import com.example.myapplication.data.entity.ManagedProperty
 import com.example.myapplication.data.entity.PropertyEntity
 import com.example.myapplication.data.entity.PropertyWithOwner
-import com.example.myapplication.data.entity.ManagedProperty
 import kotlinx.coroutines.flow.Flow
 
 @Dao

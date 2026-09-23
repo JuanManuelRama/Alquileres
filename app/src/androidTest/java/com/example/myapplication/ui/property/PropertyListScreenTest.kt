@@ -1,10 +1,18 @@
 package com.example.myapplication.ui.property
 
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.ui.test.*
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.lifecycle.viewModelScope
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextReplacement
 import androidx.room3.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
@@ -13,13 +21,18 @@ import com.example.myapplication.data.AppDatabase
 import com.example.myapplication.data.repository.ContractRepository
 import com.example.myapplication.data.repository.OwnerRepository
 import com.example.myapplication.data.repository.PropertyRepository
-import com.example.myapplication.model.*
+import com.example.myapplication.model.Address
+import com.example.myapplication.model.Contract
+import com.example.myapplication.model.Owner
+import com.example.myapplication.model.Property
+import com.example.myapplication.model.Tenant
 import com.example.myapplication.ui.SaveStatus
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.math.BigDecimal
@@ -44,43 +57,29 @@ class PropertyListScreenTest {
             rule.waitForIdle()
         }
     }
-    private fun menu() {
-        rule.onNodeWithContentDescription(InstrumentationRegistry.getInstrumentation().targetContext.getString(R.string.property_actions, "Main 1")).performClick()
-    }
-
-    @After fun close() {
-        if (::model.isInitialized) model.viewModelScope.cancel()
-        db.close()
-    }
-
     @Test fun activeContractsBlockDeactivationAndDeleteRequiresConfirmation() {
         val contract = seed()
         show()
-        menu()
-        rule.onNodeWithText(text(R.string.action_deactivate_property)).assertIsNotEnabled()
-        rule.onNodeWithText(text(R.string.property_has_active_contracts)).assertIsDisplayed()
-        rule.onNodeWithText(text(R.string.action_delete)).performClick()
+        rule.onNodeWithText(text(R.string.property_active)).assertIsNotEnabled()
+        rule.onNodeWithContentDescription(text(R.string.action_delete)).performClick()
         rule.onNodeWithText(text(R.string.delete_property_title)).assertIsDisplayed()
         rule.onNodeWithText(text(R.string.action_cancel)).performClick()
         assertNotNull(runBlocking { contracts.observeById(contract.id).first() })
-        menu()
-        rule.onNodeWithText(text(R.string.action_delete)).performClick()
+        rule.onNodeWithContentDescription(text(R.string.action_delete)).performClick()
         rule.onNodeWithText(text(R.string.action_delete)).performClick()
         rule.waitUntil(5_000) { (model.state.value as? PropertyListState.Ready)?.rows?.isEmpty() == true }
         rule.onNodeWithText(text(R.string.empty_properties)).assertIsDisplayed()
         assertNull(runBlocking { contracts.observeById(contract.id).first() })
     }
 
-    @Test fun finishedPropertyCanBeDeactivatedAndReactivated() {
+    @Test fun finishedPropertyCanBeDeactivatedAndReactivatedWithCheckbox() {
         val contract = seed()
         runBlocking { contracts.finish(contract.id) }
         show()
-        menu()
-        rule.onNodeWithText(text(R.string.action_deactivate_property)).assertIsEnabled().performClick()
+        rule.onNodeWithText(text(R.string.property_active)).assertIsEnabled().performClick()
         rule.waitUntil(5_000) { (model.state.value as? PropertyListState.Ready)?.rows?.single()?.isActive == false && model.saveStatus.value == SaveStatus.Idle }
         assertTrue(runBlocking { properties.getActive().first().isEmpty() })
-        menu()
-        rule.onNodeWithText(text(R.string.action_reactivate_property)).performClick()
+        rule.onNodeWithText(text(R.string.property_inactive)).assertIsEnabled().performClick()
         rule.waitUntil(5_000) { (model.state.value as? PropertyListState.Ready)?.rows?.single()?.isActive == true }
         assertEquals(contract.property.id, runBlocking { properties.getActive().first().single().id })
     }
@@ -88,8 +87,7 @@ class PropertyListScreenTest {
     @Test fun editDraftRestoresAndDiscardKeepsPersistedPropertyThenSaveUpdatesIt() {
         val contract = seed()
         val restoration = show()
-        menu()
-        rule.onNodeWithText(text(R.string.action_edit)).performClick()
+        rule.onNodeWithContentDescription(text(R.string.action_edit)).performClick()
         rule.onAllNodes(hasSetTextAction())[0].performTextReplacement("Corrected")
         restoration.emulateSavedInstanceStateRestore()
         rule.onAllNodes(hasSetTextAction())[0].assertTextContains("Corrected")
@@ -97,8 +95,7 @@ class PropertyListScreenTest {
         rule.onNodeWithText(text(R.string.discard_changes_title)).assertIsDisplayed()
         rule.onNodeWithText(text(R.string.action_discard)).performClick()
         assertEquals("Main", runBlocking { properties.getAll().first().single().address.street })
-        menu()
-        rule.onNodeWithText(text(R.string.action_edit)).performClick()
+        rule.onNodeWithContentDescription(text(R.string.action_edit)).performClick()
         rule.onAllNodes(hasSetTextAction())[0].performTextReplacement("")
         rule.onNodeWithText(text(R.string.action_save)).performScrollTo().assertIsNotEnabled()
         rule.onAllNodes(hasSetTextAction())[0].performScrollTo().performTextReplacement("Corrected")

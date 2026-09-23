@@ -1,8 +1,8 @@
 package com.example.myapplication.ui.components.form
 
-import com.example.myapplication.ui.util.toInputBigDecimalOrNull
 import androidx.annotation.StringRes
 import com.example.myapplication.R
+import com.example.myapplication.ui.util.toInputBigDecimalOrNull
 import java.math.BigDecimal
 
 sealed interface ValidationError {

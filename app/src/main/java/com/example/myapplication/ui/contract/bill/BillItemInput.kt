@@ -1,13 +1,13 @@
 package com.example.myapplication.ui.contract.bill
 
-import com.example.myapplication.ui.util.toInputBigDecimalOrNull
-import kotlinx.serialization.Serializable
 import com.example.myapplication.model.BillItem
 import com.example.myapplication.ui.components.form.Validate
 import com.example.myapplication.ui.components.form.isBigDecimal
 import com.example.myapplication.ui.components.form.limitDecimals
 import com.example.myapplication.ui.components.form.maxLen
 import com.example.myapplication.ui.components.form.noInvalidChars
+import com.example.myapplication.ui.util.toInputBigDecimalOrNull
+import kotlinx.serialization.Serializable
 import java.util.UUID
 
 @Serializable

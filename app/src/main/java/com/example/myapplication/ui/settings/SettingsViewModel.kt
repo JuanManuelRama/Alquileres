@@ -2,9 +2,9 @@ package com.example.myapplication.ui.settings
 
 import androidx.lifecycle.ViewModel
 import com.example.myapplication.data.repository.SettingsRepository
-import com.example.myapplication.data.settings.NumberSeparator
 import com.example.myapplication.data.settings.AppLanguage
 import com.example.myapplication.data.settings.AppSettings
+import com.example.myapplication.data.settings.NumberSeparator
 import com.example.myapplication.data.settings.ThemeMode
 import com.example.myapplication.message.MessageSender
 import kotlinx.coroutines.flow.StateFlow

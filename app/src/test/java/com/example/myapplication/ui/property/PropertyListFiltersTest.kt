@@ -4,7 +4,9 @@ import com.example.myapplication.model.Address
 import com.example.myapplication.model.Owner
 import com.example.myapplication.model.Property
 import kotlinx.serialization.json.Json
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PropertyListFiltersTest {

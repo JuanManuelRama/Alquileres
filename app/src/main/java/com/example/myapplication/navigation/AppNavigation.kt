@@ -21,9 +21,9 @@ import com.example.myapplication.ui.contract.create.CreateContractScreen
 import com.example.myapplication.ui.contract.create.RenewContractScreen
 import com.example.myapplication.ui.contract.detail.ContractDetailScreen
 import com.example.myapplication.ui.contract.list.ContractListScreen
+import com.example.myapplication.ui.property.PropertyListScreen
 import com.example.myapplication.ui.settings.SettingsScreen
 import com.example.myapplication.ui.settings.SettingsViewModel
-import com.example.myapplication.ui.property.PropertyListScreen
 
 @Composable
 fun AppNavigation(

@@ -7,7 +7,6 @@
 ## Inputting numbers
 
 - KeyboardType.DecimalSigned doesn't work on Samsung, what in the actuall fuck.
-- Something should be done so the number parser takes both . and , as decimal separators
 
 ## Deleting unused stuff
 

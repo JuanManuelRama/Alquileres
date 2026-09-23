@@ -1,8 +1,5 @@
 package com.example.myapplication.ui.contract.detail
 
-import com.example.myapplication.ui.util.LocalNumberLocale
-import com.example.myapplication.ui.util.toInputBigDecimal
-import com.example.myapplication.ui.util.rememberNumberVisualTransformation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,7 +38,10 @@ import com.example.myapplication.ui.components.form.isBigDecimal
 import com.example.myapplication.ui.components.form.isPositive
 import com.example.myapplication.ui.components.form.limitDecimals
 import com.example.myapplication.ui.components.form.maxLen
+import com.example.myapplication.ui.util.LocalNumberLocale
 import com.example.myapplication.ui.util.rememberDateFormatters
+import com.example.myapplication.ui.util.rememberNumberVisualTransformation
+import com.example.myapplication.ui.util.toInputBigDecimal
 import com.example.myapplication.ui.util.toMoneyWithCurrency
 import com.example.myapplication.ui.util.toPercentage
 import java.math.BigDecimal
@@ -73,10 +73,11 @@ fun AdjustmentCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = dates.month(adjustment.time),
+                text = dates.shortMonth(adjustment.time),
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.bodyMedium
             )
@@ -85,11 +86,11 @@ fun AdjustmentCard(
                 Row(
                     modifier = Modifier.weight(1f),
                     horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.Top
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = adjustment.amount?.let { "${it.multiply(100.toBigDecimal()).toPercentage(LocalNumberLocale.current)}%" }
-                            ?: stringResource(R.string.label_not_set),
+                            ?: "—",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     if (editable) {
@@ -101,8 +102,8 @@ fun AdjustmentCard(
                                 showEditor = true
                             },
                             modifier = Modifier
-                                .offset(y = (-7).dp)
-                                .size(22.dp)
+                                .offset(y = (-6).dp)
+                                .size(20.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Edit,

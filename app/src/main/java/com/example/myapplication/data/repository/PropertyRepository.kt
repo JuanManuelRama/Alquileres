@@ -5,8 +5,8 @@ import com.example.myapplication.data.AppDatabase
 import com.example.myapplication.data.dao.OwnerDao
 import com.example.myapplication.data.dao.PropertyDao
 import com.example.myapplication.data.entity.toEntity
-import com.example.myapplication.model.Property
 import com.example.myapplication.model.Owner
+import com.example.myapplication.model.Property
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 

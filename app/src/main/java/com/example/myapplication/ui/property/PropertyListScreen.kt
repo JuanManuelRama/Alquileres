@@ -1,19 +1,46 @@
 package com.example.myapplication.ui.property
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSerializable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -138,31 +165,49 @@ fun PropertyListScreen(
 @Composable
 private fun PropertyRow(row: PropertyListItem, busy: Boolean, onEdit: () -> Unit, onDelete: () -> Unit, onSetActive: () -> Unit) {
     val property = row.property
-    var expanded by remember { mutableStateOf(false) }
+    val canToggleActive = !busy && (!row.isActive || !row.hasActiveContracts)
     Card(Modifier.fillMaxWidth()) {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(property.toString(), style = MaterialTheme.typography.titleMedium)
                 Text(property.owner.name, style = MaterialTheme.typography.bodyMedium)
-                Surface(shape = MaterialTheme.shapes.small, color = if (row.isActive) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceVariant) {
-                    Text(stringResource(if (row.isActive) R.string.property_active else R.string.property_inactive), Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelMedium)
-                }
             }
-            Box {
-                IconButton(onClick = { expanded = true }, enabled = !busy) {
-                    Icon(Icons.Default.MoreVert, stringResource(R.string.property_actions, property.toString()))
-                }
-                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                    DropdownMenuItem(text = { Text(stringResource(R.string.action_edit)) }, onClick = { expanded = false; onEdit() })
-                    DropdownMenuItem(
-                        text = { Text(stringResource(if (row.isActive) R.string.action_deactivate_property else R.string.action_reactivate_property)) },
-                        enabled = !row.isActive || !row.hasActiveContracts,
-                        onClick = { expanded = false; onSetActive() },
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                FilterChip(
+                    selected = row.isActive,
+                    onClick = onSetActive,
+                    enabled = canToggleActive,
+                    label = {
+                        Text(
+                            text = stringResource(if (row.isActive) R.string.property_active else R.string.property_inactive),
+                            style = MaterialTheme.typography.labelMedium,
+                        )
+                    },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = canToggleActive,
+                        selected = row.isActive,
+                        borderColor = MaterialTheme.colorScheme.outline,
+                        selectedBorderColor = MaterialTheme.colorScheme.primary,
+                    ),
+                )
+                IconButton(onClick = onEdit, enabled = !busy) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = stringResource(R.string.action_edit),
                     )
-                    if (row.isActive && row.hasActiveContracts) {
-                        Text(stringResource(R.string.property_has_active_contracts), Modifier.widthIn(max = 280.dp).padding(horizontal = 12.dp, vertical = 8.dp), style = MaterialTheme.typography.bodySmall)
-                    }
-                    DropdownMenuItem(text = { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) }, onClick = { expanded = false; onDelete() })
+                }
+                IconButton(onClick = onDelete, enabled = !busy) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = stringResource(R.string.action_delete),
+                        tint = MaterialTheme.colorScheme.error,
+                    )
                 }
             }
         }

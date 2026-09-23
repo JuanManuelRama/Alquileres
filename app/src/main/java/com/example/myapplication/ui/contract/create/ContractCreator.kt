@@ -1,7 +1,5 @@
 package com.example.myapplication.ui.contract.create
 
-import com.example.myapplication.ui.util.toInputBigDecimalOrNull
-import com.example.myapplication.ui.util.toInputBigDecimal
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -54,6 +52,8 @@ import com.example.myapplication.ui.service.ServiceCreator
 import com.example.myapplication.ui.service.ServiceInputs
 import com.example.myapplication.ui.util.getCurrencySymbol
 import com.example.myapplication.ui.util.rememberNumberVisualTransformation
+import com.example.myapplication.ui.util.toInputBigDecimal
+import com.example.myapplication.ui.util.toInputBigDecimalOrNull
 import java.math.BigDecimal
 import java.math.RoundingMode
 

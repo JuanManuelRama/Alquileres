@@ -1,9 +1,9 @@
 package com.example.myapplication.ui.util
 
-import java.math.BigDecimal
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import java.math.BigDecimal
 
 class DecimalInputTest {
     @Test fun acceptsBothSeparatorsAndPreservesPrecision() {

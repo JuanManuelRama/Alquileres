@@ -53,7 +53,6 @@ internal fun PropertyListFilters(
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         ListSearchField(state.query, { onChanged(state.copy(query = it)) }, stringResource(R.string.search_properties))
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            OwnerFilterChip(state.ownerId, owners) { onChanged(state.copy(ownerId = it)) }
             PropertyBooleanFilter(
                 value = state.isActive,
                 allLabel = stringResource(R.string.filter_property_status),
@@ -68,6 +67,7 @@ internal fun PropertyListFilters(
                 falseLabel = stringResource(R.string.filter_without_active_contracts),
                 onSelected = { onChanged(state.copy(hasActiveContracts = it)) },
             )
+            OwnerFilterChip(state.ownerId, owners) { onChanged(state.copy(ownerId = it)) }
             if (state.hasActiveFilters) {
                 TextButton(onClick = { onChanged(PropertyListFilterState()) }) {
                     Text(stringResource(R.string.action_clear_all))

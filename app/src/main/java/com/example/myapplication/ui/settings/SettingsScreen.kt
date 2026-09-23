@@ -39,9 +39,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
-import com.example.myapplication.data.settings.NumberSeparator
 import com.example.myapplication.data.settings.AppLanguage
 import com.example.myapplication.data.settings.AppSettings
+import com.example.myapplication.data.settings.NumberSeparator
 import com.example.myapplication.data.settings.ThemeMode
 import com.example.myapplication.message.MessageSender
 

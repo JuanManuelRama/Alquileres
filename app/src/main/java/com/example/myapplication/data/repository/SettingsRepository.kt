@@ -2,9 +2,9 @@ package com.example.myapplication.data.repository
 
 import android.content.Context
 import androidx.core.content.edit
-import com.example.myapplication.data.settings.NumberSeparator
 import com.example.myapplication.data.settings.AppLanguage
 import com.example.myapplication.data.settings.AppSettings
+import com.example.myapplication.data.settings.NumberSeparator
 import com.example.myapplication.data.settings.ThemeMode
 import com.example.myapplication.message.MessageSender
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -14,8 +14,8 @@ import com.example.myapplication.ui.contract.ContractViewModel
 import com.example.myapplication.ui.contract.bill.BillViewModel
 import com.example.myapplication.ui.contract.create.CreateContractViewModel
 import com.example.myapplication.ui.contract.detail.ContractDetailViewModel
-import com.example.myapplication.ui.settings.SettingsViewModel
 import com.example.myapplication.ui.property.PropertyListViewModel
+import com.example.myapplication.ui.settings.SettingsViewModel
 
 class AppViewModelFactory(
     private val propertyRepository: PropertyRepository,

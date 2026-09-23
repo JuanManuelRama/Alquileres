@@ -1,12 +1,12 @@
 package com.example.myapplication.ui.contract.list
 
-import com.example.myapplication.ui.util.LocalNumberLocale
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,12 +14,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,7 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
 import com.example.myapplication.model.Contract
-import com.example.myapplication.ui.util.toMoney
+import com.example.myapplication.ui.util.rememberDateFormatters
 import java.time.YearMonth
 
 data class ContractListItem(
@@ -42,11 +39,10 @@ data class ContractListItem(
 )
 
 internal fun Contract.listItem(month: YearMonth, paymentDue: Boolean, hikeThisMonth: Boolean): ContractListItem {
-    val expiryMonth = finishingMonth
     return ContractListItem(
         contract = this,
         paymentDue = paymentDue,
-        expiresSoon = expiryMonth == month || expiryMonth == month.plusMonths(1),
+        expiresSoon = finishingMonth == month || finishingMonth == month.plusMonths(1),
         hikeThisMonth = hikeThisMonth
     )
 }
@@ -58,71 +54,73 @@ fun ContractListCard(
     modifier: Modifier = Modifier,
     item: ContractListItem? = null
 ) {
-    OutlinedCard(
-        modifier = modifier,
-        onClick = onClick,
-        colors = CardDefaults.outlinedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        border = BorderStroke(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.outlineVariant
-        )
+    val dates = rememberDateFormatters()
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        onClick = onClick
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            ListItem(
-                colors = ListItemDefaults.colors(
-                    containerColor = Color.Transparent
-                ),
-                headlineContent = {
-                    Text(
-                        text = contract.property.toString(),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                },
-                supportingContent = {
-                    Text(
-                        text = stringResource(R.string.tenant_name_format, contract.tenant.name),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                },
-                trailingContent = {
-                    Text(
-                        text = stringResource(R.string.base_rent_format, contract.rent.toMoney(LocalNumberLocale.current)),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            )
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = contract.property.toString(),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = stringResource(R.string.tenant_name_format, contract.tenant.name),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = stringResource(R.string.duration_to_format, dates.month(contract.finishingMonth)),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
             if (item != null && (item.paymentDue || item.expiresSoon || item.hikeThisMonth)) {
-                FlowRow(
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.padding(start = 8.dp)
                 ) {
-                    if (item.paymentDue) {
-                        ContractStatusBadge(
-                            icon = Icons.Default.Warning,
-                            label = stringResource(R.string.status_payment_due),
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                            contentColor = MaterialTheme.colorScheme.onErrorContainer
-                        )
+                    Box(contentAlignment = Alignment.CenterEnd) {
+                        if (item.paymentDue) {
+                            ContractStatusBadge(
+                                icon = Icons.Default.Warning,
+                                label = stringResource(R.string.status_payment_due),
+                                containerColor = MaterialTheme.colorScheme.errorContainer,
+                                contentColor = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        } else {
+                            Spacer(Modifier.height(22.dp))
+                        }
                     }
-                    if (item.expiresSoon) {
-                        ContractStatusBadge(
-                            icon = Icons.Default.HourglassEmpty,
-                            label = stringResource(R.string.status_expires_soon),
-                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer
-                        )
+                    Box(contentAlignment = Alignment.CenterEnd) {
+                        if (item.expiresSoon) {
+                            ContractStatusBadge(
+                                icon = Icons.Default.HourglassEmpty,
+                                label = stringResource(R.string.status_expires_soon),
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                            )
+                        } else {
+                            Spacer(Modifier.height(22.dp))
+                        }
                     }
-                    if (item.hikeThisMonth) {
-                        ContractStatusBadge(
-                            icon = Icons.Default.KeyboardArrowUp,
-                            label = stringResource(R.string.status_hike_this_month),
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                    Box(contentAlignment = Alignment.CenterEnd) {
+                        if (item.hikeThisMonth) {
+                            ContractStatusBadge(
+                                icon = Icons.Default.KeyboardArrowUp,
+                                label = stringResource(R.string.status_hike_this_month),
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        } else {
+                            Spacer(Modifier.height(22.dp))
+                        }
                     }
                 }
             }
