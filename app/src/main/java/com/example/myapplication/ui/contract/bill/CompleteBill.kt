@@ -1,5 +1,7 @@
 package com.example.myapplication.ui.contract.bill
 
+import com.example.myapplication.ui.util.toInputBigDecimalOrNull
+import com.example.myapplication.ui.util.toInputBigDecimal
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -94,11 +96,11 @@ internal fun BillCompletionForm(
         if (!isFrozen && (hasChanges || edited) && draftValid) onSubmit(bill.copy(items = draftItems))
     }
     var confirmingPayment by rememberSaveable(bill.id, bill.isPaid) { mutableStateOf(false) }
-    val total = bill.rent + items.sumOf { it.amount.toBigDecimalOrNull() ?: BigDecimal.ZERO }
+    val total = bill.rent + items.sumOf { it.amount.toInputBigDecimalOrNull() ?: BigDecimal.ZERO }
 
     fun completedBill() = bill.copy(
         items = items.map { item ->
-            BillItem(item.description.trim(), item.amount.toBigDecimal(), item.isExtra)
+            BillItem(item.description.trim(), item.amount.toInputBigDecimal(), item.isExtra)
         }
     )
 

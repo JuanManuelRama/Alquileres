@@ -7,6 +7,17 @@ import org.junit.Test
 import java.math.BigDecimal
 
 class ValidationsTest {
+    @Test
+    fun commaDecimalsUseTheSameValidationRules() {
+        assertEquals(Validation.Valid(BigDecimal("12.50")),
+            Validate("12,50").isBigDecimal(1).isPositive(2).limitDecimals(2, 3))
+        assertFalse(Validate("12,501").isBigDecimal(1).limitDecimals(2, 3).isValid)
+        assertFalse(Validate("-12,50").isBigDecimal(1).isPositive(2).isValid)
+        listOf("1,2,3", "1.234,50", "1,234.50", ",", "abc").forEach {
+            assertFalse(Validate(it).isBigDecimal(1).isValid)
+        }
+    }
+
     val bigDecimalValidation = 1
     val positiveValidation = 2
     val invalidCharsValidation = 3

@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.contract.bill
 
+import com.example.myapplication.ui.util.toInputBigDecimalOrNull
 import kotlinx.serialization.Serializable
 import com.example.myapplication.model.BillItem
 import com.example.myapplication.ui.components.form.Validate
@@ -20,5 +21,5 @@ data class BillItemInput(
         Validate(description).noInvalidChars().maxLen(50).isValid &&
             (amount.isEmpty() || Validate(amount).maxLen(12).isBigDecimal().limitDecimals(2).isValid)
 
-    fun toBillItem() = BillItem(description.trim(), amount.toBigDecimalOrNull(), isExtra)
+    fun toBillItem() = BillItem(description.trim(), amount.toInputBigDecimalOrNull(), isExtra)
 }

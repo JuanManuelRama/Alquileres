@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.contract.detail
 
+import com.example.myapplication.ui.util.toInputBigDecimal
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -134,7 +135,7 @@ fun AdjustmentCard(
                         enabled = !saving,
                         submitText = stringResource(if (saving) R.string.action_saving else R.string.action_save_hike),
                         onSubmit = {
-                            onAmountChange(percentage.toBigDecimal().divide(BigDecimal(100)))
+                            onAmountChange(percentage.toInputBigDecimal().divide(BigDecimal(100)))
                         },
                         cancel = Cancel(text = stringResource(R.string.action_cancel), onClick = { showEditor = false; onSaveHandled() } )
                     ) {

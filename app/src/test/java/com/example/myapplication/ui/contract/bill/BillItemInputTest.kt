@@ -7,6 +7,14 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class BillItemInputTest {
+    @Test fun commaDecimalsAreValidatedAndSavedWithoutLosingPrecision() {
+        listOf("25,50" to "25.50", "-10,25" to "-10.25", "0,01" to "0.01").forEach { (input, expected) ->
+            val item = BillItemInput("Water", input, false)
+            assertTrue(item.isValidForSaving)
+            assertEquals(java.math.BigDecimal(expected), item.toBillItem().amount)
+        }
+    }
+
     @Test fun emptyFieldsAreOptionalButPopulatedFieldsMustBeValid() {
         assertTrue(BillItemInput("", "", true).isValidForSaving)
         assertTrue(BillItemInput("Water", "", false).isValidForSaving)

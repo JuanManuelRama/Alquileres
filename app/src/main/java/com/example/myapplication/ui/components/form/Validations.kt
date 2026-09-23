@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.components.form
 
+import com.example.myapplication.ui.util.toInputBigDecimalOrNull
 import androidx.annotation.StringRes
 import com.example.myapplication.R
 import java.math.BigDecimal
@@ -82,7 +83,7 @@ inline fun <T> Validation<T>.check(
 
 fun Validation<String>.isBigDecimal(
     @StringRes messageRes: Int = R.string.validation_invalid_decimal
-): Validation<BigDecimal> = map(messageRes) { it.toBigDecimalOrNull() }
+): Validation<BigDecimal> = map(messageRes) { it.toInputBigDecimalOrNull() }
 
 fun Validation<String>.isLong(
     @StringRes messageRes: Int = R.string.validation_invalid_number

@@ -1,5 +1,7 @@
 package com.example.myapplication.ui.contract.create
 
+import com.example.myapplication.ui.util.toInputBigDecimalOrNull
+import com.example.myapplication.ui.util.toInputBigDecimal
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -95,14 +97,14 @@ fun ContractCreator(
             val contract = Contract(
                 property = property,
                 tenant = Tenant(name = inputs.tenantName.trim(), phone = phoneNumberDigits(inputs.tenantPhone)),
-                rent = inputs.rent.toBigDecimal(),
+                rent = inputs.rent.toInputBigDecimal(),
                 startingMonth = startingMonth,
                 finishingMonth = finishingMonth,
                 adjustments = Contract.generateAdjustments(
                     startingMonth,
                     finishingMonth,
                     inputs.adjustmentTime.toLongOrNull(),
-                    inputs.fixedHike.toBigDecimalOrNull()?.divide(BigDecimal("100"), 4, RoundingMode.HALF_UP)
+                    inputs.fixedHike.toInputBigDecimalOrNull()?.divide(BigDecimal("100"), 4, RoundingMode.HALF_UP)
                 ),
                 services = inputs.selectedServices
             )
