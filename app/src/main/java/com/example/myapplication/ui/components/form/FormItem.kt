@@ -85,7 +85,9 @@ private fun TextFormItemContent(
 private fun <T> PickerFormItemContent(
     item: PickerFormItemState<T>,
     error: Error,
-    modifier: Modifier = Modifier) {
+    modifier: Modifier = Modifier
+) {
+    val defaultPlaceholder = stringResource(R.string.action_search_placeholder)
     EntityPicker(
         items = item.items,
         selectedItem = item.selectedItem,
@@ -98,7 +100,7 @@ private fun <T> PickerFormItemContent(
         onPickerInputsChanged = item.onPickerInputsChanged,
         modifier = modifier,
         label = item.displayLabel,
-        placeholder = item.placeholder,
+        placeholder = item.placeholder ?: defaultPlaceholder,
         isError = error.hasMessage,
         supportingText = error.renderMessage()
     )
@@ -110,6 +112,7 @@ private fun <T> MultiPickerFormItemContent(
     error: Error,
     modifier: Modifier = Modifier
 ) {
+    val defaultPlaceholder = stringResource(R.string.action_search_placeholder)
     MultiEntityPicker(
         items = item.items,
         selectedItems = item.selectedItems,
@@ -122,7 +125,7 @@ private fun <T> MultiPickerFormItemContent(
         onPickerInputsChanged = item.onPickerInputsChanged,
         modifier = modifier,
         label = item.displayLabel,
-        placeholder = item.placeholder,
+        placeholder = item.placeholder ?: defaultPlaceholder,
         isError = error.hasMessage,
         supportingText = error.renderMessage()
     )

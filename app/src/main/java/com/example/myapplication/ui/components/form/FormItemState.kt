@@ -90,7 +90,7 @@ data class PickerFormItemState<T>(
     val createContent: @Composable (onCreated: (T) -> Unit, onCancel: () -> Unit) -> Unit,
     val pickerInputs: PickerInputs? = null,
     val onPickerInputsChanged: (PickerInputs) -> Unit = {},
-    val placeholder: String = "Search $label...",
+    val placeholder: String? = null,
     override val validate: ((T?) -> Validation<*>)? = null,
 ) : ValidatedFormItemState<T?> {
     override val value: T? get() = selectedItem
@@ -109,7 +109,7 @@ data class MultiPickerFormItemState<T>(
     val createContent: @Composable (onCreated: (T) -> Unit, onCancel: () -> Unit) -> Unit,
     val pickerInputs: PickerInputs? = null,
     val onPickerInputsChanged: (PickerInputs) -> Unit = {},
-    val placeholder: String = "Search $label...",
+    val placeholder: String? = null,
     override val validate: ((List<T>) -> Validation<*>)? = null,
 ) : ValidatedFormItemState<List<T>> {
     override val value: List<T> get() = selectedItems

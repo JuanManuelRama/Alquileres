@@ -29,7 +29,7 @@ fun <T> MultiEntityPicker(
     createContent: @Composable (onCreated: (T) -> Unit, onCancel: () -> Unit) -> Unit,
     modifier: Modifier = Modifier,
     label: String,
-    placeholder: String = "Search...",
+    placeholder: String = stringResource(R.string.action_search_placeholder),
     isError: Boolean = false,
     supportingText: String? = null,
     pickerInputs: PickerInputs? = null,
