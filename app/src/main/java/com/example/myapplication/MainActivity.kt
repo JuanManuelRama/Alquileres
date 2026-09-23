@@ -31,6 +31,7 @@ import com.example.myapplication.navigation.AppNavigation
 import com.example.myapplication.ui.AppViewModelFactory
 import com.example.myapplication.ui.contract.ContractViewModel
 import com.example.myapplication.ui.theme.MyApplicationTheme
+import com.example.myapplication.ui.util.LocalNumberLocale
 import java.util.Locale
 
 class MainActivity : ComponentActivity() {
@@ -43,6 +44,8 @@ class MainActivity : ComponentActivity() {
             val settingsRepository = application.settingsRepository
             val themeMode by settingsRepository.themeMode.collectAsStateWithLifecycle()
             val language by settingsRepository.language.collectAsStateWithLifecycle()
+            val numberSeparator by settingsRepository.numberSeparator.collectAsStateWithLifecycle()
+            val deviceLocale = LocalConfiguration.current.locales[0]
 
             val factory = remember(application) {
                 AppViewModelFactory(
@@ -57,6 +60,7 @@ class MainActivity : ComponentActivity() {
 
             val contractViewModel: ContractViewModel by viewModels { factory }
 
+            CompositionLocalProvider(LocalNumberLocale provides numberSeparator.locale(deviceLocale)) {
             LocalizedContent(language = language) {
                 MyApplicationTheme(themeMode = themeMode) {
                     Surface(
@@ -70,6 +74,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 }
+            }
             }
         }
     }

@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.contract.detail
 
+import com.example.myapplication.ui.util.LocalNumberLocale
 import com.example.myapplication.ui.util.toInputBigDecimal
 import com.example.myapplication.ui.util.rememberNumberVisualTransformation
 import androidx.compose.foundation.layout.Arrangement
@@ -87,7 +88,7 @@ fun AdjustmentCard(
                     verticalAlignment = Alignment.Top
                 ) {
                     Text(
-                        text = adjustment.amount?.let { "${it.multiply(100.toBigDecimal()).toPercentage()}%" }
+                        text = adjustment.amount?.let { "${it.multiply(100.toBigDecimal()).toPercentage(LocalNumberLocale.current)}%" }
                             ?: stringResource(R.string.label_not_set),
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -113,7 +114,7 @@ fun AdjustmentCard(
                 }
 
                 Text(
-                    text = contract.valueAtMonth(adjustment.time).toMoneyWithCurrency(),
+                    text = contract.valueAtMonth(adjustment.time).toMoneyWithCurrency(numberLocale = LocalNumberLocale.current),
                     modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.bodyMedium
                 )

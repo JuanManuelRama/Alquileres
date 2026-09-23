@@ -3,6 +3,7 @@ package com.example.myapplication.ui.settings
 import com.example.myapplication.data.repository.SettingsRepository
 import com.example.myapplication.data.settings.AppLanguage
 import com.example.myapplication.data.settings.AppSettings
+import com.example.myapplication.data.settings.NumberSeparator
 import com.example.myapplication.data.settings.ThemeMode
 import com.example.myapplication.message.MessageSender
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +34,13 @@ class SettingsViewModelTest {
         private val _language = MutableStateFlow(initialLanguage)
         override val language: StateFlow<AppLanguage> = _language.asStateFlow()
 
+        private val _numberSeparator = MutableStateFlow(NumberSeparator.SYSTEM)
+        override val numberSeparator = _numberSeparator.asStateFlow()
+        override fun setNumberSeparator(separator: NumberSeparator) {
+            _numberSeparator.value = separator
+            _settings.value = _settings.value.copy(numberSeparator = separator)
+        }
+
         private val _messageSender = MutableStateFlow(initialMessageSender)
         override val messageSender: StateFlow<MessageSender> = _messageSender.asStateFlow()
 
@@ -50,6 +58,15 @@ class SettingsViewModelTest {
             _messageSender.value = messageSender
             _settings.value = _settings.value.copy(messageSender = messageSender)
         }
+    }
+
+    @Test
+    fun numberSeparatorUpdatesBothSettingsFlows() {
+        val viewModel = SettingsViewModel(FakeSettingsRepository())
+        assertEquals(NumberSeparator.SYSTEM, viewModel.numberSeparator.value)
+        viewModel.setNumberSeparator(NumberSeparator.COMMA)
+        assertEquals(NumberSeparator.COMMA, viewModel.numberSeparator.value)
+        assertEquals(NumberSeparator.COMMA, viewModel.settings.value.numberSeparator)
     }
 
     @Test

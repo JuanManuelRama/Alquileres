@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.contract.detail
 
+import com.example.myapplication.ui.util.LocalNumberLocale
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
@@ -22,11 +23,11 @@ fun ContractRentCard(
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = stringResource(R.string.label_rent), style = MaterialTheme.typography.labelLarge)
             Text(
-                text = stringResource(R.string.rent_current_format, contract.currentValue().toMoney()),
+                text = stringResource(R.string.rent_current_format, contract.currentValue().toMoney(LocalNumberLocale.current)),
                 style = MaterialTheme.typography.bodyLarge
             )
             Text(
-                text = stringResource(R.string.rent_initial_format, contract.rent.toMoney()),
+                text = stringResource(R.string.rent_initial_format, contract.rent.toMoney(LocalNumberLocale.current)),
                 style = MaterialTheme.typography.bodyMedium
             )
         }

@@ -89,6 +89,7 @@ fun AppNavigation(
                         onThemeModeSelected = settingsViewModel::setThemeMode,
                         onLanguageSelected = settingsViewModel::setLanguage,
                         onMessageSenderSelected = settingsViewModel::setMessageSender,
+                        onNumberSeparatorSelected = settingsViewModel::setNumberSeparator,
                     )
                 }
                 is AddPropiedad -> NavEntry(route) {

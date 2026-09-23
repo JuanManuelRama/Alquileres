@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.contract.bill
 
+import com.example.myapplication.ui.util.LocalNumberLocale
 import com.example.myapplication.ui.util.toInputBigDecimalOrNull
 import com.example.myapplication.ui.util.toInputBigDecimal
 import androidx.compose.foundation.layout.Arrangement
@@ -166,7 +167,7 @@ internal fun BillCompletionForm(
             BillAmountRow(rentLabel) {
                 Item(
                     field = rentLabel,
-                    value = bill.rent.toMoney(),
+                    value = bill.rent.toMoney(LocalNumberLocale.current),
                     prefix = { Text(getCurrencySymbol()) },
                     textStyle = MaterialTheme.typography.bodyLarge.copy(textAlign = TextAlign.End),
                     showLabel = false,
@@ -264,7 +265,7 @@ internal fun BillCompletionForm(
             BillAmountRow(totalLabel, total = true) {
                 Item(
                     field = totalLabel,
-                    value = total.toMoney(),
+                    value = total.toMoney(LocalNumberLocale.current),
                     modifiable = false,
                     mandatory = false,
                     showLabel = false,
@@ -317,7 +318,7 @@ private fun PaymentConfirmation(
             ) {
                 Content {
                     val monthText = dates.month(bill.month)
-                    Text("$monthText - ${bill.total.toMoney()}")
+                    Text("$monthText - ${bill.total.toMoney(LocalNumberLocale.current)}")
                     Text(stringResource(R.string.bill_confirm_payment_message))
                     if (paymentFailed) {
                         Text(stringResource(R.string.err_payment_save_failed), color = MaterialTheme.colorScheme.error)

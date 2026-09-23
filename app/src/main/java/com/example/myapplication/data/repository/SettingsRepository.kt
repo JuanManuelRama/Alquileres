@@ -2,6 +2,7 @@ package com.example.myapplication.data.repository
 
 import android.content.Context
 import androidx.core.content.edit
+import com.example.myapplication.data.settings.NumberSeparator
 import com.example.myapplication.data.settings.AppLanguage
 import com.example.myapplication.data.settings.AppSettings
 import com.example.myapplication.data.settings.ThemeMode
@@ -14,9 +15,11 @@ interface SettingsRepository {
     val settings: StateFlow<AppSettings>
     val themeMode: StateFlow<ThemeMode>
     val language: StateFlow<AppLanguage>
+    val numberSeparator: StateFlow<NumberSeparator>
     val messageSender: StateFlow<MessageSender>
     fun setThemeMode(mode: ThemeMode)
     fun setLanguage(language: AppLanguage)
+    fun setNumberSeparator(separator: NumberSeparator)
     fun setMessageSender(messageSender: MessageSender)
 }
 
@@ -28,6 +31,7 @@ class DefaultSettingsRepository(context: Context) : SettingsRepository {
             themeMode = loadThemeMode(),
             language = loadLanguage(),
             messageSender = loadMessageSender(),
+            numberSeparator = loadNumberSeparator(),
         )
     )
     override val settings: StateFlow<AppSettings> = _settings.asStateFlow()
@@ -38,6 +42,9 @@ class DefaultSettingsRepository(context: Context) : SettingsRepository {
     private val _language = MutableStateFlow(_settings.value.language)
     override val language: StateFlow<AppLanguage> = _language.asStateFlow()
 
+    private val _numberSeparator = MutableStateFlow(_settings.value.numberSeparator)
+    override val numberSeparator: StateFlow<NumberSeparator> = _numberSeparator.asStateFlow()
+
     private val _messageSender = MutableStateFlow(_settings.value.messageSender)
     override val messageSender: StateFlow<MessageSender> = _messageSender.asStateFlow()
 
@@ -47,6 +54,7 @@ class DefaultSettingsRepository(context: Context) : SettingsRepository {
         _themeMode.value = updated.themeMode
         _language.value = updated.language
         _messageSender.value = updated.messageSender
+        _numberSeparator.value = updated.numberSeparator
     }
 
     private fun loadThemeMode(): ThemeMode {
@@ -65,6 +73,16 @@ class DefaultSettingsRepository(context: Context) : SettingsRepository {
         } catch (_: Exception) {
             AppLanguage.ENGLISH
         }
+    }
+
+    private fun loadNumberSeparator(): NumberSeparator {
+        val savedName = prefs.getString(KEY_NUMBER_SEPARATOR, NumberSeparator.SYSTEM.name)
+        return NumberSeparator.entries.find { it.name == savedName } ?: NumberSeparator.SYSTEM
+    }
+
+    override fun setNumberSeparator(separator: NumberSeparator) {
+        prefs.edit { putString(KEY_NUMBER_SEPARATOR, separator.name) }
+        updateSettings { it.copy(numberSeparator = separator) }
     }
 
     private fun loadMessageSender(): MessageSender {
@@ -95,6 +113,7 @@ class DefaultSettingsRepository(context: Context) : SettingsRepository {
         private const val PREFS_NAME = "app_settings"
         private const val KEY_THEME_MODE = "theme_mode"
         private const val KEY_LANGUAGE = "language"
+        private const val KEY_NUMBER_SEPARATOR = "number_separator"
         private const val KEY_MESSAGE_SENDER = "message_sender"
     }
 }

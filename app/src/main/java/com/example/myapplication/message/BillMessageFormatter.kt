@@ -7,7 +7,11 @@ import java.util.Locale
 
 /** Plain text shared by any message sender; presentation changes belong here. */
 object BillMessageFormatter {
-    fun format(bill: Bill, locale: Locale = Locale.getDefault()): String {
+    fun format(
+        bill: Bill,
+        locale: Locale = Locale.getDefault(),
+        numberLocale: Locale = locale,
+    ): String {
         require(bill.isValid) { "Complete the bill before sending it" }
         val dates = DateFormatters(locale)
         return buildString {
@@ -16,9 +20,9 @@ object BillMessageFormatter {
             appendLine("Bill for ${dates.month(bill.month)}")
             appendLine("Property: ${bill.contract.property.address}")
             appendLine()
-            appendLine("Rent: ${bill.rent.toMoneyWithCurrency(locale)}")
-            bill.items.forEach { appendLine("${it.description}: ${it.amount!!.toMoneyWithCurrency(locale)}") }
-            appendLine("Total: ${bill.total.toMoneyWithCurrency(locale)}")
+            appendLine("Rent: ${bill.rent.toMoneyWithCurrency(locale, numberLocale)}")
+            bill.items.forEach { appendLine("${it.description}: ${it.amount!!.toMoneyWithCurrency(locale, numberLocale)}") }
+            appendLine("Total: ${bill.total.toMoneyWithCurrency(locale, numberLocale)}")
             bill.paidAt?.let {
                 appendLine("Paid on ${dates.date(it)}")
             }

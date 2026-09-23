@@ -213,4 +213,8 @@
     <string name="filter_with_active_contracts">Con contratos activos</string>
     <string name="filter_without_active_contracts">Sin contratos activos</string>
     <string name="no_matching_properties">Ninguna propiedad coincide con estos filtros.</string>
+    <string name="label_number_separator">Formato de números</string>
+    <string name="number_separator_system">Dispositivo</string>
+    <string name="number_separator_comma">1.234,56</string>
+    <string name="number_separator_dot">1,234.56</string>
 </resources>

@@ -2,7 +2,6 @@ package com.example.myapplication.ui.util
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
@@ -39,8 +38,11 @@ fun BigDecimal.toMoney(locale: Locale = Locale.getDefault()): String {
     return formatter.format(truncated)
 }
 
-fun BigDecimal.toMoneyWithCurrency(locale: Locale = Locale.getDefault()): String =
-    "${getCurrencySymbol(locale)} ${toMoney(locale)}"
+fun BigDecimal.toMoneyWithCurrency(
+    locale: Locale = Locale.getDefault(),
+    numberLocale: Locale = locale,
+): String =
+    "${getCurrencySymbol(locale)} ${toMoney(numberLocale)}"
 
 /**
  * Formats a [BigDecimal] as a percentage value, truncating to max 4 decimal places (without rounding up),
@@ -147,7 +149,7 @@ class NumberVisualTransformation(
 
 @Composable
 fun rememberNumberVisualTransformation(
-    locale: Locale = LocalConfiguration.current.locales[0]
+    locale: Locale = LocalNumberLocale.current
 ): VisualTransformation {
     return remember(locale) { NumberVisualTransformation(locale) }
 }

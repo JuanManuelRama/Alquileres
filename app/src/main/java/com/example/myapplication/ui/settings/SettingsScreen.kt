@@ -39,6 +39,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.R
+import com.example.myapplication.data.settings.NumberSeparator
 import com.example.myapplication.data.settings.AppLanguage
 import com.example.myapplication.data.settings.AppSettings
 import com.example.myapplication.data.settings.ThemeMode
@@ -53,6 +54,7 @@ fun SettingsScreen(
     onThemeModeSelected: (ThemeMode) -> Unit,
     onLanguageSelected: (AppLanguage) -> Unit,
     onMessageSenderSelected: (MessageSender) -> Unit,
+    onNumberSeparatorSelected: (NumberSeparator) -> Unit,
 ) {
     var showLanguageDialog by remember { mutableStateOf(value = false) }
 
@@ -192,6 +194,36 @@ fun SettingsScreen(
                                         MessageSender.Sms -> stringResource(R.string.message_sender_sms)
                                     },
                                 )
+                            }
+                        }
+                    }
+                }
+            }
+
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.label_number_separator),
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                        NumberSeparator.entries.forEachIndexed { index, separator ->
+                            SegmentedButton(
+                                selected = separator == settings.numberSeparator,
+                                onClick = { onNumberSeparatorSelected(separator) },
+                                shape = SegmentedButtonDefaults.itemShape(
+                                    index = index,
+                                    count = NumberSeparator.entries.size,
+                                ),
+                            ) {
+                                Text(stringResource(when (separator) {
+                                    NumberSeparator.SYSTEM -> R.string.number_separator_system
+                                    NumberSeparator.COMMA -> R.string.number_separator_comma
+                                    NumberSeparator.DOT -> R.string.number_separator_dot
+                                }))
                             }
                         }
                     }

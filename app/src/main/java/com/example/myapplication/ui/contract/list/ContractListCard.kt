@@ -1,5 +1,6 @@
 package com.example.myapplication.ui.contract.list
 
+import com.example.myapplication.ui.util.LocalNumberLocale
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -87,7 +88,7 @@ fun ContractListCard(
                 },
                 trailingContent = {
                     Text(
-                        text = stringResource(R.string.base_rent_format, contract.rent.toMoney()),
+                        text = stringResource(R.string.base_rent_format, contract.rent.toMoney(LocalNumberLocale.current)),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary
                     )

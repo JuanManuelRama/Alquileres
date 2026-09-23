@@ -32,6 +32,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.myapplication.R
 import com.example.myapplication.message.BillMessageFormatter
 import com.example.myapplication.ui.components.form.DiscardChangesDialog
+import com.example.myapplication.ui.util.LocalNumberLocale
 import com.example.myapplication.ui.util.rememberDateFormatters
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,6 +45,7 @@ fun BillScreen(
 ) {
     val context = LocalContext.current
     val dates = rememberDateFormatters()
+    val numberLocale = LocalNumberLocale.current
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val messageSender by viewModel.messageSender.collectAsStateWithLifecycle()
     var changedBillIds by rememberSaveable { mutableStateOf(emptyList<Long>()) }
@@ -135,7 +137,7 @@ fun BillScreen(
                             messageSender.sendMessage(
                                 context,
                                 draft.contract.tenant.phone,
-                                BillMessageFormatter.format(draft, dates.locale)
+                                BillMessageFormatter.format(draft, dates.locale, numberLocale)
                             )
                         },
                         onChangesChanged = { hasChanges ->
