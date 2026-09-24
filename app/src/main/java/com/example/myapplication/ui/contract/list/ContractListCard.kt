@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -35,15 +36,17 @@ data class ContractListItem(
     val contract: Contract,
     val paymentDue: Boolean,
     val expiresSoon: Boolean,
-    val hikeThisMonth: Boolean
+    val hikeThisMonth: Boolean,
+    val billIncomplete: Boolean = false
 )
 
-internal fun Contract.listItem(month: YearMonth, paymentDue: Boolean, hikeThisMonth: Boolean): ContractListItem {
+internal fun Contract.listItem(month: YearMonth, paymentDue: Boolean, hikeThisMonth: Boolean, billIncomplete: Boolean = false): ContractListItem {
     return ContractListItem(
         contract = this,
-        paymentDue = paymentDue,
+        paymentDue = paymentDue && !billIncomplete,
         expiresSoon = finishingMonth == month || finishingMonth == month.plusMonths(1),
-        hikeThisMonth = hikeThisMonth
+        hikeThisMonth = hikeThisMonth,
+        billIncomplete = billIncomplete
     )
 }
 
@@ -80,14 +83,21 @@ fun ContractListCard(
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
-            if (item != null && (item.paymentDue || item.expiresSoon || item.hikeThisMonth)) {
+            if (item != null && (item.billIncomplete || item.paymentDue || item.expiresSoon || item.hikeThisMonth)) {
                 Column(
                     horizontalAlignment = Alignment.End,
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                     modifier = Modifier.padding(start = 8.dp)
                 ) {
                     Box(contentAlignment = Alignment.CenterEnd) {
-                        if (item.paymentDue) {
+                        if (item.billIncomplete) {
+                            ContractStatusBadge(
+                                icon = Icons.Default.Edit,
+                                label = stringResource(R.string.status_bill_incomplete),
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        } else if (item.paymentDue) {
                             ContractStatusBadge(
                                 icon = Icons.Default.Warning,
                                 label = stringResource(R.string.status_payment_due),

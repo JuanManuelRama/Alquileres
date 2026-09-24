@@ -215,4 +215,6 @@
     <string name="number_separator_system">Dispositivo</string>
     <string name="number_separator_comma">1.234,56</string>
     <string name="number_separator_dot">1,234.56</string>
+    <string name="status_bill_incomplete">Recibo incompleto</string>
+    <string name="filter_bill_incomplete">Recibos incompletos</string>
 </resources>

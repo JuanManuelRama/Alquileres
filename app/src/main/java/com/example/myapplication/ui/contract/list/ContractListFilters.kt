@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -96,8 +97,23 @@ internal fun ContractListFilters(
         ) {
             if (showStatusFilters) {
                 FilterChip(
+                    selected = state.billIncomplete,
+                    onClick = {
+                        state.billIncomplete = !state.billIncomplete
+                        if (state.billIncomplete) state.paymentDue = false
+                    },
+                    label = { Text(stringResource(R.string.filter_bill_incomplete)) },
+                    leadingIcon = {
+                        Icon(Icons.Default.Edit, contentDescription = null,
+                            modifier = Modifier.size(FilterChipDefaults.IconSize))
+                    }
+                )
+                FilterChip(
                     selected = state.paymentDue,
-                    onClick = { state.paymentDue = !state.paymentDue },
+                    onClick = {
+                        state.paymentDue = !state.paymentDue
+                        if (state.paymentDue) state.billIncomplete = false
+                    },
                     label = { Text(stringResource(R.string.filter_due)) },
                     leadingIcon = {
                         Icon(

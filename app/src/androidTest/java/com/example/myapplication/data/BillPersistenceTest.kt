@@ -81,7 +81,8 @@ class BillPersistenceTest {
             assertNull(db.billDao().find(id, month)!!.bill.rent)
             assertNull(reopened.items.single().amount)
             assertTrue(db.billDao().observePaidMonths(id).first().isEmpty())
-            assertTrue(db.contractDao().observeWithStatus(month).first().first { it.details.contract.id == id }.paymentDue)
+            assertFalse(db.contractDao().observeWithStatus(month).first().first { it.details.contract.id == id }.paymentDue)
+            assertTrue(db.contractDao().observeWithStatus(month).first().first { it.details.contract.id == id }.billIncomplete)
 
             val next = repository.open(id, month.plusMonths(1))
             assertNotEquals(first.id, next.id)

@@ -78,6 +78,7 @@ class ContractFinishingTest {
             SQLiteDatabase.openDatabase(context.getDatabasePath(name).path, null, SQLiteDatabase.OPEN_READWRITE).use {
                 it.execSQL("ALTER TABLE Contract DROP COLUMN isFinished")
                 it.execSQL("ALTER TABLE Property DROP COLUMN isActive")
+                it.execSQL("ALTER TABLE Adjustment DROP COLUMN frozen")
                 it.execSQL("DROP TABLE ContractServiceCrossRef")
                 it.execSQL("""
                     CREATE TABLE ContractServiceCrossRef (
@@ -93,7 +94,7 @@ class ContractFinishingTest {
                 it.version = 18
             }
             val migrated = Room.databaseBuilder(context, AppDatabase::class.java, name)
-                .addMigrations(AppDatabase.MIGRATION_18_19, AppDatabase.MIGRATION_19_20, AppDatabase.MIGRATION_20_21).build()
+                .addMigrations(AppDatabase.MIGRATION_18_19, AppDatabase.MIGRATION_19_20, AppDatabase.MIGRATION_20_21, AppDatabase.MIGRATION_21_22).build()
             try {
                 assertEquals(id, migrated.contractDao().observeWithStatus(YearMonth.of(2026, 1)).first().single().details.contract.id)
                 assertEquals(2, migrated.billDao().list(id).size)

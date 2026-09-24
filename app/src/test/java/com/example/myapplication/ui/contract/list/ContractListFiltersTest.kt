@@ -59,6 +59,20 @@ class ContractListFiltersTest {
         assertTrue(state.matches(all[0].contract))
     }
 
+    @Test fun incompleteBillFilterMatchesRestoresAndClears() {
+        val incomplete = all[0].copy(paymentDue = false, billIncomplete = true)
+        val state = ContractListFilterState(billIncomplete = true)
+        assertTrue(state.matches(incomplete.contract, incomplete))
+        assertFalse(state.matches(all[0].contract, all[0]))
+        val saved = with(ContractListFilterState.Saver) { SaverScope { it is String }.save(state)!! }
+        val restored = ContractListFilterState.Saver.restore(saved)!!
+        assertTrue(restored.billIncomplete)
+        assertTrue(restored.hasActiveFilters)
+        restored.clear()
+        assertFalse(restored.billIncomplete)
+        assertFalse(restored.hasActiveFilters)
+    }
+
     @Test fun savedFiltersRestoreDatesAndClearAllFields() {
         val state = ContractListFilterState("Oak", 10, YearMonth.of(2026, 3), YearMonth.of(2026, 8), true, true, true)
         val saved = with(ContractListFilterState.Saver) { SaverScope { it is String }.save(state)!! }

@@ -73,6 +73,41 @@ class PersistenceInstrumentedTest {
     }
 
     @Test
+    fun billCompletionAndPaymentStatusesAreExclusive() = runTest {
+        val owner = database.ownerDao().insert(OwnerEntity(name = "Owner"))
+        val property = database.propertyDao().insertProperty(
+            PropertyEntity(address = Address("Main", "1", null), ownerId = owner)
+        )
+        val month = YearMonth.of(2026, 1)
+        val id = database.contractDao().insertContract(ContractEntity(
+            propertyId = property, tenant = Tenant("Tenant", "123"),
+            rent = BigDecimal("1000"), startingMonth = month, finishingMonth = month
+        ))
+        suspend fun checkStatus(incomplete: Boolean, due: Boolean, at: YearMonth = month) {
+            val status = database.contractDao().observeWithStatus(at).first().single()
+            assertEquals(incomplete, status.billIncomplete)
+            assertEquals(due, status.paymentDue)
+        }
+        checkStatus(true, false) // No bill yet.
+        checkStatus(false, false, month.minusMonths(1))
+        val contract = database.contractDao().observeById(id).first()!!.toDomain()
+        database.billDao().createAll(contract.createBills().associate { it.toEntity() to it.itemEntities() })
+        checkStatus(false, true) // Rent-only bills are complete even with null stored rent.
+        val repository = com.example.myapplication.data.repository.BillRepository(database.billDao())
+        val bill = repository.open(id, month)
+        repository.save(bill.copy(items = listOf(com.example.myapplication.model.BillItem("Water", null))))
+        checkStatus(true, false)
+        repository.save(bill.copy(items = listOf(com.example.myapplication.model.BillItem(" \t\n", BigDecimal.ZERO))))
+        checkStatus(true, false)
+        val complete = repository.save(bill.copy(items = listOf(
+            com.example.myapplication.model.BillItem("Water", BigDecimal.ZERO)
+        )))
+        checkStatus(false, true)
+        repository.markPaid(complete, month.atDay(1))
+        checkStatus(false, false)
+    }
+
+    @Test
     fun basicEntitiesRoundTripThroughRoom() = runTest {
         database.ownerDao().insert(OwnerEntity(name = "Ada"))
         database.serviceDao().insert(ServiceEntity(name = "Water"))
@@ -126,10 +161,11 @@ class PersistenceInstrumentedTest {
         assertTrue(summary.adjustments.isEmpty())
         assertTrue(summary.services.isEmpty())
         assertFalse(statuses.getValue(firstId).hikeThisMonth)
-        assertTrue(statuses.getValue(secondId).paymentDue)
+        assertFalse(statuses.getValue(secondId).paymentDue)
+        assertTrue(statuses.getValue(secondId).billIncomplete)
         assertFalse(statuses.getValue(secondId).hikeThisMonth)
         val previousMonth = database.contractDao().observeWithStatus(date.minusMonths(1)).first()
-        assertTrue(previousMonth.all { it.paymentDue && !it.hikeThisMonth })
+        assertTrue(previousMonth.all { (it.paymentDue || it.billIncomplete) && !it.hikeThisMonth })
     }
 
     @Test

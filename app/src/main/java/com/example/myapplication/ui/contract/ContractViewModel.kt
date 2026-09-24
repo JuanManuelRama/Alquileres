@@ -39,7 +39,7 @@ class ContractViewModel(
     @OptIn(ExperimentalCoroutinesApi::class)
     val activeListState: StateFlow<ContractListUiState> = currentMonth.flatMapLatest { month ->
         contractRepository.observeWithStatus(month).map { contracts ->
-            contracts.map { it.details.toDomain().listItem(month, it.paymentDue, it.hikeThisMonth) }
+            contracts.map { it.details.toDomain().listItem(month, it.paymentDue, it.hikeThisMonth, it.billIncomplete) }
         }
     }.map<List<ContractListItem>, ContractListUiState> { ContractListUiState.Active(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ContractListUiState.Loading(isInactive = false))

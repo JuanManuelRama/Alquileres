@@ -28,7 +28,23 @@ interface ContractDao {
                     SELECT 1 FROM Bill b
                     WHERE b.contractId = c.id AND b.paidAt IS NOT NULL
                         AND b.billingMonth = :month
+                ) AND EXISTS (
+                    SELECT 1 FROM Bill b
+                    WHERE b.contractId = c.id AND b.billingMonth = :month
+                        AND NOT EXISTS (
+                            SELECT 1 FROM BillItem i WHERE i.billId = b.id
+                                AND (i.amount = '' OR trim(i.description, char(9,10,11,12,13,32,133,160,5760,8192,8193,8194,8195,8196,8197,8198,8199,8200,8201,8202,8232,8233,8239,8287,12288)) = '')
+                        )
                 )) AS paymentDue,
+            (c.startingMonth <= :month AND c.finishingMonth >= :month
+                AND NOT EXISTS (
+                    SELECT 1 FROM Bill b
+                    WHERE b.contractId = c.id AND b.billingMonth = :month
+                        AND (b.paidAt IS NOT NULL OR NOT EXISTS (
+                            SELECT 1 FROM BillItem i WHERE i.billId = b.id
+                                AND (i.amount = '' OR trim(i.description, char(9,10,11,12,13,32,133,160,5760,8192,8193,8194,8195,8196,8197,8198,8199,8200,8201,8202,8232,8233,8239,8287,12288)) = '')
+                        ))
+                )) AS billIncomplete,
             EXISTS (
                 SELECT 1 FROM Adjustment a
                 WHERE a.contractId = c.id

@@ -21,6 +21,14 @@ class ContractListItemTest {
     )
 
     @Test
+    fun incompleteBillTakesPrecedenceOverPaymentDue() {
+        val item = contract().listItem(month, paymentDue = true, hikeThisMonth = true, billIncomplete = true)
+        assertTrue(item.billIncomplete)
+        assertFalse(item.paymentDue)
+        assertTrue(item.hikeThisMonth)
+    }
+
+    @Test
     fun expiryIncludesThisAndNextMonthAcrossYearBoundary() {
         assertTrue(contract().listItem(month, false, false).expiresSoon)
         assertTrue(contract().copy(finishingMonth = month).listItem(month, false, false).expiresSoon)

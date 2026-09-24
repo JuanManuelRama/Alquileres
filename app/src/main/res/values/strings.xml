@@ -218,4 +218,6 @@
     <string name="number_separator_system">Device</string>
     <string name="number_separator_comma">1.234,56</string>
     <string name="number_separator_dot">1,234.56</string>
+    <string name="status_bill_incomplete">Incomplete bill</string>
+    <string name="filter_bill_incomplete">Incomplete bills</string>
 </resources>
