@@ -16,8 +16,8 @@ class NumberFormattersTest {
         try {
             Locale.setDefault(Locale.forLanguageTag("es-AR"))
             assertEquals("$", getCurrencySymbol(Locale.US))
-            assertEquals("$ 1,234.5", BigDecimal("1234.50").toMoneyWithCurrency(Locale.US))
-            assertEquals("$ -10.25", BigDecimal("-10.25").toMoneyWithCurrency(Locale.US))
+            assertEquals("$1,234.5", BigDecimal("1234.50").toMoneyWithCurrency(Locale.US))
+            assertEquals("$-10.25", BigDecimal("-10.25").toMoneyWithCurrency(Locale.US))
         } finally {
             Locale.setDefault(original)
             Locale.setDefault(Locale.Category.DISPLAY, originalDisplay)

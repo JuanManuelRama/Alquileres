@@ -138,7 +138,7 @@ fun BillScreen(
                             messageSender.sendMessage(
                                 context,
                                 draft.contract.tenant.phone,
-                                BillMessageFormatter.format(draft, dates.locale, numberLocale)
+                                BillMessageFormatter.format(context, draft, dates.locale, numberLocale)
                             )
                         },
                         onChangesChanged = { hasChanges ->

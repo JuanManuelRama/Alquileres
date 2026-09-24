@@ -42,7 +42,7 @@ fun BigDecimal.toMoneyWithCurrency(
     locale: Locale = Locale.getDefault(),
     numberLocale: Locale = locale,
 ): String =
-    "${getCurrencySymbol(locale)} ${toMoney(numberLocale)}"
+    getCurrencySymbol(locale) + toMoney(numberLocale)
 
 /**
  * Formats a [BigDecimal] as a percentage value, truncating to max 4 decimal places (without rounding up),

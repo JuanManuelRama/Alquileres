@@ -170,6 +170,12 @@
     <string name="label_message_provider">Proveedor de mensajes</string>
     <string name="message_sender_sms">SMS</string>
 
+    <!-- Message Formatting -->
+    <string name="msg_hello_tenant">Hola %1$s,</string>
+    <string name="msg_bill_for_month">Factura de %1$s</string>
+    <string name="msg_rent_item">Alquiler: %1$s</string>
+    <string name="msg_total_item">Total: %1$s</string>
+
     <!-- Validations and Errors -->
     <string name="validation_invalid_decimal">debe ser un número decimal válido</string>
     <string name="validation_invalid_number">debe ser un número válido</string>

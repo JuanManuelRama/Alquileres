@@ -173,6 +173,12 @@
     <!-- Do Not Translate -->
     <string name="message_sender_whatsapp" translatable="false">WhatsApp</string>
 
+    <!-- Message Formatting -->
+    <string name="msg_hello_tenant">Hello %1$s,</string>
+    <string name="msg_bill_for_month">Bill for %1$s</string>
+    <string name="msg_rent_item">Rent: %1$s</string>
+    <string name="msg_total_item">Total: %1$s</string>
+
     <!-- Validations and Errors -->
     <string name="validation_invalid_decimal">must be a valid decimal number</string>
     <string name="validation_invalid_number">must be a valid number</string>
