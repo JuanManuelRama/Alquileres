@@ -31,12 +31,26 @@ import com.example.myapplication.data.entity.ServiceEntity
         BillEntity::class,
         BillItemEntity::class
     ],
-    version = 21,
+    version = 22,
     exportSchema = false
 )
 @ColumnTypeConverters(Converters::class)
 abstract class AppDatabase: RoomDatabase() {
     companion object {
+        val MIGRATION_21_22 = object : Migration(21, 22) {
+            override suspend fun migrate(connection: SQLiteConnection) {
+                connection.execSQL("ALTER TABLE Adjustment ADD COLUMN frozen INTEGER NOT NULL DEFAULT 0")
+                // Older records do not retain whether a rate was fixed at creation.
+                connection.execSQL("""
+                    UPDATE Adjustment SET frozen = 1
+                    WHERE EXISTS (
+                        SELECT 1 FROM Bill b WHERE b.contractId = Adjustment.contractId
+                            AND b.billingMonth = Adjustment.time AND b.paidAt IS NOT NULL
+                    )
+                """.trimIndent())
+            }
+        }
+
         val MIGRATION_20_21 = object : Migration(20, 21) {
             override suspend fun migrate(connection: SQLiteConnection) {
                 connection.execSQL("ALTER TABLE Property ADD COLUMN isActive INTEGER NOT NULL DEFAULT 1")

@@ -1,22 +1,12 @@
 # Backlog
 
-## Multiple tenants
-
-- It should be allowed for multiple tenants to share an appartment
-
 ## Inputting numbers
 
 - KeyboardType.DecimalSigned doesn't work on Samsung, what in the actuall fuck.
 
-## Deleting unused stuff
-
-- UI should provide an easy way to delete stuff created by accident or that's no longer of any use
-- Put properties in unavailable if they cannot be used for contracts rn
-
 ## Properties for contract
 
 - Only properties without a current active contract should be shown in the create contract list
-- Unavailable properties also don't show
 
 ## View
 
@@ -26,11 +16,6 @@
 ## End of Contract
 
 - Start registering lease extension monthly after the last bill
-
-## Language (again)
-
-- There is a bug on language that some stuff like the create new service label isn't properly translated
-- Default message server should depend on locale
 
 ## List
 

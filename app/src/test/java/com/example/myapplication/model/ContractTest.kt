@@ -41,12 +41,19 @@ class ContractTest {
 
         assertEquals(
             listOf(
-                Adjustment(YearMonth.of(2025, 4), BigDecimal("0.15")),
-                Adjustment(YearMonth.of(2025, 7), BigDecimal("0.15")),
-                Adjustment(YearMonth.of(2025, 10), BigDecimal("0.15"))
+                Adjustment(YearMonth.of(2025, 4), BigDecimal("0.15"), frozen = true),
+                Adjustment(YearMonth.of(2025, 7), BigDecimal("0.15"), frozen = true),
+                Adjustment(YearMonth.of(2025, 10), BigDecimal("0.15"), frozen = true)
             ),
             adjustments
         )
+    }
+
+    @Test
+    fun variableAdjustmentsStartUnfrozen() {
+        val adjustments = Contract.generateAdjustments(start, finish, adjustmentTime = 3)
+        assertEquals(3, adjustments.size)
+        assertEquals(true, adjustments.all { !it.frozen && it.amount == null })
     }
 
     @Test

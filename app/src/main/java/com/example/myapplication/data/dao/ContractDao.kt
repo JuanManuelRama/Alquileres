@@ -33,6 +33,9 @@ interface ContractDao {
                 SELECT 1 FROM Adjustment a
                 WHERE a.contractId = c.id
                     AND a.time = :month
+            ) AND NOT EXISTS (
+                SELECT 1 FROM Bill b
+                WHERE b.contractId = c.id AND b.billingMonth = :month AND b.paidAt IS NOT NULL
             ) AS hikeThisMonth
         FROM Contract c
         INNER JOIN Property p ON p.id = c.propertyId
@@ -92,11 +95,9 @@ interface ContractDao {
         SET amount = :amount
         WHERE contractId = :contractId
             AND time = :time
+            AND frozen = 0
             AND EXISTS (
                 SELECT 1 FROM Contract WHERE id = :contractId AND isFinished = 0)
-            AND NOT EXISTS (
-                SELECT 1 FROM Bill WHERE contractId = :contractId AND billingMonth >= :time AND paidAt IS NOT NULL
-            )
             """)
     suspend fun updateAdjustmentAmount(contractId: Long, time: YearMonth, amount: BigDecimal?): Int
 

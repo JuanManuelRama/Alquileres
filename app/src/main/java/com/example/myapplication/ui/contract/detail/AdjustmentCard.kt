@@ -58,6 +58,7 @@ fun AdjustmentCard(
     onSaveHandled: () -> Unit = {},
     onAmountChange: (BigDecimal) -> Unit
 ) {
+    val canEdit = editable && !adjustment.frozen
     val dates = rememberDateFormatters()
     var showEditor by rememberSaveable(adjustment.time.toString()) { mutableStateOf(false) }
     var percentage by rememberSaveable(adjustment.time.toString()) { mutableStateOf("") }
@@ -82,7 +83,7 @@ fun AdjustmentCard(
                 style = MaterialTheme.typography.bodyMedium
             )
 
-            if (adjustment.amount != null || editable) {
+            if (adjustment.amount != null || canEdit) {
                 Row(
                     modifier = Modifier.weight(1f),
                     horizontalArrangement = Arrangement.Center,
@@ -93,7 +94,7 @@ fun AdjustmentCard(
                             ?: "—",
                         style = MaterialTheme.typography.bodyMedium
                     )
-                    if (editable) {
+                    if (canEdit) {
                         IconButton(
                             enabled = enabled,
                             onClick = {
@@ -125,7 +126,7 @@ fun AdjustmentCard(
 
     // Capture the app configuration before the dialog creates its own composition.
     val numberTransformation = rememberNumberVisualTransformation()
-    if (showEditor && editable) {
+    if (showEditor && canEdit) {
         Dialog(onDismissRequest = { if (!saving) { showEditor = false; onSaveHandled() } }) {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(

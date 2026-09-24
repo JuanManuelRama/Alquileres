@@ -5,7 +5,11 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -57,10 +61,12 @@ class PropertyListScreenTest {
             rule.waitForIdle()
         }
     }
+    private fun hasRole(role: Role) = SemanticsMatcher.expectValue(SemanticsProperties.Role, role)
+
     @Test fun activeContractsBlockDeactivationAndDeleteRequiresConfirmation() {
         val contract = seed()
         show()
-        rule.onNodeWithText(text(R.string.property_active)).assertIsNotEnabled()
+        rule.onNode(hasText(text(R.string.property_active)) and hasRole(Role.Checkbox)).assertIsNotEnabled()
         rule.onNodeWithContentDescription(text(R.string.action_delete)).performClick()
         rule.onNodeWithText(text(R.string.delete_property_title)).assertIsDisplayed()
         rule.onNodeWithText(text(R.string.action_cancel)).performClick()
@@ -76,10 +82,10 @@ class PropertyListScreenTest {
         val contract = seed()
         runBlocking { contracts.finish(contract.id) }
         show()
-        rule.onNodeWithText(text(R.string.property_active)).assertIsEnabled().performClick()
+        rule.onNode(hasText(text(R.string.property_active)) and hasRole(Role.Checkbox)).assertIsEnabled().performClick()
         rule.waitUntil(5_000) { (model.state.value as? PropertyListState.Ready)?.rows?.single()?.isActive == false && model.saveStatus.value == SaveStatus.Idle }
         assertTrue(runBlocking { properties.getActive().first().isEmpty() })
-        rule.onNodeWithText(text(R.string.property_inactive)).assertIsEnabled().performClick()
+        rule.onNode(hasText(text(R.string.property_inactive)) and hasRole(Role.Checkbox)).assertIsEnabled().performClick()
         rule.waitUntil(5_000) { (model.state.value as? PropertyListState.Ready)?.rows?.single()?.isActive == true }
         assertEquals(contract.property.id, runBlocking { properties.getActive().first().single().id })
     }

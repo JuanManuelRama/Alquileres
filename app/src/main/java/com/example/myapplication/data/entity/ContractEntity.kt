@@ -81,13 +81,15 @@ data class ContractServiceCrossRef(
 data class AdjustmentEntity(
     val contractId: Long,
     val time: YearMonth,
-    val amount: BigDecimal?
+    val amount: BigDecimal?,
+    @ColumnInfo(defaultValue = "0") val frozen: Boolean = false,
 )
 
 fun Adjustment.toEntity(): AdjustmentEntity = AdjustmentEntity(
     contractId = 0L,
     time = time,
-    amount = amount
+    amount = amount,
+    frozen = frozen
 )
 
-fun AdjustmentEntity.toDomain(): Adjustment = Adjustment(time = time, amount = amount)
+fun AdjustmentEntity.toDomain(): Adjustment = Adjustment(time = time, amount = amount, frozen = frozen)

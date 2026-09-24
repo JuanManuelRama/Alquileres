@@ -51,6 +51,9 @@ interface BillDao {
     @Query("UPDATE Bill SET rent = :rent, paidAt = :date WHERE id = :id AND paidAt IS NULL AND EXISTS (SELECT 1 FROM Contract c WHERE c.id = Bill.contractId AND c.isFinished = 0)")
     suspend fun setPaidDate(id: Long, date: LocalDate, rent: BigDecimal): Int
 
+    @Query("UPDATE Adjustment SET frozen = 1 WHERE contractId = :contractId AND time = :month")
+    suspend fun freezeAdjustment(contractId: Long, month: YearMonth)
+
     @Transaction
     suspend fun markPaid(bill: Bill, date: LocalDate): BillWithItems {
         // The repository validates input; stored state and rent are resolved in this transaction.
@@ -59,6 +62,7 @@ interface BillDao {
         check(setPaidDate(bill.id, date, current.rent) == 1) {
             "Bill no longer exists, is already paid, or its contract is finished"
         }
+        freezeAdjustment(bill.contract.id, bill.month)
         return checkNotNull(find(bill.contract.id, bill.month))
     }
 

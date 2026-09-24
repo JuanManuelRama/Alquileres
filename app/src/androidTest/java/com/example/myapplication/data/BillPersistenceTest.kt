@@ -170,7 +170,7 @@ class BillPersistenceTest {
         } finally { db.close() }
     }
 
-    @Test fun paymentRecalculatesRentAndLocksAllAffectingAdjustments() = runTest {
+    @Test fun paymentRecalculatesRentAndFreezesOnlyItsMonthsAdjustment() = runTest {
         val db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
             .setQueryCoroutineContext(Dispatchers.IO.limitedParallelism(1)).build()
         try {
@@ -179,7 +179,7 @@ class BillPersistenceTest {
             val january = YearMonth.of(2026, 1)
             val july = YearMonth.of(2026, 7)
             val id = db.contractDao().saveContract(contract(property), emptyList(), listOf(
-                AdjustmentEntity(0, january, null), AdjustmentEntity(0, july, null)
+                AdjustmentEntity(0, january, null), AdjustmentEntity(0, january.plusMonths(1), null), AdjustmentEntity(0, july, null)
             ))
             db.billDao().createAll(db.contractDao().observeById(id).first()!!.toDomain().createBills().associate { it.toEntity() to it.itemEntities() })
             val repo = BillRepository(db.billDao())
@@ -190,20 +190,20 @@ class BillPersistenceTest {
             val paid = repo.markPaid(stale.copy(rent = 9999.toBigDecimal()), LocalDate.of(2026, 2, 5))
             assertEquals(0, BigDecimal("1200").compareTo(paid.rent))
             assertEquals(0, BigDecimal("1200").compareTo(db.billDao().find(id, stale.month)!!.bill.rent))
-            db.contractDao().updateAdjustmentAmount(id, january, BigDecimal("0.50"))
+            assertEquals(1, db.contractDao().updateAdjustmentAmount(id, january, BigDecimal("0.50")))
             try {
                 ContractRepository(db)
-                    .updateAdjustmentAmount(id, january, BigDecimal("0.50"))
+                    .updateAdjustmentAmount(id, stale.month, BigDecimal("0.50"))
                 fail("Locked adjustment reported success")
             } catch (_: IllegalStateException) { }
-            assertEquals(BigDecimal("0.20"), db.contractDao().observeById(id).first()!!.adjustments.single { it.time == january }.amount)
+            assertEquals(BigDecimal("0.50"), db.contractDao().observeById(id).first()!!.adjustments.single { it.time == january }.amount)
             db.contractDao().updateAdjustmentAmount(id, july, BigDecimal("0.10"))
-            assertEquals(0, BigDecimal("1320").compareTo(repo.open(id, july).rent))
+            assertEquals(0, BigDecimal("1650").compareTo(repo.open(id, july).rent))
             val reopenedPaid = repo.open(id, paid.month)
             // Contract adjustments stay live; the paid bill's own values remain frozen.
             assertEquals(paid.copy(contract = reopenedPaid.contract), reopenedPaid)
             assertNull(db.billDao().find(id, july)!!.bill.rent)
-            assertEquals(0, BigDecimal("1320").compareTo(repo.open(id, july).rent))
+            assertEquals(0, BigDecimal("1650").compareTo(repo.open(id, july).rent))
         } finally { db.close() }
     }
 

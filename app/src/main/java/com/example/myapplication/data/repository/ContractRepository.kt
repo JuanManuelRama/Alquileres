@@ -70,7 +70,7 @@ class ContractRepository(private val database: AppDatabase) : ContractWriter, Co
 
     override suspend fun updateAdjustmentAmount(contractId: Long, time: YearMonth, amount: BigDecimal?) {
         check(dao.updateAdjustmentAmount(contractId, time, amount) == 1) {
-            "Adjustment no longer exists, its contract is finished, or an affected bill is already paid"
+            "Adjustment no longer exists, its contract is finished, or it is frozen"
         }
     }
 

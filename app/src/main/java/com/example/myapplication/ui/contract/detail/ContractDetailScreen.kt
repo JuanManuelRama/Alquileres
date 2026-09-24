@@ -250,12 +250,11 @@ fun ContractDetailScreen(
                 Text(text = stringResource(R.string.header_adjustment_schedule), style = MaterialTheme.typography.titleSmall)
                 Column {
                     contract.adjustments.forEach { adjustment ->
-                        val hasAffectedPaidBill = state.paidMonths.any { it >= adjustment.time }
                         AdjustmentCard(
                             adjustment = adjustment,
                             contract = contract,
                             modifier = cardModifier,
-                            editable = !isInactive && !hasAffectedPaidBill,
+                            editable = !isInactive,
                             enabled = !busy,
                             saveStatus = if (write.action == ContractWriteAction.Adjustment && write.month == adjustment.time) write.status else SaveStatus.Idle,
                             onSaveHandled = viewModel::clearWriteResult,

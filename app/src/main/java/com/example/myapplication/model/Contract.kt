@@ -60,7 +60,11 @@ data class Contract(
             else generateSequence(startingMonth.plusMonths(adjustmentTime))
             { it.plusMonths(adjustmentTime) }
                 .takeWhile { it.isBefore(finishingMonth) }
-                .map { Adjustment(it, hike) }
+                .map { Adjustment(
+                    time = it,
+                    amount = hike,
+                    frozen = hike != null
+                ) }
                 .toList()
     }
 }
