@@ -49,8 +49,7 @@ class BillDraftRestorationTest {
             MaterialTheme {
                 BillCards(bills, bills[selected].month, { selectedMonth ->
                     selected = bills.indexOfFirst { it.month == selectedMonth }
-                }) {
-                    val bill = bills[selected]
+                }) { bill ->
                     BillCompletionForm(
                         bill = bill,
                         isSaving = false,

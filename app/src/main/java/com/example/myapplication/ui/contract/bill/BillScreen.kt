@@ -123,10 +123,11 @@ fun BillScreen(
                 BillCards(
                     bills = state.bills,
                     selectedMonth = state.month,
-                    onSelect = viewModel::selectMonth
-                ) {
+                    onSelect = viewModel::selectMonth,
+                    navigationEnabled = !state.isSaving && state.error != BillError.Save
+                ) { pageBill ->
                     BillCompletionForm(
-                        bill = bill,
+                        bill = pageBill,
                         isInactive = isInactive,
                         isSaving = state.isSaving,
                         isPaying = state.isPaying,
@@ -142,8 +143,8 @@ fun BillScreen(
                         },
                         onChangesChanged = { hasChanges ->
                             changedBillIds = if (hasChanges) {
-                                (changedBillIds + bill.id).distinct()
-                            } else changedBillIds - bill.id
+                                (changedBillIds + pageBill.id).distinct()
+                            } else changedBillIds - pageBill.id
                         }
                     )
                 }

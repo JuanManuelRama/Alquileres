@@ -9,18 +9,24 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -36,12 +42,32 @@ fun BillCards(
     bills: List<Bill>,
     selectedMonth: YearMonth,
     onSelect: (YearMonth) -> Unit,
-    content: @Composable () -> Unit
+    navigationEnabled: Boolean = true,
+    content: @Composable (Bill) -> Unit
 ) {
     val dates = rememberDateFormatters()
     val billStates = rememberSaveableStateHolder()
     val index = bills.indexOfFirst { it.month == selectedMonth }
     if (index < 0) return
+
+    val pager = rememberPagerState(initialPage = index, pageCount = { bills.size })
+    val currentOnSelect by rememberUpdatedState(onSelect)
+    val currentBills by rememberUpdatedState(bills)
+    val currentNavigationEnabled by rememberUpdatedState(navigationEnabled)
+
+    // Buttons and the month picker also move the pager.
+    LaunchedEffect(index) {
+        if (pager.currentPage != index) pager.scrollToPage(index)
+    }
+    // A preview is not a selection: commit only once the drag/fling has settled.
+    LaunchedEffect(pager) {
+        snapshotFlow { pager.isScrollInProgress to pager.settledPage }
+            .collect { (scrolling, page) ->
+                if (!scrolling && currentNavigationEnabled) {
+                    currentBills.getOrNull(page)?.let { currentOnSelect(it.month) }
+                }
+            }
+    }
 
     var showBillPicker by remember { mutableStateOf(false) }
 
@@ -90,32 +116,43 @@ fun BillCards(
         ) {
             TextButton(
                 onClick = { onSelect(bills[index - 1].month) },
-                enabled = index > 0
+                enabled = navigationEnabled && index > 0
             ) {
                 Text(stringResource(R.string.action_previous))
             }
             TextButton(
                 onClick = { showBillPicker = true },
+                enabled = navigationEnabled,
                 modifier = Modifier.weight(1f)
             ) {
                 Text(dates.month(selectedMonth))
             }
             TextButton(
                 onClick = { onSelect(bills[index + 1].month) },
-                enabled = index < bills.lastIndex
+                enabled = navigationEnabled && index < bills.lastIndex
             ) {
                 Text(stringResource(R.string.action_next))
             }
         }
-        billStates.SaveableStateProvider(bills[index].id) {
+        HorizontalPager(
+            state = pager,
+            modifier = Modifier.fillMaxWidth().testTag("bill_pager"),
+            pageSpacing = 12.dp,
+            verticalAlignment = Alignment.Top,
+            userScrollEnabled = navigationEnabled,
+            key = { bills[it].id }
+        ) { page ->
+          val bill = bills[page]
+          billStates.SaveableStateProvider(bill.id) {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    content()
+                    content(bill)
                 }
             }
+          }
         }
     }
 }
