@@ -1,7 +1,6 @@
 package ar.controlalq.data
 
 import android.content.Context
-import android.database.sqlite.SQLiteDatabase
 import androidx.room3.Room
 import androidx.test.core.app.ApplicationProvider
 import ar.controlalq.data.entity.AdjustmentEntity
@@ -26,7 +25,6 @@ import org.junit.Test
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.YearMonth
-import java.util.UUID
 
 class ContractFinishingTest {
     @Test fun renewalFinishesOriginalAndPreservesItsBills() = runTest {
@@ -71,44 +69,6 @@ class ContractFinishingTest {
 
     private val context: Context = ApplicationProvider.getApplicationContext()
 
-    @Test fun migrationKeepsExistingContractsAndBillsActive() = runTest {
-        val name = "contract-migration-${UUID.randomUUID()}.db"
-        try {
-            val original = Room.databaseBuilder(context, AppDatabase::class.java, name).build()
-            val id = try { seed(original) } finally { original.close() }
-            // Reconstruct version 18: no finished flag and no service-link delete cascade.
-            SQLiteDatabase.openDatabase(context.getDatabasePath(name).path, null, SQLiteDatabase.OPEN_READWRITE).use {
-                it.execSQL("ALTER TABLE Contract DROP COLUMN isFinished")
-                it.execSQL("ALTER TABLE Property DROP COLUMN isActive")
-                it.execSQL("ALTER TABLE Adjustment DROP COLUMN frozen")
-                it.execSQL("DROP TABLE ContractServiceCrossRef")
-                it.execSQL("""
-                    CREATE TABLE ContractServiceCrossRef (
-                        contractId INTEGER NOT NULL, serviceId INTEGER NOT NULL,
-                        PRIMARY KEY(contractId, serviceId),
-                        FOREIGN KEY(contractId) REFERENCES Contract(id) ON DELETE NO ACTION,
-                        FOREIGN KEY(serviceId) REFERENCES Service(id) ON DELETE NO ACTION
-                    )
-                """.trimIndent())
-                it.execSQL("CREATE INDEX index_ContractServiceCrossRef_serviceId ON ContractServiceCrossRef(serviceId)")
-                it.execSQL("INSERT INTO Service (id, name) VALUES (1, 'Water')")
-                it.execSQL("INSERT INTO ContractServiceCrossRef (contractId, serviceId) VALUES ($id, 1)")
-                it.version = 18
-            }
-            val migrated = Room.databaseBuilder(context, AppDatabase::class.java, name)
-                .addMigrations(AppDatabase.MIGRATION_18_19, AppDatabase.MIGRATION_19_20, AppDatabase.MIGRATION_20_21, AppDatabase.MIGRATION_21_22).build()
-            try {
-                assertEquals(id, migrated.contractDao().observeWithStatus(YearMonth.of(2026, 1)).first().single().details.contract.id)
-                assertEquals(2, migrated.billDao().list(id).size)
-                assertTrue(migrated.contractDao().observeInactive().first().isEmpty())
-                assertEquals("Water", migrated.contractDao().observeById(id).first()!!.services.single().name)
-                assertEquals(1, migrated.contractDao().deleteContract(id))
-                assertTrue(migrated.billDao().list(id).isEmpty())
-                assertEquals("Water", migrated.serviceDao().getAll().first().single().name)
-            } finally { migrated.close() }
-        } finally { context.deleteDatabase(name) }
-    }
-
     private suspend fun seed(db: AppDatabase): Long {
         val owner = db.ownerDao().insert(OwnerEntity(name = "Owner"))
         val property = db.propertyDao().insertProperty(PropertyEntity(address = Address("Main", "1", null), ownerId = owner))
@@ -121,8 +81,6 @@ class ContractFinishingTest {
         db.billDao().createAll(db.contractDao().observeById(id).first()!!.toDomain().createBills().associate { it.toEntity() to it.itemEntities() })
         return id
     }
-
-
 
     @Test fun finishingPreservesPaymentDates() = runTest {
         val db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build()

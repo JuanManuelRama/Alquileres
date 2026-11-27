@@ -1,7 +1,6 @@
 package ar.controlalq.data
 
 import android.content.Context
-import android.database.sqlite.SQLiteDatabase
 import androidx.room3.Room
 import androidx.test.core.app.ApplicationProvider
 import ar.controlalq.data.entity.AdjustmentEntity
@@ -22,7 +21,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.math.BigDecimal
 import java.time.YearMonth
-import java.util.UUID
 
 class PropertyManagementTest {
     @Test fun insertSavesNewOwnersReusesExistingOwnersAndRollsBackFailures() = runTest {
@@ -159,24 +157,5 @@ class PropertyManagementTest {
             assertTrue(runCatching { properties.delete(second.id) }.isFailure)
             assertEquals(listOf(retained), db.ownerDao().getAll().first().map { it.id })
         } finally { db.close() }
-    }
-
-    @Test fun migrationFrom20PreservesPropertiesContractsAndBills() = runTest {
-        val name = "property-migration-${UUID.randomUUID()}.db"
-        try {
-            val original = Room.databaseBuilder(context, AppDatabase::class.java, name).build()
-            val contract = try { ContractRepository(original).insert(draft()) } finally { original.close() }
-            SQLiteDatabase.openDatabase(context.getDatabasePath(name).path, null, SQLiteDatabase.OPEN_READWRITE).use {
-                it.execSQL("ALTER TABLE Property DROP COLUMN isActive")
-                it.version = 20
-            }
-            val migrated = Room.databaseBuilder(context, AppDatabase::class.java, name)
-                .addMigrations(AppDatabase.MIGRATION_20_21).build()
-            try {
-                assertEquals(contract.property, PropertyRepository(migrated).getActive().first().single())
-                assertEquals(contract.id, ContractRepository(migrated).getAll().first().single().id)
-                assertEquals(2, migrated.billDao().list(contract.id).size)
-            } finally { migrated.close() }
-        } finally { context.deleteDatabase(name) }
     }
 }

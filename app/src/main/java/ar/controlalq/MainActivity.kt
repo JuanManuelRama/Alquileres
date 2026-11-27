@@ -30,7 +30,7 @@ import ar.controlalq.data.settings.appLocale
 import ar.controlalq.navigation.AppNavigation
 import ar.controlalq.ui.AppViewModelFactory
 import ar.controlalq.ui.contract.ContractViewModel
-import ar.controlalq.ui.theme.MyApplicationTheme
+import ar.controlalq.ui.theme.AppTheme
 import ar.controlalq.ui.util.LocalNumberLocale
 import java.util.Locale
 
@@ -62,7 +62,7 @@ class MainActivity : ComponentActivity() {
 
             CompositionLocalProvider(LocalNumberLocale provides numberSeparator.locale(deviceLocale)) {
             LocalizedContent(language = language) {
-                MyApplicationTheme(themeMode = themeMode) {
+                AppTheme(themeMode = themeMode) {
                     Surface(
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.background,
