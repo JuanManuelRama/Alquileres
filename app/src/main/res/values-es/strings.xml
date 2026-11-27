@@ -3,7 +3,7 @@
     <string name="err_could_not_save_adjustment">No se pudo guardar el ajuste. Tus cambios siguen acá. Intentá de nuevo.</string>
     <string name="err_could_not_cancel_contract">No se pudo cancelar el contrato. Intentá de nuevo.</string>
     <string name="err_could_not_create_contract">No se pudo crear el contrato. Intentá de nuevo.</string>
-    <string name="app_name">My Application</string>
+    <string name="app_name">Control Alq</string>
 
     <!-- Common Actions -->
     <string name="action_back">Atrás</string>

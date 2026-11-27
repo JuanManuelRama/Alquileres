@@ -1,0 +1,82 @@
+package ar.controlalq.data.dao
+
+import androidx.room3.Dao
+import androidx.room3.Insert
+import androidx.room3.Query
+import androidx.room3.Transaction
+import ar.controlalq.data.entity.BillEntity
+import ar.controlalq.data.entity.BillItemEntity
+import ar.controlalq.data.entity.BillWithItems
+import ar.controlalq.data.entity.itemEntities
+import ar.controlalq.data.entity.toEntity
+import ar.controlalq.model.Bill
+import kotlinx.coroutines.flow.Flow
+import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.YearMonth
+
+@Dao
+interface BillDao {
+    @Query("DELETE FROM Bill WHERE contractId = :contractId AND billingMonth > :cancellationMonth")
+    suspend fun deleteFutureBills(contractId: Long, cancellationMonth: YearMonth): Int
+
+    @Query("SELECT billingMonth FROM Bill WHERE contractId = :contractId AND paidAt IS NOT NULL")
+    fun observePaidMonths(contractId: Long): Flow<List<YearMonth>>
+
+    @Transaction
+    @Query("SELECT * FROM Bill WHERE contractId = :contractId ORDER BY billingMonth")
+    suspend fun list(contractId: Long): List<BillWithItems>
+
+    @Transaction
+    suspend fun createAll(billsWithItems: Map<BillEntity, List<BillItemEntity>>) {
+        billsWithItems.forEach { (bill, items) ->
+            val id = insertBill(bill)
+            insertItems(items.map { it.copy(billId = id) })
+        }
+    }
+
+    @Transaction
+    @Query("SELECT * FROM Bill WHERE contractId = :contractId AND billingMonth = :month")
+    suspend fun find(contractId: Long, month: YearMonth): BillWithItems?
+
+    @Insert
+    suspend fun insertBill(bill: BillEntity): Long
+
+    @Insert
+    suspend fun insertItems(items: List<BillItemEntity>)
+
+    @Query("UPDATE Bill SET updatedAt = :updatedAt WHERE id = :id AND paidAt IS NULL AND EXISTS (SELECT 1 FROM Contract c WHERE c.id = Bill.contractId AND c.isFinished = 0)")
+    suspend fun updateUnpaidBill(id: Long, updatedAt: Long): Int
+
+    @Query("UPDATE Bill SET rent = :rent, paidAt = :date WHERE id = :id AND paidAt IS NULL AND EXISTS (SELECT 1 FROM Contract c WHERE c.id = Bill.contractId AND c.isFinished = 0)")
+    suspend fun setPaidDate(id: Long, date: LocalDate, rent: BigDecimal): Int
+
+    @Query("UPDATE Adjustment SET frozen = 1 WHERE contractId = :contractId AND time = :month")
+    suspend fun freezeAdjustment(contractId: Long, month: YearMonth)
+
+    @Transaction
+    suspend fun markPaid(bill: Bill, date: LocalDate): BillWithItems {
+        // The repository validates input; stored state and rent are resolved in this transaction.
+        save(bill.toEntity(), bill.itemEntities())
+        val current = checkNotNull(find(bill.contract.id, bill.month)).toDomain()
+        check(setPaidDate(bill.id, date, current.rent) == 1) {
+            "Bill no longer exists, is already paid, or its contract is finished"
+        }
+        freezeAdjustment(bill.contract.id, bill.month)
+        return checkNotNull(find(bill.contract.id, bill.month))
+    }
+
+    @Query("DELETE FROM BillItem WHERE billId = :id")
+    suspend fun deleteItems(id: Long)
+
+    @Transaction
+    suspend fun save(bill: BillEntity, items: List<BillItemEntity>) {
+        val stored = checkNotNull(find(bill.contractId, bill.billingMonth)) { "Bill no longer exists" }
+        check(stored.bill.id == bill.id) { "Bill identity does not match" }
+        check(updateUnpaidBill(bill.id, bill.updatedAt) == 1) {
+            "Bill no longer exists, is already paid, or its contract is finished"
+        }
+        deleteItems(bill.id)
+        insertItems(items)
+    }
+}

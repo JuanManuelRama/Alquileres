@@ -1,0 +1,225 @@
+package ar.controlalq.data
+
+import androidx.room3.Room
+import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import ar.controlalq.data.entity.AdjustmentEntity
+import ar.controlalq.data.entity.ContractEntity
+import ar.controlalq.data.entity.OwnerEntity
+import ar.controlalq.data.entity.PropertyEntity
+import ar.controlalq.data.entity.ServiceEntity
+import ar.controlalq.data.entity.itemEntities
+import ar.controlalq.data.entity.toEntity
+import ar.controlalq.data.repository.BillRepository
+import ar.controlalq.model.Address
+import ar.controlalq.model.BillItem
+import ar.controlalq.model.Tenant
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import java.math.BigDecimal
+import java.time.YearMonth
+
+@RunWith(AndroidJUnit4::class)
+class PersistenceInstrumentedTest {
+    private lateinit var database: AppDatabase
+
+    @Before
+    fun createDatabase() {
+        database = Room.inMemoryDatabaseBuilder(
+            ApplicationProvider.getApplicationContext(),
+            AppDatabase::class.java,
+        ).allowMainThreadQueries()
+            .setQueryCoroutineContext(Dispatchers.IO.limitedParallelism(1))
+            .build()
+    }
+
+    @After
+    fun closeDatabase() = database.close()
+
+    @Test
+    fun adjustmentKeyRejectsDuplicateMonthsAndUpdatesOnlyTheMatchingEntry() = runTest {
+        val ownerId = database.ownerDao().insert(OwnerEntity(name = "Owner"))
+        val propertyId = database.propertyDao().insertProperty(
+            PropertyEntity(address = Address("Main", "1", null), ownerId = ownerId)
+        )
+        val month = YearMonth.of(2026, 7)
+        val contract = ContractEntity(propertyId = propertyId, tenant = Tenant("Tenant", "123"),
+            rent = BigDecimal("1000"), startingMonth = month, finishingMonth = month.plusMonths(12))
+        val firstId = database.contractDao().insertContract(contract)
+        val secondId = database.contractDao().insertContract(contract)
+        database.contractDao().insertAdjustments(listOf(
+            AdjustmentEntity(firstId, month, null),
+            AdjustmentEntity(firstId, month.plusMonths(1), null),
+            AdjustmentEntity(secondId, month, null)
+        ))
+        val duplicate = runCatching {
+            database.contractDao().insertAdjustments(listOf(AdjustmentEntity(firstId, month, BigDecimal("0.50"))))
+        }
+        assertTrue("Duplicate contract/month must be rejected", duplicate.isFailure)
+        database.contractDao().updateAdjustmentAmount(firstId, month, BigDecimal("0.20"))
+        val first = database.contractDao().observeById(firstId).first()!!.adjustments
+        assertEquals(2, first.size)
+        assertEquals(BigDecimal("0.20"), first.single { it.time == month }.amount)
+        assertNull(first.single { it.time == month.plusMonths(1) }.amount)
+        assertNull(database.contractDao().observeById(secondId).first()!!.adjustments.single().amount)
+    }
+
+    @Test
+    fun billCompletionAndPaymentStatusesAreExclusive() = runTest {
+        val owner = database.ownerDao().insert(OwnerEntity(name = "Owner"))
+        val property = database.propertyDao().insertProperty(
+            PropertyEntity(address = Address("Main", "1", null), ownerId = owner)
+        )
+        val month = YearMonth.of(2026, 1)
+        val id = database.contractDao().insertContract(ContractEntity(
+            propertyId = property, tenant = Tenant("Tenant", "123"),
+            rent = BigDecimal("1000"), startingMonth = month, finishingMonth = month
+        ))
+        suspend fun checkStatus(incomplete: Boolean, due: Boolean, at: YearMonth = month) {
+            val status = database.contractDao().observeWithStatus(at).first().single()
+            assertEquals(incomplete, status.billIncomplete)
+            assertEquals(due, status.paymentDue)
+        }
+        checkStatus(true, false) // No bill yet.
+        checkStatus(false, false, month.minusMonths(1))
+        val contract = database.contractDao().observeById(id).first()!!.toDomain()
+        database.billDao().createAll(contract.createBills().associate { it.toEntity() to it.itemEntities() })
+        checkStatus(false, true) // Rent-only bills are complete even with null stored rent.
+        val repository = BillRepository(database.billDao())
+        val bill = repository.open(id, month)
+        repository.save(bill.copy(items = listOf(BillItem("Water", null))))
+        checkStatus(true, false)
+        repository.save(bill.copy(items = listOf(BillItem(" \t\n", BigDecimal.ZERO))))
+        checkStatus(true, false)
+        val complete = repository.save(bill.copy(items = listOf(
+            BillItem("Water", BigDecimal.ZERO)
+        )))
+        checkStatus(false, true)
+        repository.markPaid(complete, month.atDay(1))
+        checkStatus(false, false)
+    }
+
+    @Test
+    fun basicEntitiesRoundTripThroughRoom() = runTest {
+        database.ownerDao().insert(OwnerEntity(name = "Ada"))
+        database.serviceDao().insert(ServiceEntity(name = "Water"))
+
+        assertEquals("Ada", database.ownerDao().getAll().first().single().name)
+        assertEquals("Water", database.serviceDao().getAll().first().single().name)
+    }
+
+    @Test
+    fun detailQueriesFilterByIdAndReadUpdatedRelationsAndPaidBills() = runTest {
+        val ownerId = database.ownerDao().insert(OwnerEntity(name = "Owner"))
+        val propertyId = database.propertyDao().insertProperty(
+            PropertyEntity(address = Address("Main", "1", null), ownerId = ownerId)
+        )
+        val date = YearMonth.of(2026, 7)
+        val contract = ContractEntity(
+            propertyId = propertyId, tenant = Tenant("Tenant", "123"),
+            rent = BigDecimal("1000"), startingMonth = date.minusMonths(6), finishingMonth = date.plusMonths(6)
+        )
+        val firstId = database.contractDao().saveContract(
+            contract, emptyList(), listOf(AdjustmentEntity(contractId = 0, time = date, amount = null))
+        )
+        val fixedId = database.contractDao().saveContract(
+            contract, emptyList(), listOf(AdjustmentEntity(0, date, BigDecimal("0.10"), frozen = true))
+        )
+        assertEquals(0, database.contractDao().updateAdjustmentAmount(fixedId, date, BigDecimal("0.30")))
+        assertTrue(database.contractDao().observeWithStatus(date).first().single { it.details.contract.id == fixedId }.hikeThisMonth)
+        val secondId = database.contractDao().insertContract(contract)
+        assertNull(database.contractDao().observeById(-1L).first())
+        assertEquals(firstId, database.contractDao().observeById(firstId).first()!!.contract.id)
+
+        database.contractDao().updateAdjustmentAmount(firstId, date, BigDecimal("0.20"))
+        val updated = database.contractDao().observeById(firstId).first()!!
+        assertEquals(BigDecimal("0.20"), updated.adjustments.single().amount)
+        assertEquals("Owner", updated.property.owner.name)
+        assertTrue(database.contractDao().observeById(secondId).first()!!.adjustments.isEmpty())
+
+        database.billDao().createAll(updated.toDomain().createBills().associate { it.toEntity() to it.itemEntities() })
+        val bill = database.billDao().find(firstId, date)!!.toDomain()
+        database.billDao().markPaid(bill, date.atDay(1))
+        assertTrue(database.contractDao().observeById(firstId).first()!!.adjustments.single().frozen)
+        assertEquals(0, database.contractDao().updateAdjustmentAmount(firstId, date, BigDecimal("0.30")))
+        assertEquals(listOf(date), database.billDao().observePaidMonths(firstId).first())
+        assertTrue(database.billDao().observePaidMonths(secondId).first().isEmpty())
+        val statuses = database.contractDao().observeWithStatus(date).first()
+            .associateBy { it.details.contract.id }
+        assertFalse(statuses.getValue(firstId).paymentDue)
+        val summary = statuses.getValue(firstId).details.toDomain()
+        assertEquals("Owner", summary.property.owner.name)
+        assertEquals(Address("Main", "1", null), summary.property.address)
+        assertTrue(summary.adjustments.isEmpty())
+        assertTrue(summary.services.isEmpty())
+        assertFalse(statuses.getValue(firstId).hikeThisMonth)
+        assertFalse(statuses.getValue(secondId).paymentDue)
+        assertTrue(statuses.getValue(secondId).billIncomplete)
+        assertFalse(statuses.getValue(secondId).hikeThisMonth)
+        val previousMonth = database.contractDao().observeWithStatus(date.minusMonths(1)).first()
+        assertTrue(previousMonth.all { (it.paymentDue || it.billIncomplete) && !it.hikeThisMonth })
+    }
+
+    @Test
+    fun propertyRoundTripIncludesItsOwnerAndEmbeddedAddress() = runTest {
+        val ownerId = database.ownerDao().insert(OwnerEntity(name = "Owner"))
+        val address = Address("Oak", "430", "2B")
+        val propertyId = database.propertyDao().insertProperty(
+            PropertyEntity(address = address, ownerId = ownerId),
+        )
+
+        val result = database.propertyDao().getAllPropertiesWithOwners().first().single()
+        assertEquals(propertyId, result.property.id)
+        assertEquals(address, result.property.address)
+        assertEquals("Owner", result.owner.name)
+    }
+
+    @Test
+    fun contractTransactionPersistsServicesAdjustmentsAndDateConverters() = runTest {
+        val ownerId = database.ownerDao().insert(OwnerEntity(name = "Owner"))
+        val propertyId = database.propertyDao().insertProperty(
+            PropertyEntity(address = Address("Main", "10", null), ownerId = ownerId),
+        )
+        val tenant = Tenant(name = "Tenant", phone = "123")
+        val serviceId = database.serviceDao().insert(ServiceEntity(name = "Electricity"))
+        val start = YearMonth.of(2026, 1)
+        val finish = YearMonth.of(2027, 1)
+        val adjustmentDate = YearMonth.of(2026, 7)
+
+        database.contractDao().saveContract(
+            contract = ContractEntity(
+                propertyId = propertyId,
+                tenant = tenant,
+                rent = BigDecimal("1250.50"),
+                startingMonth = start,
+                finishingMonth = finish,
+            ),
+            serviceIds = listOf(serviceId),
+            adjustments = listOf(
+                AdjustmentEntity(contractId = 0, time = adjustmentDate, amount = BigDecimal("0.10")),
+            ),
+        )
+
+        val result = database.contractDao().getAllContracts().first().single()
+        assertNotNull(result.contract.id)
+        assertEquals(BigDecimal("1250.50"), result.contract.rent)
+        assertEquals(start, result.contract.startingMonth)
+        assertEquals(finish, result.contract.finishingMonth)
+        assertEquals(tenant, result.contract.tenant)
+        assertEquals(tenant, result.toDomain().tenant)
+        assertEquals("Electricity", result.services.single().name)
+        assertEquals(adjustmentDate, result.adjustments.single().time)
+        assertEquals(BigDecimal("0.10"), result.adjustments.single().amount)
+    }
+
+}

@@ -1,0 +1,24 @@
+package ar.controlalq.data.entity
+
+import androidx.room3.Entity
+import androidx.room3.PrimaryKey
+import ar.controlalq.model.Service
+
+@Entity(tableName = "Service")
+data class ServiceEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0L,
+    val name: String
+) {
+    fun toDomain(): Service = Service(
+        name = name,
+        id = id
+    )
+}
+
+fun Service.toEntity(): ServiceEntity {
+    return ServiceEntity(
+        id = id,
+        name = name
+    )
+}

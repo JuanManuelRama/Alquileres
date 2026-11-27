@@ -1,0 +1,35 @@
+package ar.controlalq.ui.contract.detail
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import ar.controlalq.R
+import ar.controlalq.model.Contract
+import ar.controlalq.ui.util.LocalNumberLocale
+import ar.controlalq.ui.util.toMoneyWithCurrency
+
+@Composable
+fun ContractRentCard(
+    contract: Contract,
+    modifier: Modifier = Modifier
+) {
+    Card(modifier = modifier) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(text = stringResource(R.string.label_rent), style = MaterialTheme.typography.labelLarge)
+            Text(
+                text = stringResource(R.string.rent_current_format, contract.currentValue().toMoneyWithCurrency(numberLocale = LocalNumberLocale.current)),
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Text(
+                text = stringResource(R.string.rent_initial_format, contract.rent.toMoneyWithCurrency(numberLocale = LocalNumberLocale.current)),
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+    }
+}

@@ -6,13 +6,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.myapplication"
+    namespace = "ar.controlalq"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.example.myapplication"
+        applicationId = "ar.controlalq"
         minSdk = 26
         targetSdk = 37
         versionCode = 1

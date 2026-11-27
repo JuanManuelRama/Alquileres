@@ -3,7 +3,7 @@
     <string name="err_could_not_save_adjustment">Could not save the adjustment. Your changes are still here. Please retry.</string>
     <string name="err_could_not_cancel_contract">Could not cancel the contract. Please try again.</string>
     <string name="err_could_not_create_contract">Could not create the contract. Please try again.</string>
-    <string name="app_name">My Application</string>
+    <string name="app_name">Control Alq</string>
 
     <!-- Common Actions -->
     <string name="action_back">Back</string>
