@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -58,7 +57,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 private data class PropertySelection(val property: Property? = null)
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PropertyListScreen(
     viewModel: PropertyListViewModel,
@@ -219,7 +217,6 @@ private fun PropertyMutationError() {
     Text(stringResource(R.string.err_property_change), Modifier.padding(16.dp), color = MaterialTheme.colorScheme.error)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PropertyEditScreen(property: Property, owners: List<Owner>, status: SaveStatus, onSave: (Property) -> Unit, onBack: () -> Unit) {
     val initial by rememberSerializable(property.id) {

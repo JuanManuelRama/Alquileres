@@ -35,7 +35,6 @@ import ar.controlalq.ui.components.form.DiscardChangesDialog
 import ar.controlalq.ui.util.LocalNumberLocale
 import ar.controlalq.ui.util.rememberDateFormatters
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BillScreen(
     viewModel: BillViewModel,

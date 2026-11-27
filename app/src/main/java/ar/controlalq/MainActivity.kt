@@ -39,7 +39,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val application = applicationContext as MyApplication
+            val application = applicationContext as ControlAlq
 
             val settingsRepository = application.settingsRepository
             val themeMode by settingsRepository.themeMode.collectAsStateWithLifecycle()

@@ -6,7 +6,7 @@ import ar.controlalq.data.AppDatabase
 import ar.controlalq.data.repository.DefaultSettingsRepository
 import ar.controlalq.data.repository.SettingsRepository
 
-class MyApplication : Application() {
+class ControlAlq : Application() {
     val database: AppDatabase by lazy {
         Room.databaseBuilder(
             applicationContext,

@@ -8,7 +8,9 @@ plugins {
 android {
     namespace = "ar.controlalq"
     compileSdk {
-        version = release(37)
+        version = release(37) {
+            minorApiLevel = 1
+        }
     }
 
     defaultConfig {

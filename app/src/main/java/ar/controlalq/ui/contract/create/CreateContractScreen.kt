@@ -33,7 +33,6 @@ import ar.controlalq.R
 import ar.controlalq.ui.SaveStatus
 import ar.controlalq.ui.components.form.DiscardChangesDialog
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateContractScreen(
     viewModel: CreateContractViewModel,

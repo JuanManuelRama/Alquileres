@@ -18,7 +18,6 @@ import ar.controlalq.R
 import ar.controlalq.ui.contract.detail.ContractDetailUiState
 import ar.controlalq.ui.contract.detail.ContractDetailViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RenewContractScreen(
     detailViewModel: ContractDetailViewModel,

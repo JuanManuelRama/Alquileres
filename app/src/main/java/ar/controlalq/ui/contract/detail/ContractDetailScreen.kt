@@ -40,7 +40,6 @@ import ar.controlalq.R
 import ar.controlalq.model.Contract
 import ar.controlalq.ui.SaveStatus
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContractDetailScreen(
     viewModel: ContractDetailViewModel,
